@@ -1,0 +1,130 @@
+<template>
+  <div class="container mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">フォーム管理</h1>
+      <UButton to="/admin/forms/create">新規作成</UButton>
+    </div>
+
+    <UCard>
+      <div v-if="loading" class="text-center py-8">
+        <UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl" />
+      </div>
+
+      <UTable v-else :data="forms" :columns="columns" class="w-full">
+        <template #actions-cell="{ row }">
+          <div class="flex gap-2">
+            <UButton
+              color="primary"
+              variant="soft"
+              size="sm"
+              :to="`/admin/forms/${row.original.id}`"
+            >
+              詳細
+            </UButton>
+            <UButton
+              color="primary"
+              variant="soft"
+              size="sm"
+              :to="`/admin/forms/${row.original.id}/edit`"
+            >
+              編集
+            </UButton>
+            <UButton
+              color="secondary"
+              variant="soft"
+              size="sm"
+              @click="handleCopy(row.original.id)"
+            >
+              コピー
+            </UButton>
+            <UButton
+              color="error"
+              variant="soft"
+              size="sm"
+              @click="handleDelete(row.original.id)"
+            >
+              削除
+            </UButton>
+          </div>
+        </template>
+      </UTable>
+    </UCard>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+
+definePageMeta({
+  middleware: 'auth',
+  layout: 'admin',
+})
+
+interface Form {
+  id: number
+  name: string
+  content: {
+    fields: any[]
+  }
+}
+
+const forms = ref<Form[]>([])
+const loading = ref(true)
+
+const columns: TableColumn<Form>[] = [
+  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'name', header: 'フォーム名' },
+  { accessorKey: 'createdAt', header: '作成日' },
+  { accessorKey: 'actions', header: '操作' },
+]
+
+const fetchForms = async () => {
+  loading.value = true
+  try {
+    const response = await $fetch<{ success: boolean; data: Form[] }>(
+      '/api/forms',
+      {
+        credentials: 'include',
+      }
+    )
+    forms.value = response.data || []
+  } catch (error) {
+    console.error('フォーム取得エラー:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleCopy = async (id: number) => {
+  try {
+    await $fetch(`/api/forms/${id}/copy`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    await fetchForms()
+    alert('フォームをコピーしました')
+  } catch (error) {
+    console.error('コピーエラー:', error)
+    alert('コピーに失敗しました')
+  }
+}
+
+const handleDelete = async (id: number) => {
+  if (!confirm('本当に削除しますか？')) return
+
+  try {
+    await $fetch(`/api/forms/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    await fetchForms()
+  } catch (error) {
+    console.error('削除エラー:', error)
+    alert('削除に失敗しました')
+  }
+}
+
+onMounted(() => {
+  fetchForms()
+})
+</script>

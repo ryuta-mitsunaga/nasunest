@@ -1,0 +1,346 @@
+import { sequelize } from '../config'
+import { DataTypes, Model, Optional } from 'sequelize'
+
+// Memberモデル
+export interface MemberAttributes {
+  id: number
+  name_sei: string
+  name_mei: string
+  start_date: Date
+  end_date: Date | null
+  mission: string
+  description: string
+  icon: Buffer | null
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface MemberCreationAttributes
+  extends Optional<
+    MemberAttributes,
+    'id' | 'end_date' | 'icon' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class Member
+  extends Model<MemberAttributes, MemberCreationAttributes>
+  implements MemberAttributes
+{
+  public id!: number
+  public name_sei!: string
+  public name_mei!: string
+  public start_date!: Date
+  public end_date!: Date | null
+  public mission!: string
+  public description!: string
+  public icon!: Buffer | null
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+Member.init(
+  {
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name_sei: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    name_mei: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    start_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    end_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    mission: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    icon: {
+      type: DataTypes.BLOB('long'),
+      allowNull: true,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'members',
+    timestamps: true,
+  }
+)
+
+// Adminモデル
+export interface AdminAttributes {
+  id: number
+  login_id: string
+  password: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface AdminCreationAttributes
+  extends Optional<AdminAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+
+export class Admin
+  extends Model<AdminAttributes, AdminCreationAttributes>
+  implements AdminAttributes
+{
+  public id!: number
+  public login_id!: string
+  public password!: string
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+Admin.init(
+  {
+    id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    login_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'admins',
+    timestamps: true,
+  }
+)
+
+// Formモデル
+export interface FormAttributes {
+  id: number
+  admin_id: number
+  name: string
+  content: any // JSON形式
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface FormCreationAttributes
+  extends Optional<FormAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+
+export class Form
+  extends Model<FormAttributes, FormCreationAttributes>
+  implements FormAttributes
+{
+  public id!: number
+  public admin_id!: number
+  public name!: string
+  public content!: any
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+Form.init(
+  {
+    id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    admin_id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    content: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'forms',
+    timestamps: true,
+  }
+)
+
+// FormAnswerモデル
+export interface FormAnswerAttributes {
+  id: number
+  form_id: number
+  date: Date
+  content: any // JSON形式
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface FormAnswerCreationAttributes
+  extends Optional<FormAnswerAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+
+export class FormAnswer
+  extends Model<FormAnswerAttributes, FormAnswerCreationAttributes>
+  implements FormAnswerAttributes
+{
+  public id!: number
+  public form_id!: number
+  public date!: Date
+  public content!: any
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+FormAnswer.init(
+  {
+    id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    form_id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: 'forms',
+        key: 'id',
+      },
+    },
+    date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    content: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'forms_answer',
+    timestamps: true,
+  }
+)
+
+// Eventモデル
+export interface EventAttributes {
+  id: number
+  title: string
+  form_id: number | null
+  start_date: Date
+  end_date: Date | null
+  description: string
+  location_name: string | null
+  location_address: string | null
+  location_url: string | null
+  thumbnail: Buffer | null
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EventCreationAttributes
+  extends Optional<
+    EventAttributes,
+    'id' | 'form_id' | 'end_date' | 'location_name' | 'location_address' | 'location_url' | 'thumbnail' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class Event
+  extends Model<EventAttributes, EventCreationAttributes>
+  implements EventAttributes
+{
+  public id!: number
+  public title!: string
+  public form_id!: number | null
+  public start_date!: Date
+  public end_date!: Date | null
+  public description!: string
+  public location_name!: string | null
+  public location_address!: string | null
+  public location_url!: string | null
+  public thumbnail!: Buffer | null
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+Event.init(
+  {
+    id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    form_id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      allowNull: true,
+      references: {
+        model: 'forms',
+        key: 'id',
+      },
+    },
+    start_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    end_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    location_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    location_address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    location_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    thumbnail: {
+      type: DataTypes.BLOB('long'),
+      allowNull: true,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'events',
+    timestamps: true,
+  }
+)
+
+// すべてのモデルをエクスポート
+export const models = {
+  Member,
+  Admin,
+  Form,
+  FormAnswer,
+  Event,
+}
+
