@@ -3,7 +3,7 @@
     <UCard>
       <template #header>
         <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold">メンバー管理</h2>
+          <h2 class="text-xl font-semibold">協力隊員管理</h2>
           <UButton @click="openCreateModal">新規作成</UButton>
         </div>
       </template>

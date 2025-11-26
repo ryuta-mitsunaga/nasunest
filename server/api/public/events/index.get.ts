@@ -1,9 +1,31 @@
 import { Event } from '~~/server/database'
+import { Op } from 'sequelize'
 
 export default defineEventHandler(async (event) => {
   try {
-    // 公開用なので認証不要でイベントを取得
+    // 公開用なので認証不要でイベントを取得（公開されているもののみ）
+    // 公開期間を考慮
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     const events = await Event.findAll({
+      where: {
+        is_published: true,
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { published_start: null },
+              { published_start: { [Op.lte]: today } },
+            ],
+          },
+          {
+            [Op.or]: [
+              { published_end: null },
+              { published_end: { [Op.gte]: today } },
+            ],
+          },
+        ],
+      },
       order: [['start_date', 'DESC']],
     })
 

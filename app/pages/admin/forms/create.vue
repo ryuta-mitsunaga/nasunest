@@ -30,6 +30,8 @@ const handleSubmit = async (data: {
   name: string
   description?: string
   fields: FormField[]
+  published_start?: string | null
+  published_end?: string | null
 }) => {
   submitting.value = true
   try {
@@ -44,6 +46,8 @@ const handleSubmit = async (data: {
       body: {
         name: data.name,
         content,
+        published_start: data.published_start || null,
+        published_end: data.published_end || null,
       },
     })
 

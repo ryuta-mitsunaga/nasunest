@@ -1,31 +1,44 @@
 <template>
-  <!-- メンバー -->
-  <section>
+  <div style="color: #2E5E3E">
+    <UiPageTitle title="地域おこし協力隊員一覧" />
+
     <!-- メンバー一覧 -->
-    <div class="grid grid-cols-2 gap-2 p-4">
-      <div
-        v-for="(member, index) in data?.data"
-        :key="member.id"
-        class="flex items-center justify-start p-4"
-      >
-        <div class="w-12 h-12 bg-gray-300 rounded-full mr-2">
-          <img
-            :src="member.icon"
-            :alt="member.name_sei + ' ' + member.name_mei"
-            class="w-full h-full object-cover rounded-sm"
-          />
-        </div>
-        <div class="p-4">
-          <p>{{ member.mission }}</p>
-          <p>{{ member.name_sei + ' ' + member.name_mei }}</p>
-        </div>
-      </div>
+    <div v-if="pending" class="flex justify-center items-center py-20">
+      <UIcon
+        name="i-heroicons-arrow-path"
+        class="animate-spin text-3xl text-gray-400"
+      />
     </div>
-  </section>
+
+    <div v-else-if="error" class="text-center py-20">
+      メンバーの取得に失敗しました
+    </div>
+
+    <div
+      v-else-if="members && members.length > 0"
+      class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-12 md:gap-8"
+    >
+      <MembersMemberCard
+        v-for="member in members"
+        :key="member.id"
+        :name-sei="member.name_sei"
+        :name-mei="member.name_mei"
+        :mission="member.mission"
+        :description="member.description"
+        :icon="member.icon"
+      />
+    </div>
+
+    <div v-else class="text-center py-20">
+      メンバーが登録されていません
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import type { MembersResponse } from '~/types'
 
 const { data, pending, error } = await useFetch<MembersResponse>('/api/members')
+
+const members = computed(() => data.value?.data || [])
 </script>

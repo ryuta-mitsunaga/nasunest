@@ -16,6 +16,14 @@
         />
       </UFormField>
 
+      <UFormField label="公開開始日" name="published_start">
+        <UInput v-model="localPublishedStart" type="date" />
+      </UFormField>
+
+      <UFormField label="公開終了日" name="published_end">
+        <UInput v-model="localPublishedEnd" type="date" />
+      </UFormField>
+
       <!-- フィールドエディタ -->
       <div class="space-y-4">
         <div class="flex justify-between items-center">
@@ -165,6 +173,8 @@ interface Props {
   initialFormName?: string
   initialFormDescription?: string
   initialFields?: FormField[]
+  initialPublishedStart?: string | null
+  initialPublishedEnd?: string | null
   submitLabel?: string
   submitting?: boolean
 }
@@ -173,16 +183,26 @@ const props = withDefaults(defineProps<Props>(), {
   initialFormName: '',
   initialFormDescription: '',
   initialFields: () => [],
+  initialPublishedStart: null,
+  initialPublishedEnd: null,
   submitLabel: '保存',
   submitting: false,
 })
 
 const emit = defineEmits<{
-  submit: [data: { name: string; description?: string; fields: FormField[] }]
+  submit: [data: {
+    name: string
+    description?: string
+    fields: FormField[]
+    published_start?: string | null
+    published_end?: string | null
+  }]
 }>()
 
 const localFormName = ref(props.initialFormName)
 const localFormDescription = ref(props.initialFormDescription)
+const localPublishedStart = ref<string>(props.initialPublishedStart || '')
+const localPublishedEnd = ref<string>(props.initialPublishedEnd || '')
 const localFormFields = ref<FormField[]>(
   JSON.parse(JSON.stringify(props.initialFields))
 )
@@ -220,6 +240,22 @@ watch(
   () => props.initialFormDescription,
   newDescription => {
     localFormDescription.value = newDescription
+  },
+  { immediate: true }
+)
+
+watch(
+  () => props.initialPublishedStart,
+  newPublishedStart => {
+    localPublishedStart.value = newPublishedStart || ''
+  },
+  { immediate: true }
+)
+
+watch(
+  () => props.initialPublishedEnd,
+  newPublishedEnd => {
+    localPublishedEnd.value = newPublishedEnd || ''
   },
   { immediate: true }
 )
@@ -274,6 +310,8 @@ const handleSubmit = () => {
     name: localFormName.value,
     description: localFormDescription.value || undefined,
     fields: localFormFields.value,
+    published_start: localPublishedStart.value || null,
+    published_end: localPublishedEnd.value || null,
   })
 }
 </script>

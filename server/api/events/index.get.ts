@@ -1,6 +1,6 @@
 import { Event } from '~~/server/database'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 認証チェック
     const adminIdStr = getCookie(event, 'adminId')
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // thumbnailをBase64文字列に変換
-    const eventsWithThumbnail = events.map((event) => {
+    const eventsWithThumbnail = events.map(event => {
       const eventData = event.toJSON()
       if (eventData.thumbnail && Buffer.isBuffer(eventData.thumbnail)) {
         eventData.thumbnail = `data:image/png;base64,${eventData.thumbnail.toString('base64')}`
@@ -43,8 +43,7 @@ export default defineEventHandler(async (event) => {
     }
     throw createError({
       statusCode: 500,
-      statusMessage: 'イベントの取得に失敗しました',
+      statusMessage: 'イベントの取得に失敗しました ' + error.message,
     })
   }
 })
-

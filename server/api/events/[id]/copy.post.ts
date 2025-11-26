@@ -48,15 +48,21 @@ export default defineEventHandler(async (event) => {
 
     // 新しいイベントを作成（タイトルに「コピー」を追加）
     const newEvent = await Event.create({
+      admin_id: adminId,
       title: `${originalData.title} (コピー)`,
       form_id: originalData.form_id,
       start_date: originalData.start_date,
       end_date: originalData.end_date,
       description: originalData.description,
+      body: originalData.body,
       location_name: originalData.location_name,
       location_address: originalData.location_address,
       location_url: originalData.location_url,
       thumbnail: thumbnailBuffer,
+      cta_button_text: originalData.cta_button_text || null,
+      is_published: originalData.is_published ?? true,
+      published_start: originalData.published_start || null,
+      published_end: originalData.published_end || null,
     })
 
     // レスポンス用にthumbnailをBase64文字列に変換

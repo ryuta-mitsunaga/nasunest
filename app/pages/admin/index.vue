@@ -6,7 +6,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- メンバー管理カード -->
+      <!-- 協力隊員管理カード -->
       <UCard
         class="hover:shadow-lg transition-shadow cursor-pointer"
         @click="navigateTo('/admin/member')"
@@ -14,7 +14,7 @@
         <template #header>
           <div class="flex items-center gap-3">
             <UIcon name="i-heroicons-users" class="text-2xl text-blue-600" />
-            <h2 class="text-xl font-semibold">メンバー管理</h2>
+            <h2 class="text-xl font-semibold">協力隊員管理</h2>
           </div>
         </template>
         <div class="p-4">

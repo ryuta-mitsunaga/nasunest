@@ -11,6 +11,12 @@
       </div>
 
       <UTable v-else :data="forms" :columns="columns" class="w-full">
+        <template #published_start-cell="{ row }">
+          {{ formatDate(row.original.published_start) }}
+        </template>
+        <template #published_end-cell="{ row }">
+          {{ formatDate(row.original.published_end) }}
+        </template>
         <template #actions-cell="{ row }">
           <div class="flex gap-2">
             <UButton
@@ -66,6 +72,9 @@ interface Form {
   content: {
     fields: any[]
   }
+  published_start: string | null
+  published_end: string | null
+  createdAt: string
 }
 
 const forms = ref<Form[]>([])
@@ -74,6 +83,8 @@ const loading = ref(true)
 const columns: TableColumn<Form>[] = [
   { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'name', header: 'フォーム名' },
+  { accessorKey: 'published_start', header: '公開開始日' },
+  { accessorKey: 'published_end', header: '公開終了日' },
   { accessorKey: 'createdAt', header: '作成日' },
   { accessorKey: 'actions', header: '操作' },
 ]
@@ -122,6 +133,16 @@ const handleDelete = async (id: number) => {
     console.error('削除エラー:', error)
     alert('削除に失敗しました')
   }
+}
+
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 onMounted(() => {

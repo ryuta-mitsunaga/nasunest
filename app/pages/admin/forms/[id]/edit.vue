@@ -17,6 +17,8 @@
       :initial-form-name="formName"
       :initial-form-description="formDescription"
       :initial-fields="formFields"
+      :initial-published-start="formPublishedStart"
+      :initial-published-end="formPublishedEnd"
       submit-label="更新"
       :submitting="submitting"
       @submit="handleSubmit"
@@ -39,6 +41,8 @@ interface Form {
     description?: string
     fields: FormField[]
   }
+  published_start: string | null
+  published_end: string | null
 }
 
 const route = useRoute()
@@ -55,6 +59,8 @@ const submitting = ref(false)
 const formName = ref('')
 const formDescription = ref('')
 const formFields = ref<FormField[]>([])
+const formPublishedStart = ref<string | null>(null)
+const formPublishedEnd = ref<string | null>(null)
 
 const fetchForm = async () => {
   loading.value = true
@@ -69,6 +75,8 @@ const fetchForm = async () => {
     formName.value = form.name
     formDescription.value = form.content.description || ''
     formFields.value = JSON.parse(JSON.stringify(form.content.fields || []))
+    formPublishedStart.value = form.published_start
+    formPublishedEnd.value = form.published_end
   } catch (error) {
     console.error('フォーム取得エラー:', error)
     alert('フォームの取得に失敗しました')
@@ -82,6 +90,8 @@ const handleSubmit = async (data: {
   name: string
   description?: string
   fields: FormField[]
+  published_start?: string | null
+  published_end?: string | null
 }) => {
   submitting.value = true
   try {
@@ -96,6 +106,8 @@ const handleSubmit = async (data: {
       body: {
         name: data.name,
         content,
+        published_start: data.published_start || null,
+        published_end: data.published_end || null,
       },
     })
 

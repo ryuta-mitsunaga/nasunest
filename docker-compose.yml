@@ -3,11 +3,11 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: chiki-okoshi-mysql
+    container_name: nasunest-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-chiki_okoshi}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-nasunest}
       MYSQL_USER: ${MYSQL_USER:-app_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-app_password}
     ports:
@@ -21,7 +21,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
-    container_name: chiki-okoshi-phpmyadmin
+    container_name: nasunest-phpmyadmin
     restart: unless-stopped
     environment:
       PMA_HOST: mysql

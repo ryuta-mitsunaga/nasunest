@@ -1,10 +1,8 @@
 <template>
-  <div class="min-h-screen" style="background-color: #f9f7f2">
-    <div class="container mx-auto px-4 py-12">
+  <div style="color: #2E5E3E">
       <UiPageTitle title="イベント一覧" />
 
       <EventsEventCardList :events="events" :error="error" />
-    </div>
   </div>
 </template>
 
@@ -12,11 +10,25 @@
 import type { Event } from '~/components/events/EventCard.vue'
 
 const error = ref('')
-const events = ref<Event[]>([])
 
-const { data } = await useFetch<{ success: boolean; data: Event[] }>(
-  '/api/public/events'
-)
+const { data, error: fetchError } = await useFetch<{
+  success: boolean
+  data: Event[]
+}>('/api/public/events', {
+  default: () => ({ success: true, data: [] }),
+})
 
-events.value = data.value?.data || []
+if (fetchError.value) {
+  error.value = 'イベントの取得に失敗しました'
+}
+
+const events = computed<Event[]>(() => {
+  if (fetchError.value) {
+    return []
+  }
+  if (!data.value || !data.value.success) {
+    return []
+  }
+  return data.value.data || []
+})
 </script>

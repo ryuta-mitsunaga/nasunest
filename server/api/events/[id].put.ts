@@ -1,6 +1,6 @@
 import { Event } from '~~/server/database'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 認証チェック
     const adminIdStr = getCookie(event, 'adminId')
@@ -50,9 +50,14 @@ export default defineEventHandler(async (event) => {
       start_date: body.start_date,
       end_date: body.end_date || null,
       description: body.description,
+      body: body.body || null,
       location_name: body.location_name || null,
       location_address: body.location_address || null,
       location_url: body.location_url || null,
+      cta_button_text: body.cta_button_text || null,
+      is_published: body.is_published,
+      published_start: body.published_start || null,
+      published_end: body.published_end || null,
     }
 
     if (thumbnailBuffer !== undefined) {
@@ -82,4 +87,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

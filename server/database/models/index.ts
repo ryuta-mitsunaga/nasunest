@@ -133,12 +133,14 @@ export interface FormAttributes {
   admin_id: number
   name: string
   content: any // JSON形式
+  published_start: Date | null
+  published_end: Date | null
   createdAt?: Date
   updatedAt?: Date
 }
 
 export interface FormCreationAttributes
-  extends Optional<FormAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+  extends Optional<FormAttributes, 'id' | 'published_start' | 'published_end' | 'createdAt' | 'updatedAt'> {}
 
 export class Form
   extends Model<FormAttributes, FormCreationAttributes>
@@ -148,6 +150,8 @@ export class Form
   public admin_id!: number
   public name!: string
   public content!: any
+  public published_start!: Date | null
+  public published_end!: Date | null
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 }
@@ -174,6 +178,16 @@ Form.init(
     content: {
       type: DataTypes.JSON,
       allowNull: false,
+    },
+    published_start: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: '公開開始日',
+    },
+    published_end: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: '公開終了日',
     },
   },
   {
@@ -243,15 +257,21 @@ FormAnswer.init(
 // Eventモデル
 export interface EventAttributes {
   id: number
+  admin_id: number
   title: string
   form_id: number | null
   start_date: Date
   end_date: Date | null
   description: string
+  body: string | null
   location_name: string | null
   location_address: string | null
   location_url: string | null
   thumbnail: Buffer | null
+  cta_button_text: string | null
+  is_published: boolean
+  published_start: Date | null
+  published_end: Date | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -259,7 +279,7 @@ export interface EventAttributes {
 export interface EventCreationAttributes
   extends Optional<
     EventAttributes,
-    'id' | 'form_id' | 'end_date' | 'location_name' | 'location_address' | 'location_url' | 'thumbnail' | 'createdAt' | 'updatedAt'
+    'id' | 'form_id' | 'end_date' | 'body' | 'location_name' | 'location_address' | 'location_url' | 'thumbnail' | 'cta_button_text' | 'is_published' | 'published_start' | 'published_end' | 'createdAt' | 'updatedAt'
   > {}
 
 export class Event
@@ -267,15 +287,21 @@ export class Event
   implements EventAttributes
 {
   public id!: number
+  public admin_id!: number
   public title!: string
   public form_id!: number | null
   public start_date!: Date
   public end_date!: Date | null
   public description!: string
+  public body!: string | null
   public location_name!: string | null
   public location_address!: string | null
   public location_url!: string | null
   public thumbnail!: Buffer | null
+  public cta_button_text!: string | null
+  public is_published!: boolean
+  public published_start!: Date | null
+  public published_end!: Date | null
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 }
@@ -286,6 +312,16 @@ Event.init(
       type: DataTypes.BIGINT.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
+    },
+    admin_id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
     title: {
       type: DataTypes.STRING,
@@ -311,6 +347,11 @@ Event.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    body: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Editor.jsで作成した本文（JSON形式）',
+    },
     location_name: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -326,6 +367,27 @@ Event.init(
     thumbnail: {
       type: DataTypes.BLOB('long'),
       allowNull: true,
+    },
+    cta_button_text: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'CTAボタンのテキスト（デフォルト: 参加申し込み）',
+    },
+    is_published: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      comment: '公開フラグ（true: 公開, false: 非公開）',
+    },
+    published_start: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: '公開開始日',
+    },
+    published_end: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: '公開終了日',
     },
   },
   {

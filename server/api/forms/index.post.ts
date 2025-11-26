@@ -26,6 +26,8 @@ export default defineEventHandler(async event => {
       admin_id: adminId,
       name: body.name,
       content: body.content || { fields: [] },
+      published_start: body.published_start || null,
+      published_end: body.published_end || null,
     })
 
     return {

@@ -22,12 +22,31 @@
           />
         </UFormField>
 
-        <UFormField label="開始日" name="start_date" required>
+        <UFormField label="CTAボタンのテキスト" name="cta_button_text">
+          <UInput
+            v-model="form.cta_button_text"
+            placeholder="参加申し込み（空欄の場合は「参加申し込み」が表示されます）"
+          />
+        </UFormField>
+
+        <UFormField label="公開設定" name="is_published">
+          <URadioGroup v-model="form.is_published" :items="publishOptions" />
+        </UFormField>
+
+        <UFormField label="イベント開始日" name="start_date" required>
           <UInput v-model="form.start_date" type="date" />
         </UFormField>
 
-        <UFormField label="終了日" name="end_date">
+        <UFormField label="イベント終了日" name="end_date">
           <UInput v-model="form.end_date" type="date" />
+        </UFormField>
+
+        <UFormField label="イベント公開開始日" name="published_start">
+          <UInput v-model="form.published_start" type="date" />
+        </UFormField>
+
+        <UFormField label="イベント公開終了日" name="published_end">
+          <UInput v-model="form.published_end" type="date" />
         </UFormField>
 
         <UFormField label="説明" name="description" required>
@@ -36,6 +55,10 @@
             placeholder="イベントの説明"
             :rows="5"
           />
+        </UFormField>
+
+        <UFormField label="本文" name="body">
+          <AdminEditorJsEditor v-model="form.body" />
         </UFormField>
 
         <UFormField label="場所名" name="location_name">
@@ -106,11 +129,21 @@ const form = reactive({
   start_date: '',
   end_date: '',
   description: '',
+  body: null as any,
   location_name: '',
   location_address: '',
   location_url: '',
   thumbnail: null as string | null,
+  cta_button_text: '',
+  is_published: true,
+  published_start: '',
+  published_end: '',
 })
+
+const publishOptions = [
+  { label: '公開', value: true },
+  { label: '非公開', value: false },
+]
 
 const formState = computed(() => form)
 const submitting = ref(false)
@@ -137,7 +170,7 @@ const fetchForms = async () => {
   }
 }
 
-const handleThumbnailUpload = (event: Event) => {
+const handleThumbnailUpload = (event: globalThis.Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (file) {
@@ -173,10 +206,15 @@ const handleSubmit = async () => {
         start_date: form.start_date,
         end_date: form.end_date || null,
         description: form.description,
+        body: form.body ? JSON.stringify(form.body) : null,
         location_name: form.location_name || null,
         location_address: form.location_address || null,
         location_url: form.location_url || null,
         thumbnail: form.thumbnail || null,
+        cta_button_text: form.cta_button_text || null,
+        is_published: form.is_published,
+        published_start: form.published_start || null,
+        published_end: form.published_end || null,
       },
     })
 

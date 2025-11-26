@@ -40,6 +40,8 @@ export default defineEventHandler(async (event) => {
     await form.update({
       name: body.name,
       content: body.content,
+      published_start: body.published_start || null,
+      published_end: body.published_end || null,
     })
 
     return {
