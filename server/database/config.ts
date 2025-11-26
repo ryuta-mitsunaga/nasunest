@@ -22,6 +22,12 @@ export const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
     acquire: 30000,
     idle: 10000,
   },
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // ← PlanetScale では通常 false にする
+    },
+  },
 })
 
 export const connectDB = async () => {
