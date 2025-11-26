@@ -53,7 +53,7 @@ export class Member
 Member.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -82,7 +82,7 @@ Member.init(
       allowNull: false,
     },
     icon: {
-      type: DataTypes.BLOB('long'),
+      type: DataTypes.BLOB,
       allowNull: true,
     },
     x_url: {
@@ -134,7 +134,7 @@ export class Admin
 Admin.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -190,12 +190,12 @@ export class Form
 Form.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
     admin_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       references: {
         model: 'admins',
@@ -256,12 +256,12 @@ export class FormAnswer
 FormAnswer.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
     form_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       references: {
         model: 'forms',
@@ -353,12 +353,12 @@ export class Event
 Event.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
     admin_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       references: {
         model: 'admins',
@@ -372,7 +372,7 @@ Event.init(
       allowNull: false,
     },
     form_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: true,
       references: {
         model: 'forms',
@@ -409,7 +409,7 @@ Event.init(
       allowNull: true,
     },
     thumbnail: {
-      type: DataTypes.BLOB('long'),
+      type: DataTypes.BLOB,
       allowNull: true,
     },
     cta_button_text: {
@@ -471,12 +471,12 @@ export class PickupEvent
 PickupEvent.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
     event_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       references: {
         model: 'events',

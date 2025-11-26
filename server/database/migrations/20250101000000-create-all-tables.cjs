@@ -5,7 +5,7 @@ module.exports = {
     // 1. adminsテーブル（他のテーブルに依存しない）
     await queryInterface.createTable('admins', {
       id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
       },
@@ -34,7 +34,7 @@ module.exports = {
     // 2. nasunest_membersテーブル（他のテーブルに依存しない）
     await queryInterface.createTable('chiki_okoshi_members', {
       id: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
@@ -96,12 +96,12 @@ module.exports = {
     // 3. formsテーブル（adminsに依存）
     await queryInterface.createTable('forms', {
       id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
       },
       admin_id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         allowNull: false,
         references: {
           model: 'admins',
@@ -143,12 +143,12 @@ module.exports = {
     // 4. forms_answerテーブル（formsに依存）
     await queryInterface.createTable('forms_answer', {
       id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
       },
       form_id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         allowNull: false,
         references: {
           model: 'forms',
@@ -181,12 +181,12 @@ module.exports = {
     // 5. eventsテーブル（adminsとformsに依存）
     await queryInterface.createTable('events', {
       id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
       },
       admin_id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         allowNull: false,
         references: {
           model: 'admins',
@@ -200,7 +200,7 @@ module.exports = {
         allowNull: false,
       },
       form_id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         allowNull: true,
         references: {
           model: 'forms',

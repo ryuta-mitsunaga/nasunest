@@ -5,12 +5,12 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('pickup_events', {
       id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
       },
       event_id: {
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.BIGINT,
         allowNull: false,
         references: {
           model: 'events',
@@ -51,4 +51,3 @@ module.exports = {
     await queryInterface.dropTable('pickup_events')
   },
 }
-

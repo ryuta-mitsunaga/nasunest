@@ -74,61 +74,69 @@ bun run preview
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
-## MySQL Database Setup
+## PostgreSQL Database Setup
 
-このプロジェクトではDocker Composeを使用してMySQLデータベースを起動します。
+このプロジェクトではDocker Composeを使用してPostgreSQLデータベースを起動します。
 
 ### 環境変数の設定
 
 プロジェクトルートに`.env`ファイルを作成し、以下の環境変数を設定してください：
 
 ```env
-MYSQL_ROOT_PASSWORD=rootpassword
-MYSQL_DATABASE=nasunest
-MYSQL_USER=app_user
-MYSQL_PASSWORD=app_password
-MYSQL_PORT=3306
-MYSQL_HOST=localhost
-DATABASE_URL=mysql://app_user:app_password@localhost:3306/nasunest
-PHPMYADMIN_PORT=8080
+DB_DATABASE=nasunest
+DB_USER=app_user
+DB_PASSWORD=app_password
+DB_PORT=5432
+DB_HOST=localhost
+DATABASE_URL=postgres://app_user:app_password@localhost:5432/nasunest
+PGADMIN_PORT=8080
+PGADMIN_EMAIL=admin@example.com
+PGADMIN_PASSWORD=admin
 ```
+
+**注意**: 既存の`MYSQL_*`環境変数も引き続きサポートされていますが、`DB_*`環境変数の使用を推奨します。
 
 ### Docker Composeの使用方法
 
-MySQLコンテナを起動：
+PostgreSQLコンテナを起動：
 ```bash
 docker-compose up -d
 ```
 
-MySQLコンテナを停止：
+PostgreSQLコンテナを停止：
 ```bash
 docker-compose down
 ```
 
-MySQLコンテナを停止してデータも削除：
+PostgreSQLコンテナを停止してデータも削除：
 ```bash
 docker-compose down -v
 ```
 
-MySQLコンテナのログを確認：
+PostgreSQLコンテナのログを確認：
 ```bash
-docker-compose logs mysql
+docker-compose logs postgres
 ```
 
-### phpMyAdmin
+### pgAdmin
 
-phpMyAdminが自動的に起動し、ブラウザからMySQLデータベースを管理できます。
+pgAdminが自動的に起動し、ブラウザからPostgreSQLデータベースを管理できます。
 
 - URL: `http://localhost:8080` (デフォルト)
-- サーバー: `mysql`
-- ユーザー名: `.env`ファイルで設定した`MYSQL_USER`（デフォルト: `app_user`）
-- パスワード: `.env`ファイルで設定した`MYSQL_PASSWORD`（デフォルト: `app_password`）
+- メールアドレス: `.env`ファイルで設定した`PGADMIN_EMAIL`（デフォルト: `admin@example.com`）
+- パスワード: `.env`ファイルで設定した`PGADMIN_PASSWORD`（デフォルト: `admin`）
 
-ポート番号は`.env`ファイルの`PHPMYADMIN_PORT`で変更できます。
+pgAdminにログイン後、サーバーを追加する際は以下の情報を使用してください：
+- ホスト名/アドレス: `postgres`
+- ポート: `5432`
+- ユーザー名: `.env`ファイルで設定した`DB_USER`（デフォルト: `app_user`）
+- パスワード: `.env`ファイルで設定した`DB_PASSWORD`（デフォルト: `app_password`）
+
+ポート番号は`.env`ファイルの`PGADMIN_PORT`で変更できます。
 
 ### 初期化スクリプト
 
-`docker/mysql/init/`ディレクトリに`.sql`ファイルを配置すると、コンテナ起動時に自動的に実行されます。
+`docker/postgres/init/`ディレクトリに`.sql`ファイルを配置すると、コンテナ起動時に自動的に実行されます。
 
 ## Sequelize ORM
 
@@ -167,7 +175,7 @@ export class Example extends Model {
 Example.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

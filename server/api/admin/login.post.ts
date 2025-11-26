@@ -8,6 +8,9 @@ export default defineEventHandler(async event => {
       password: string
     }
 
+    // デバッグようにハッシュ化されたパスワードを表示
+    console.log('ハッシュ化されたパスワード:', bcrypt.hashSync(password, 10))
+
     if (!id || !password) {
       throw createError({
         statusCode: 400,
