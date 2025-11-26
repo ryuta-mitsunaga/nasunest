@@ -1,4 +1,5 @@
 require('dotenv').config()
+const pg = require('pg')
 
 module.exports = {
   development: {
@@ -10,6 +11,8 @@ module.exports = {
     host: process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || process.env.MYSQL_PORT || '5432', 10),
     dialect: 'postgres',
+    // CLI 実行時にも pg を明示的に使う
+    dialectModule: pg,
     logging: console.log,
     dialectOptions: {
       ssl: {
@@ -27,6 +30,8 @@ module.exports = {
     host: process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || process.env.MYSQL_PORT || '5432', 10),
     dialect: 'postgres',
+    // CLI 実行時にも pg を明示的に使う
+    dialectModule: pg,
     logging: false,
     dialectOptions: {
       ssl: {

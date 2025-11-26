@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize'
+import pg from 'pg'
 
 const dbName =
   process.env.DB_DATABASE || process.env.MYSQL_DATABASE || 'nasunest'
@@ -15,6 +16,8 @@ export const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   host: dbHost,
   port: dbPort,
   dialect: 'postgres',
+  // Vercel / Nitro 環境で「Please install pg package manually」を避けるため
+  dialectModule: pg,
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
     max: 5,
