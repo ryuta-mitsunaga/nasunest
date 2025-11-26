@@ -65,6 +65,9 @@
                 >
                   {{ getFieldTypeLabel(field.type) }}
                 </span>
+                <p v-if="field.description" class="text-sm text-gray-600 mt-2">
+                  {{ field.description }}
+                </p>
               </div>
             </div>
             <div v-if="field.type === 'select' || field.type === 'checkbox'">
@@ -100,6 +103,9 @@
               <span class="text-sm text-gray-500">{{
                 getFieldTypeLabel(field.type)
               }}</span>
+              <p v-if="field.description" class="text-sm text-gray-600 mt-2">
+                {{ field.description }}
+              </p>
             </div>
 
             <!-- テキストフィールドの集計 -->
@@ -259,7 +265,8 @@ const fetchFormData = async () => {
     answers.value = answersResponse.data || []
   } catch (error) {
     console.error('データ取得エラー:', error)
-    alert('データの取得に失敗しました')
+    const { error: toastError } = useCustomToast()
+    toastError('データの取得に失敗しました')
     await navigateTo('/admin/forms')
   } finally {
     loading.value = false

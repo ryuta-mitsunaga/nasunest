@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   events: () => [],
 })
 
-const PHOTO_COUNT = 12
+const PHOTO_COUNT = 15
 
 const mobileMinSpread = 0.6
 const mobileMaxSpread = 2.5

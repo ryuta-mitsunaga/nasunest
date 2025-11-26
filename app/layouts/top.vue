@@ -6,8 +6,4 @@
   <UiFooter />
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  title: string
-}>()
-</script>
+<script setup lang="ts"></script>

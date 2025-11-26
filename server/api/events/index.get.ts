@@ -21,6 +21,9 @@ export default defineEventHandler(async event => {
     }
 
     const events = await Event.findAll({
+      where: {
+        admin_id: adminId,
+      },
       order: [['start_date', 'DESC']],
     })
 

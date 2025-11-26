@@ -122,6 +122,8 @@ definePageMeta({
   layout: 'admin',
 })
 
+const { success: toastSuccess, error: toastError } = useCustomToast()
+
 interface Event {
   id: number
   title: string
@@ -216,7 +218,7 @@ const fetchEvent = async () => {
     thumbnailPreview.value = eventData.thumbnail || null
   } catch (error) {
     console.error('イベント取得エラー:', error)
-    alert('イベントの取得に失敗しました')
+    toastError('イベントの取得に失敗しました')
     await navigateTo('/admin/events')
   } finally {
     loading.value = false
@@ -258,7 +260,7 @@ const clearThumbnail = () => {
 
 const handleSubmit = async () => {
   if (!form.title.trim() || !form.start_date || !form.description.trim()) {
-    alert('タイトル、開始日、説明は必須項目です')
+    toastError('タイトル、開始日、説明は必須項目です')
     return
   }
 
@@ -286,9 +288,10 @@ const handleSubmit = async () => {
     })
 
     await navigateTo('/admin/events')
+    toastSuccess('保存しました')
   } catch (error) {
     console.error('保存エラー:', error)
-    alert('保存に失敗しました')
+    toastError('保存に失敗しました')
   } finally {
     submitting.value = false
   }

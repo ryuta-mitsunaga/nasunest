@@ -5,7 +5,18 @@
       <UButton to="/admin/events/create">新規作成</UButton>
     </div>
 
+    <!-- ピックアップイベントエリア -->
+    <AdminPickupEventArea
+      :events="events"
+      :pickup-events="pickupEvents"
+      :loading="pickupLoading"
+      @refresh="fetchPickupEvents"
+    />
+
     <UCard>
+      <template #header>
+        <h2 class="text-xl font-semibold">イベント一覧</h2>
+      </template>
       <div v-if="loading" class="text-center py-8">
         <UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl" />
       </div>
@@ -83,6 +94,24 @@ interface Event {
 const events = ref<Event[]>([])
 const loading = ref(true)
 
+interface PickupEvent {
+  id: number
+  event_id: number
+  left_text: string
+  pickup_datetime_start: string
+  pickup_datetime_end: string
+  event: {
+    id: number
+    title: string
+    start_date: string
+    end_date: string | null
+    location_name: string | null
+  } | null
+}
+
+const pickupEvents = ref<PickupEvent[]>([])
+const pickupLoading = ref(true)
+
 const columns: TableColumn<Event>[] = [
   { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'title', header: 'タイトル' },
@@ -122,15 +151,21 @@ const handleCopy = async (id: number) => {
       credentials: 'include',
     })
     await fetchEvents()
-    alert('イベントをコピーしました')
+    toastSuccess('イベントをコピーしました')
   } catch (error) {
     console.error('コピーエラー:', error)
-    alert('コピーに失敗しました')
+    toastError('コピーに失敗しました')
   }
 }
 
 const handleDelete = async (id: number) => {
-  if (!confirm('本当に削除しますか？')) return
+  const confirmed = await confirm({
+    message: '本当に削除しますか？',
+    type: 'danger',
+    confirmText: '削除',
+    cancelText: 'キャンセル',
+  })
+  if (!confirmed) return
 
   try {
     await $fetch(`/api/events/${id}`, {
@@ -138,9 +173,10 @@ const handleDelete = async (id: number) => {
       credentials: 'include',
     })
     await fetchEvents()
+    toastSuccess('イベントを削除しました')
   } catch (error) {
     console.error('削除エラー:', error)
-    alert('削除に失敗しました')
+    toastError('削除に失敗しました')
   }
 }
 
@@ -154,8 +190,35 @@ const formatDate = (dateString: string | null) => {
   })
 }
 
+const { success: toastSuccess, error: toastError } = useCustomToast()
+const { confirm } = useConfirm()
+
+const fetchPickupEvents = async () => {
+  pickupLoading.value = true
+  try {
+    const response = await $fetch<{ success: boolean; data: PickupEvent[] }>(
+      '/api/pickup-events',
+      {
+        credentials: 'include',
+      }
+    )
+    // 最新の1つだけを表示（createdAtでソートして最新を取得）
+    const sorted = (response.data || []).sort((a, b) => {
+      const dateA = new Date(a.pickup_datetime_start).getTime()
+      const dateB = new Date(b.pickup_datetime_start).getTime()
+      return dateB - dateA
+    })
+    pickupEvents.value = sorted.length > 0 && sorted[0] ? [sorted[0]] : []
+  } catch (error) {
+    console.error('ピックアップイベント取得エラー:', error)
+  } finally {
+    pickupLoading.value = false
+  }
+}
+
 onMounted(() => {
   fetchEvents()
+  fetchPickupEvents()
 })
 </script>
 

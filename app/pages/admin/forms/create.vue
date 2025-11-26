@@ -24,6 +24,7 @@ definePageMeta({
   layout: 'admin',
 })
 
+const { success: toastSuccess, error: toastError } = useCustomToast()
 const submitting = ref(false)
 
 const handleSubmit = async (data: {
@@ -52,9 +53,10 @@ const handleSubmit = async (data: {
     })
 
     await navigateTo('/admin/forms')
+    toastSuccess('保存しました')
   } catch (error) {
     console.error('保存エラー:', error)
-    alert('保存に失敗しました')
+    toastError('保存に失敗しました')
   } finally {
     submitting.value = false
   }

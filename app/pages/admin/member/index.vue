@@ -106,6 +106,27 @@
             </div>
           </UFormField>
 
+          <UFormField label="X URL" name="x_url">
+            <UInput
+              v-model="memberForm.x_url"
+              placeholder="https://x.com/..."
+            />
+          </UFormField>
+
+          <UFormField label="Instagram URL" name="instagram_url">
+            <UInput
+              v-model="memberForm.instagram_url"
+              placeholder="https://www.instagram.com/..."
+            />
+          </UFormField>
+
+          <UFormField label="Facebook URL" name="facebook_url">
+            <UInput
+              v-model="memberForm.facebook_url"
+              placeholder="https://www.facebook.com/..."
+            />
+          </UFormField>
+
           <div class="flex gap-2 justify-end">
             <UButton variant="soft" @click="closeModal">キャンセル</UButton>
             <UButton type="submit" :loading="submitting">
@@ -127,6 +148,9 @@ definePageMeta({
   layout: 'admin',
 })
 
+const { success: toastSuccess, error: toastError } = useCustomToast()
+const { confirm } = useConfirm()
+
 const members = ref<Member[]>([])
 const loading = ref(true)
 const isModalOpen = ref(false)
@@ -142,6 +166,9 @@ const memberForm = reactive({
   mission: '',
   description: '',
   icon: null as string | null,
+  x_url: '',
+  instagram_url: '',
+  facebook_url: '',
 })
 
 const columns: TableColumn<Member>[] = [
@@ -179,6 +206,9 @@ const openCreateModal = () => {
     mission: '',
     description: '',
     icon: null,
+    x_url: '',
+    instagram_url: '',
+    facebook_url: '',
   })
   isModalOpen.value = true
 }
@@ -192,6 +222,9 @@ const openEditModal = (member: any) => {
   memberForm.mission = member.mission
   memberForm.description = member.description
   memberForm.icon = member.icon || null
+  memberForm.x_url = member.x_url || ''
+  memberForm.instagram_url = member.instagram_url || ''
+  memberForm.facebook_url = member.facebook_url || ''
   iconPreview.value = member.icon || null
 
   isModalOpen.value = true
@@ -238,25 +271,33 @@ const handleSubmit = async () => {
     }
     closeModal()
     await fetchMembers()
+    toastSuccess('保存しました')
   } catch (error) {
     console.error('保存エラー:', error)
-    alert('保存に失敗しました')
+    toastError('保存に失敗しました')
   } finally {
     submitting.value = false
   }
 }
 
 const handleDelete = async (id: number | string) => {
-  if (!confirm('本当に削除しますか？')) return
+  const confirmed = await confirm({
+    message: '本当に削除しますか？',
+    type: 'danger',
+    confirmText: '削除',
+    cancelText: 'キャンセル',
+  })
+  if (!confirmed) return
 
   try {
     await $fetch(`/api/members/${id}`, {
       method: 'DELETE',
     })
     await fetchMembers()
+    toastSuccess('削除しました')
   } catch (error) {
     console.error('削除エラー:', error)
-    alert('削除に失敗しました')
+    toastError('削除に失敗しました')
   }
 }
 

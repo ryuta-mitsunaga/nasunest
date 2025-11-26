@@ -1,50 +1,38 @@
 'use strict'
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('events', {
+    await queryInterface.createTable('pickup_events', {
       id: {
         type: Sequelize.BIGINT.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
       },
-      title: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      form_id: {
+      event_id: {
         type: Sequelize.BIGINT.UNSIGNED,
-        allowNull: true,
+        allowNull: false,
         references: {
-          model: 'forms',
+          model: 'events',
           key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE',
       },
-      start_date: {
-        type: Sequelize.DATEONLY,
+      pickup_datetime_start: {
+        type: Sequelize.DATE,
         allowNull: false,
+        comment: 'ピックアップ開始日時',
       },
-      end_date: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-      },
-      description: {
-        type: Sequelize.TEXT,
+      pickup_datetime_end: {
+        type: Sequelize.DATE,
         allowNull: false,
+        comment: 'ピックアップ終了日時',
       },
-      location_name: {
+      left_text: {
         type: Sequelize.STRING,
-        allowNull: true,
-      },
-      location_address: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      location_url: {
-        type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
+        comment: 'CTAボタン左側に表示するテキスト',
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -60,7 +48,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('events')
+    await queryInterface.dropTable('pickup_events')
   },
 }
 

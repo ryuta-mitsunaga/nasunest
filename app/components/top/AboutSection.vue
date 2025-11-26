@@ -12,7 +12,7 @@
         <!-- 左側：画像 -->
         <div class="flex-shrink-0 w-full md:w-1/2">
           <img
-            src="/img/chiki-okoshi-Introduction/dummy1.jpg"
+            src="/img/chiki-okoshi-Introduction/chiki_okoshi_group_photo.jpg"
             alt="那須町地域おこし協力隊"
             class="w-full h-auto rounded-lg object-cover"
           />

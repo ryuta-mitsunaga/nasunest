@@ -21,7 +21,12 @@ export default defineEventHandler(async (event) => {
     }
 
     const id = getRouterParam(event, 'id')
-    const originalEvent = await Event.findByPk(id)
+    const originalEvent = await Event.findOne({
+      where: {
+        id,
+        admin_id: adminId,
+      },
+    })
 
     if (!originalEvent) {
       throw createError({

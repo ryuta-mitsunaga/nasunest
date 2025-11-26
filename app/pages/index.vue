@@ -12,7 +12,6 @@
 <script setup lang="ts">
 import type { Event } from '~/components/events/EventCard.vue'
 
-// TODO: トップページ用のレイアウトを作成
 definePageMeta({
   layout: 'top',
 })

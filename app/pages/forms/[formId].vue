@@ -54,6 +54,9 @@
               :name="field.id"
               :required="field.required"
             >
+              <template v-if="field.description" #description>
+                <p class="text-sm text-gray-600 mt-1">{{ field.description }}</p>
+              </template>
               <!-- テキストフィールド -->
               <UInput
                 v-if="field.type === 'text'"
@@ -113,6 +116,7 @@ interface FormField {
   id: string
   type: 'text' | 'select' | 'checkbox'
   label: string
+  description?: string
   placeholder?: string
   options?: string[]
   required?: boolean

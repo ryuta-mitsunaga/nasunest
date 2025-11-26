@@ -66,6 +66,14 @@
                   <span class="text-sm text-gray-700">必須</span>
                 </label>
               </div>
+              <div class="mt-2">
+                <UTextarea
+                  v-model="field.description"
+                  placeholder="説明を入力（任意）"
+                  :rows="2"
+                  class="text-sm"
+                />
+              </div>
               <div v-if="field.type === 'text'">
                 <UInput
                   v-model="field.placeholder"
@@ -164,6 +172,7 @@ export interface FormField {
   id: string
   type: 'text' | 'select' | 'checkbox'
   label: string
+  description?: string
   placeholder?: string
   options?: string[]
   required?: boolean
@@ -190,13 +199,15 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  submit: [data: {
-    name: string
-    description?: string
-    fields: FormField[]
-    published_start?: string | null
-    published_end?: string | null
-  }]
+  submit: [
+    data: {
+      name: string
+      description?: string
+      fields: FormField[]
+      published_start?: string | null
+      published_end?: string | null
+    },
+  ]
 }>()
 
 const localFormName = ref(props.initialFormName)
@@ -300,9 +311,11 @@ const removeOption = (fieldIndex: number, optionIndex: number) => {
   }
 }
 
+const { error: toastError } = useCustomToast()
+
 const handleSubmit = () => {
   if (!localFormName.value.trim()) {
-    alert('フォーム名を入力してください')
+    toastError('フォーム名を入力してください')
     return
   }
 

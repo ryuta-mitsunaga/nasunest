@@ -30,6 +30,9 @@ export default defineEventHandler(async (event) => {
       mission: body.mission,
       description: body.description,
       icon: iconBuffer,
+      x_url: body.x_url || null,
+      instagram_url: body.instagram_url || null,
+      facebook_url: body.facebook_url || null,
     })
     
     // レスポンス用にiconをBase64文字列に変換

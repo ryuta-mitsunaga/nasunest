@@ -18,24 +18,14 @@
 
     <Transition name="fade">
       <NuxtLink
-        v-if="!isMobileMenuOpen"
-        to="/forms/14"
+        v-if="!isMobileMenuOpen && activePickupEvent"
+        :to="pickupEventLink"
         class="fixed right-4 top-14 md:right-12 md:top-auto md:bottom-8 rounded-[30px] bg-yellow-400 py-2 px-3 md:py-4 md:px-6 text-white shadow-lg flex items-center justify-center gap-2 md:gap-4 z-110"
       >
-        <div class="flex flex-col items-center justify-center font-bold">
-          <p class="text-xs md:text-lg">令和7年度 活動報告会</p>
-          <p class="text-sm md:text-xl underline text-red-700">
-            参加申し込み受付中
-          </p>
-        </div>
-        <!-- 日付（タブレット・デスクトップのみ表示） -->
-        <div
-          class="hidden md:flex flex-col items-center justify-center font-bold"
-        >
-          <p class="text-sm">11/18(月)</p>
-          <p class="text-sm">10:00 - 12:00</p>
-          <p><span class="mr-1">@</span>ゆめプラザ</p>
-        </div>
+        <TopPickupEventButton
+          :event="activePickupEvent.event"
+          :left-text="activePickupEvent.left_text"
+        />
       </NuxtLink>
     </Transition>
   </section>
@@ -53,6 +43,33 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { isOpen: isMobileMenuOpen } = useMobileMenu()
+
+const { data: pickupData } = await useFetch<{
+  success: boolean
+  data: {
+    id: number
+    event_id: number
+    left_text: string
+    pickup_datetime_start: string
+    pickup_datetime_end: string
+    event: {
+      id: number
+      title: string
+      start_date: string
+      end_date: string | null
+      location_name: string | null
+      form_id: number | null
+      cta_button_text: string | null
+    }
+  } | null
+}>('/api/public/pickup-events/active')
+
+const activePickupEvent = computed(() => pickupData.value?.data || null)
+
+const pickupEventLink = computed(() => {
+  if (!activePickupEvent.value?.event.id) return '#'
+  return `/events/${activePickupEvent.value.event.id}`
+})
 </script>
 
 <style scoped>

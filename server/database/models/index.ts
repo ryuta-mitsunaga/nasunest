@@ -11,6 +11,9 @@ export interface MemberAttributes {
   mission: string
   description: string
   icon: Buffer | null
+  x_url: string | null
+  instagram_url: string | null
+  facebook_url: string | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -18,7 +21,14 @@ export interface MemberAttributes {
 export interface MemberCreationAttributes
   extends Optional<
     MemberAttributes,
-    'id' | 'end_date' | 'icon' | 'createdAt' | 'updatedAt'
+    | 'id'
+    | 'end_date'
+    | 'icon'
+    | 'x_url'
+    | 'instagram_url'
+    | 'facebook_url'
+    | 'createdAt'
+    | 'updatedAt'
   > {}
 
 export class Member
@@ -33,6 +43,9 @@ export class Member
   public mission!: string
   public description!: string
   public icon!: Buffer | null
+  public x_url!: string | null
+  public instagram_url!: string | null
+  public facebook_url!: string | null
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 }
@@ -72,10 +85,25 @@ Member.init(
       type: DataTypes.BLOB('long'),
       allowNull: true,
     },
+    x_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'XのURL',
+    },
+    instagram_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'InstagramのURL',
+    },
+    facebook_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'FacebookのURL',
+    },
   },
   {
     sequelize,
-    tableName: 'members',
+    tableName: 'chiki_okoshi_members',
     timestamps: true,
   }
 )
@@ -140,7 +168,10 @@ export interface FormAttributes {
 }
 
 export interface FormCreationAttributes
-  extends Optional<FormAttributes, 'id' | 'published_start' | 'published_end' | 'createdAt' | 'updatedAt'> {}
+  extends Optional<
+    FormAttributes,
+    'id' | 'published_start' | 'published_end' | 'createdAt' | 'updatedAt'
+  > {}
 
 export class Form
   extends Model<FormAttributes, FormCreationAttributes>
@@ -279,7 +310,20 @@ export interface EventAttributes {
 export interface EventCreationAttributes
   extends Optional<
     EventAttributes,
-    'id' | 'form_id' | 'end_date' | 'body' | 'location_name' | 'location_address' | 'location_url' | 'thumbnail' | 'cta_button_text' | 'is_published' | 'published_start' | 'published_end' | 'createdAt' | 'updatedAt'
+    | 'id'
+    | 'form_id'
+    | 'end_date'
+    | 'body'
+    | 'location_name'
+    | 'location_address'
+    | 'location_url'
+    | 'thumbnail'
+    | 'cta_button_text'
+    | 'is_published'
+    | 'published_start'
+    | 'published_end'
+    | 'createdAt'
+    | 'updatedAt'
   > {}
 
 export class Event
@@ -397,6 +441,84 @@ Event.init(
   }
 )
 
+// PickupEventモデル
+export interface PickupEventAttributes {
+  id: number
+  event_id: number
+  pickup_datetime_start: Date
+  pickup_datetime_end: Date
+  left_text: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface PickupEventCreationAttributes
+  extends Optional<PickupEventAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+
+export class PickupEvent
+  extends Model<PickupEventAttributes, PickupEventCreationAttributes>
+  implements PickupEventAttributes
+{
+  public id!: number
+  public event_id!: number
+  public pickup_datetime_start!: Date
+  public pickup_datetime_end!: Date
+  public left_text!: string
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+PickupEvent.init(
+  {
+    id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    event_id: {
+      type: DataTypes.BIGINT.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: 'events',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    pickup_datetime_start: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment: 'ピックアップ開始日時',
+    },
+    pickup_datetime_end: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment: 'ピックアップ終了日時',
+    },
+    left_text: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: 'CTAボタン左側に表示するテキスト',
+    },
+  },
+  {
+    sequelize,
+    tableName: 'pickup_events',
+    timestamps: true,
+  }
+)
+
+// モデルの関連付け
+Event.hasMany(PickupEvent, {
+  foreignKey: 'event_id',
+  as: 'pickupEvents',
+})
+
+PickupEvent.belongsTo(Event, {
+  foreignKey: 'event_id',
+  as: 'event',
+})
+
 // すべてのモデルをエクスポート
 export const models = {
   Member,
@@ -404,5 +526,5 @@ export const models = {
   Form,
   FormAnswer,
   Event,
+  PickupEvent,
 }
-

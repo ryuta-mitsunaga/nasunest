@@ -34,6 +34,8 @@ definePageMeta({
   layout: 'admin',
 })
 
+const { success: toastSuccess, error: toastError } = useCustomToast()
+
 interface Form {
   id: number
   name: string
@@ -79,7 +81,7 @@ const fetchForm = async () => {
     formPublishedEnd.value = form.published_end
   } catch (error) {
     console.error('フォーム取得エラー:', error)
-    alert('フォームの取得に失敗しました')
+    toastError('フォームの取得に失敗しました')
     await navigateTo('/admin/forms')
   } finally {
     loading.value = false
@@ -112,9 +114,10 @@ const handleSubmit = async (data: {
     })
 
     await navigateTo('/admin/forms')
+    toastSuccess('保存しました')
   } catch (error) {
     console.error('保存エラー:', error)
-    alert('保存に失敗しました')
+    toastError('保存に失敗しました')
   } finally {
     submitting.value = false
   }

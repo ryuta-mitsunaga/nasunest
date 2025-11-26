@@ -15,6 +15,9 @@ export interface Member {
   mission: string
   description: string
   icon: string
+  x_url: string | null
+  instagram_url: string | null
+  facebook_url: string | null
   createdAt?: string
   updatedAt?: string
 }

@@ -12,10 +12,6 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  title: string
-}>()
-
 const handleLogout = async () => {
   await $fetch('/api/admin/logout', {
     method: 'POST',

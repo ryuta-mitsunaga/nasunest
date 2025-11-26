@@ -106,6 +106,9 @@ const fetchForms = async () => {
   }
 }
 
+const { success: toastSuccess, error: toastError } = useCustomToast()
+const { confirm } = useConfirm()
+
 const handleCopy = async (id: number) => {
   try {
     await $fetch(`/api/forms/${id}/copy`, {
@@ -113,15 +116,21 @@ const handleCopy = async (id: number) => {
       credentials: 'include',
     })
     await fetchForms()
-    alert('フォームをコピーしました')
+    toastSuccess('フォームをコピーしました')
   } catch (error) {
     console.error('コピーエラー:', error)
-    alert('コピーに失敗しました')
+    toastError('コピーに失敗しました')
   }
 }
 
 const handleDelete = async (id: number) => {
-  if (!confirm('本当に削除しますか？')) return
+  const confirmed = await confirm({
+    message: '本当に削除しますか？',
+    type: 'danger',
+    confirmText: '削除',
+    cancelText: 'キャンセル',
+  })
+  if (!confirmed) return
 
   try {
     await $fetch(`/api/forms/${id}`, {
@@ -129,9 +138,10 @@ const handleDelete = async (id: number) => {
       credentials: 'include',
     })
     await fetchForms()
+    toastSuccess('フォームを削除しました')
   } catch (error) {
     console.error('削除エラー:', error)
-    alert('削除に失敗しました')
+    toastError('削除に失敗しました')
   }
 }
 

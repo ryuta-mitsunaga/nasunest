@@ -57,8 +57,8 @@
           </svg>
         </button>
 
-        <div class="px-8 py-8">
-          <div class="flex flex-col gap-2">
+        <div class="px-8 py-16 h-full">
+          <div class="flex flex-col gap-4 h-full">
             <div
               v-for="(item, index) in menuItems"
               :key="item.to"
@@ -66,7 +66,7 @@
             >
               <NuxtLink
                 :to="item.to"
-                class="px-4 py-1 flex items-center justify-between hover:opacity-50 transition-opacity"
+                class="text-[#2E5E3E] px-4 py-1 flex items-center justify-between hover:opacity-50 transition-opacity"
                 style="font-family: 'Kosugi Maru', sans-serif"
                 @click.stop="closeMenu"
               >
@@ -85,9 +85,6 @@
                   />
                 </svg>
               </NuxtLink>
-              <UiDivider
-                :width="index === menuItems.length - 1 ? 100 : undefined"
-              />
             </div>
           </div>
         </div>

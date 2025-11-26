@@ -42,6 +42,9 @@ export default defineEventHandler(async (event) => {
       end_date: body.end_date || null,
       mission: body.mission,
       description: body.description,
+      x_url: body.x_url || null,
+      instagram_url: body.instagram_url || null,
+      facebook_url: body.facebook_url || null,
     }
     
     if (iconBuffer !== undefined) {

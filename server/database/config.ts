@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize'
 
-const dbName = process.env.MYSQL_DATABASE || 'chiki_okoshi'
+const dbName = process.env.MYSQL_DATABASE || 'nasunest'
 const dbUser = process.env.MYSQL_USER || 'app_user'
 const dbPassword = process.env.MYSQL_PASSWORD || 'app_password'
 const dbHost = process.env.MYSQL_HOST || 'localhost'
@@ -40,4 +40,3 @@ export const syncDB = async (force: boolean = false) => {
     return false
   }
 }
-

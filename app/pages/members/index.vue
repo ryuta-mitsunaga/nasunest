@@ -26,6 +26,9 @@
         :mission="member.mission"
         :description="member.description"
         :icon="member.icon"
+        :x-url="member.x_url"
+        :instagram-url="member.instagram_url"
+        :facebook-url="member.facebook_url"
       />
     </div>
 

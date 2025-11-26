@@ -84,12 +84,12 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 ```env
 MYSQL_ROOT_PASSWORD=rootpassword
-MYSQL_DATABASE=chiki_okoshi
+MYSQL_DATABASE=nasunest
 MYSQL_USER=app_user
 MYSQL_PASSWORD=app_password
 MYSQL_PORT=3306
 MYSQL_HOST=localhost
-DATABASE_URL=mysql://app_user:app_password@localhost:3306/chiki_okoshi
+DATABASE_URL=mysql://app_user:app_password@localhost:3306/nasunest
 PHPMYADMIN_PORT=8080
 ```
 
