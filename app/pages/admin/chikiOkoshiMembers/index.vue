@@ -58,82 +58,110 @@
       </template>
 
       <template #body>
-        <UForm :state="memberForm" @submit="handleSubmit" class="space-y-4">
-          <UFormField label="姓" name="name_sei" required>
-            <UInput v-model="memberForm.name_sei" />
-          </UFormField>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl">
+          <!-- フォーム -->
+          <div>
+            <UForm :state="memberForm" @submit="handleSubmit" class="space-y-4">
+              <UFormField label="姓" name="name_sei" required>
+                <UInput v-model="memberForm.name_sei" />
+              </UFormField>
 
-          <UFormField label="名" name="name_mei" required>
-            <UInput v-model="memberForm.name_mei" />
-          </UFormField>
+              <UFormField label="名" name="name_mei" required>
+                <UInput v-model="memberForm.name_mei" />
+              </UFormField>
 
-          <UFormField label="開始日" name="start_date" required>
-            <UInput v-model="memberForm.start_date" type="date" />
-          </UFormField>
+              <UFormField label="開始日" name="start_date" required>
+                <UInput v-model="memberForm.start_date" type="date" />
+              </UFormField>
 
-          <UFormField label="終了日" name="end_date">
-            <UInput v-model="memberForm.end_date" type="date" />
-          </UFormField>
+              <UFormField label="終了日" name="end_date">
+                <UInput v-model="memberForm.end_date" type="date" />
+              </UFormField>
 
-          <UFormField label="ミッション" name="mission" required>
-            <UInput v-model="memberForm.mission" />
-          </UFormField>
+              <UFormField label="ミッション" name="mission" required>
+                <UInput v-model="memberForm.mission" />
+              </UFormField>
 
-          <UFormField label="説明" name="description" required>
-            <UTextarea v-model="memberForm.description" />
-          </UFormField>
+              <UFormField label="説明" name="description" required>
+                <UTextarea v-model="memberForm.description" />
+              </UFormField>
 
-          <UFormField label="アイコン" name="icon">
-            <div class="space-y-4">
-              <div v-if="iconPreview" class="flex items-center gap-4">
-                <div class="w-24 h-24 border rounded overflow-hidden">
-                  <img
-                    :src="iconPreview"
-                    alt="プレビュー"
-                    class="w-full h-full object-cover"
+              <UFormField label="アイコン" name="icon">
+                <div class="space-y-4">
+                  <div v-if="iconPreview" class="flex items-center gap-4">
+                    <div class="w-24 h-24 border rounded overflow-hidden">
+                      <img
+                        :src="iconPreview"
+                        alt="プレビュー"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <UButton
+                      color="error"
+                      variant="soft"
+                      size="sm"
+                      @click="clearIcon"
+                    >
+                      削除
+                    </UButton>
+                  </div>
+                  <UInput
+                    type="file"
+                    accept="image/*"
+                    @change="handleIconUpload"
                   />
                 </div>
-                <UButton
-                  color="error"
-                  variant="soft"
-                  size="sm"
-                  @click="clearIcon"
-                >
-                  削除
+              </UFormField>
+
+              <UFormField label="X URL" name="x_url">
+                <UInput
+                  v-model="memberForm.x_url"
+                  placeholder="https://x.com/..."
+                />
+              </UFormField>
+
+              <UFormField label="Instagram URL" name="instagram_url">
+                <UInput
+                  v-model="memberForm.instagram_url"
+                  placeholder="https://www.instagram.com/..."
+                />
+              </UFormField>
+
+              <UFormField label="Facebook URL" name="facebook_url">
+                <UInput
+                  v-model="memberForm.facebook_url"
+                  placeholder="https://www.facebook.com/..."
+                />
+              </UFormField>
+
+              <div class="flex gap-2 justify-end">
+                <UButton variant="soft" @click="closeModal">キャンセル</UButton>
+                <UButton type="submit" :loading="submitting">
+                  {{ editingMember ? '更新' : '作成' }}
                 </UButton>
               </div>
-              <UInput type="file" accept="image/*" @change="handleIconUpload" />
-            </div>
-          </UFormField>
-
-          <UFormField label="X URL" name="x_url">
-            <UInput
-              v-model="memberForm.x_url"
-              placeholder="https://x.com/..."
-            />
-          </UFormField>
-
-          <UFormField label="Instagram URL" name="instagram_url">
-            <UInput
-              v-model="memberForm.instagram_url"
-              placeholder="https://www.instagram.com/..."
-            />
-          </UFormField>
-
-          <UFormField label="Facebook URL" name="facebook_url">
-            <UInput
-              v-model="memberForm.facebook_url"
-              placeholder="https://www.facebook.com/..."
-            />
-          </UFormField>
-
-          <div class="flex gap-2 justify-end">
-            <UButton variant="soft" @click="closeModal">キャンセル</UButton>
-            <UButton type="submit" :loading="submitting">
-              {{ editingMember ? '更新' : '作成' }}
-            </UButton>
+            </UForm>
           </div>
-        </UForm>
+
+          <!-- プレビュー -->
+          <div class="lg:sticky lg:top-4 lg:self-start">
+            <div class="mb-2">
+              <h4 class="text-sm font-semibold text-gray-700">プレビュー</h4>
+            </div>
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <MembersMemberCard
+                :name-sei="memberForm.name_sei || '姓'"
+                :name-mei="memberForm.name_mei || '名'"
+                :mission="memberForm.mission || 'ミッション'"
+                :description="memberForm.description || '説明'"
+                :icon="iconPreview"
+                :x-url="memberForm.x_url"
+                :instagram-url="memberForm.instagram_url"
+                :facebook-url="memberForm.facebook_url"
+              />
+            </div>
+          </div>
+        </div>
       </template>
     </UModal>
   </div>
@@ -316,3 +344,4 @@ onMounted(() => {
   fetchMembers()
 })
 </script>
+

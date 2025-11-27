@@ -35,7 +35,7 @@
 <script setup lang="ts">
 const linkMenus = [
   { label: 'トップ', to: '/' },
-  { label: '地域おこし協力隊員', to: '/members' },
+  { label: '地域おこし協力隊員', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
 ]
 </script>

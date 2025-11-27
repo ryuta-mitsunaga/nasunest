@@ -27,7 +27,7 @@
             那須町地域おこし協力隊は、豊かな自然に囲まれた那須町を舞台に、地域課題の解決や暮らしのサポートに取り組むメンバーです。住民の皆さんと協力しながら、地域の魅力を広げる活動を進めています。
           </p>
           <NuxtLink
-            to="/members"
+            to="/chikiOkoshiMembers"
             class="mt-4 inline-flex items-center gap-2 text-base md:text-lg font-semibold hover:opacity-70 transition-opacity underline"
           >
             地域おこし協力隊員一覧を見る

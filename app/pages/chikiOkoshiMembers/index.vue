@@ -45,3 +45,4 @@ const { data, pending, error } = await useFetch<MembersResponse>('/api/members')
 
 const members = computed(() => data.value?.data || [])
 </script>
+

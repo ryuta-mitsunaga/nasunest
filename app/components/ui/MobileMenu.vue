@@ -101,7 +101,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: 'トップ', to: '/' },
-  { label: '地域おこし協力隊員一覧', to: '/members' },
+  { label: '地域おこし協力隊員一覧', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
 ]
 

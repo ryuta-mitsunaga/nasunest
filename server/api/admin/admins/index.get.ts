@@ -3,8 +3,8 @@ import { getCookie } from 'h3'
 
 export default defineEventHandler(async (event) => {
   try {
+    // 認証チェック
     const adminIdStr = getCookie(event, 'adminId')
-
     if (!adminIdStr) {
       throw createError({
         statusCode: 401,
@@ -12,8 +12,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const adminId = parseInt(adminIdStr, 10)
-    const admin = await Admin.findByPk(adminId, {
+    const admins = await Admin.findAll({
       include: [
         {
           model: AdminPermission,
@@ -22,32 +21,28 @@ export default defineEventHandler(async (event) => {
           through: { attributes: [] },
         },
       ],
+      order: [['id', 'ASC']],
     })
-
-    if (!admin) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: '管理者が見つかりません',
-      })
-    }
-
-    const adminData = admin.toJSON()
 
     return {
       success: true,
-      data: {
-        id: adminData.id,
-        login_id: adminData.login_id,
-        permissions: adminData.permissions || [],
-      },
+      data: admins.map(admin => {
+        const adminData = admin.toJSON()
+        return {
+          ...adminData,
+          password: undefined, // パスワードは返さない
+        }
+      }),
     }
   } catch (error: any) {
     if (error.statusCode) {
       throw error
     }
+
+    console.error('管理者取得エラー:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: '認証情報の取得に失敗しました',
+      statusMessage: '管理者の取得に失敗しました',
     })
   }
 })

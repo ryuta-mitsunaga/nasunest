@@ -14,12 +14,6 @@ module.exports = {
     // CLI 実行時にも pg を明示的に使う
     dialectModule: pg,
     logging: console.log,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false, // ← PlanetScale では通常 false にする
-      },
-    },
   },
   production: {
     username: process.env.DB_USER || process.env.MYSQL_USER || 'app_user',

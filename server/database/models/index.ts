@@ -508,6 +508,70 @@ PickupEvent.init(
   }
 )
 
+// AdminInvitationモデル
+export interface AdminInvitationAttributes {
+  id: number
+  admin_id: number
+  token: string
+  expiry_date: Date
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface AdminInvitationCreationAttributes
+  extends Optional<
+    AdminInvitationAttributes,
+    'id' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class AdminInvitation
+  extends Model<AdminInvitationAttributes, AdminInvitationCreationAttributes>
+  implements AdminInvitationAttributes
+{
+  public id!: number
+  public admin_id!: number
+  public token!: string
+  public expiry_date!: Date
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+AdminInvitation.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    admin_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    token: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      comment: '招待トークン',
+    },
+    expiry_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment: '有効期限',
+    },
+  },
+  {
+    sequelize,
+    tableName: 'admin_invitations',
+    timestamps: true,
+  }
+)
+
 // モデルの関連付け
 Event.hasMany(PickupEvent, {
   foreignKey: 'event_id',
@@ -519,6 +583,154 @@ PickupEvent.belongsTo(Event, {
   as: 'event',
 })
 
+Admin.hasMany(AdminInvitation, {
+  foreignKey: 'admin_id',
+  as: 'invitations',
+})
+
+AdminInvitation.belongsTo(Admin, {
+  foreignKey: 'admin_id',
+  as: 'admin',
+})
+
+// AdminPermissionモデル
+export interface AdminPermissionAttributes {
+  id: number
+  code: string
+  name: string
+  description: string | null
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface AdminPermissionCreationAttributes
+  extends Optional<
+    AdminPermissionAttributes,
+    'id' | 'description' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class AdminPermission
+  extends Model<AdminPermissionAttributes, AdminPermissionCreationAttributes>
+  implements AdminPermissionAttributes
+{
+  public id!: number
+  public code!: string
+  public name!: string
+  public description!: string | null
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+AdminPermission.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    code: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      comment: '権限コード',
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: '権限名',
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: '権限の説明',
+    },
+  },
+  {
+    sequelize,
+    tableName: 'admin_permissions',
+    timestamps: true,
+  }
+)
+
+// AdminAdminPermissionモデル（リレーションテーブル）
+export interface AdminAdminPermissionAttributes {
+  id: number
+  admin_id: number
+  admin_permission_id: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface AdminAdminPermissionCreationAttributes
+  extends Optional<
+    AdminAdminPermissionAttributes,
+    'id' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class AdminAdminPermission
+  extends Model<
+    AdminAdminPermissionAttributes,
+    AdminAdminPermissionCreationAttributes
+  >
+  implements AdminAdminPermissionAttributes
+{
+  public id!: number
+  public admin_id!: number
+  public admin_permission_id!: number
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+AdminAdminPermission.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    admin_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    admin_permission_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'admin_permissions',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+  },
+  {
+    sequelize,
+    tableName: 'admin_admin_permissions',
+    timestamps: true,
+  }
+)
+
+// AdminとAdminPermissionの多対多リレーション
+Admin.belongsToMany(AdminPermission, {
+  through: AdminAdminPermission,
+  foreignKey: 'admin_id',
+  otherKey: 'admin_permission_id',
+  as: 'permissions',
+})
+
+AdminPermission.belongsToMany(Admin, {
+  through: AdminAdminPermission,
+  foreignKey: 'admin_permission_id',
+  otherKey: 'admin_id',
+  as: 'admins',
+})
+
 // すべてのモデルをエクスポート
 export const models = {
   Member,
@@ -527,4 +739,7 @@ export const models = {
   FormAnswer,
   Event,
   PickupEvent,
+  AdminInvitation,
+  AdminPermission,
+  AdminAdminPermission,
 }
