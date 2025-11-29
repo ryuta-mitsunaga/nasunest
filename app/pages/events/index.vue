@@ -88,7 +88,6 @@ const getEvents = async (page: number): Promise<PaginationResponse> => {
     hasMore.value = response.pagination.hasMore
   }
 
-  console.log('👺', response)
   return response
 }
 

@@ -3,7 +3,7 @@
     <!-- タイトルテキスト (画像表示前) -->
     <Transition name="fade-out">
       <div
-        v-if="!imagesLoaded"
+        v-if="!titleAnimationCompleted"
         class="absolute inset-0 flex items-center justify-center h-full pointer-events-none z-20"
       >
         <h1 class="title-text-image text-center px-4">
@@ -15,11 +15,14 @@
     </Transition>
 
     <!-- 背景のフォトスタック -->
-    <div
-      class="absolute inset-0 flex items-center justify-center h-full pointer-events-none"
-    >
-      <TopPhotoStack :events="events" @images-loaded="handleImagesLoaded" />
-    </div>
+    <Transition name="fade-in">
+      <div
+        v-if="showPhotoStack"
+        class="absolute inset-0 flex items-center justify-center h-full pointer-events-none"
+      >
+        <TopPhotoStack :events="events" @images-loaded="handleImagesLoaded" />
+      </div>
+    </Transition>
 
     <!-- ロゴ -->
     <div class="absolute bottom-3 right-3 md:bottom-10 md:right-10 z-10">
@@ -86,6 +89,21 @@ const pickupEventLink = computed(() => {
 })
 
 const imagesLoaded = ref(false)
+const titleAnimationCompleted = ref(false)
+const showPhotoStack = ref(false)
+
+// タイトルテキストのアニメーション完了を待つ（3秒 + フェードアウト時間0.8秒）
+onMounted(() => {
+  if (process.client) {
+    setTimeout(() => {
+      titleAnimationCompleted.value = true
+      // タイトルアニメーション完了後、少し待ってからPhotoStackを表示
+      setTimeout(() => {
+        showPhotoStack.value = true
+      }, 100)
+    }, 2000) // 3秒（アニメーション）+ 0.8秒（フェードアウト）
+  }
+})
 
 const handleImagesLoaded = () => {
   imagesLoaded.value = true
@@ -114,7 +132,7 @@ const handleImagesLoaded = () => {
   font-size: clamp(2rem, 8vw, 4rem);
   font-weight: 600;
   line-height: 1.4;
-  animation: titleTextFadeIn 3s ease-out forwards;
+  animation: titleTextFadeIn 2s ease-out forwards;
   letter-spacing: 0.1em;
   font-style: normal;
   display: inline-block;
@@ -140,5 +158,18 @@ const handleImagesLoaded = () => {
 .fade-out-enter-from,
 .fade-out-leave-to {
   opacity: 0;
+}
+
+/* PhotoStackのフェードインアニメーション */
+.fade-in-enter-active {
+  transition: opacity 0.6s ease-in;
+}
+
+.fade-in-enter-from {
+  opacity: 0;
+}
+
+.fade-in-enter-to {
+  opacity: 1;
 }
 </style>
