@@ -1,10 +1,24 @@
 <template>
   <section class="relative w-full h-screen max-h-[600px] overflow-hidden">
+    <!-- タイトルテキスト (画像表示前) -->
+    <Transition name="fade-out">
+      <div
+        v-if="!imagesLoaded"
+        class="absolute inset-0 flex items-center justify-center h-full pointer-events-none z-20"
+      >
+        <h1 class="title-text-image text-center px-4">
+          <span class="text-[#2e5e3e]">小さなご縁が、</span>
+          <br />
+          <span class="text-[#2e5e3e]">ここから広がる。</span>
+        </h1>
+      </div>
+    </Transition>
+
     <!-- 背景のフォトスタック -->
     <div
       class="absolute inset-0 flex items-center justify-center h-full pointer-events-none"
     >
-      <TopPhotoStack :events="events" />
+      <TopPhotoStack :events="events" @images-loaded="handleImagesLoaded" />
     </div>
 
     <!-- ロゴ -->
@@ -70,6 +84,12 @@ const pickupEventLink = computed(() => {
   if (!activePickupEvent.value?.event.id) return '#'
   return `/events/${activePickupEvent.value.event.id}`
 })
+
+const imagesLoaded = ref(false)
+
+const handleImagesLoaded = () => {
+  imagesLoaded.value = true
+}
 </script>
 
 <style scoped>
@@ -86,6 +106,39 @@ const pickupEventLink = computed(() => {
 
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+/* タイトルテキストのフェードイン・スケールアニメーション */
+.title-text-image {
+  font-size: clamp(2rem, 8vw, 4rem);
+  font-weight: 600;
+  line-height: 1.4;
+  animation: titleTextFadeIn 3s ease-out forwards;
+  letter-spacing: 0.1em;
+  font-style: normal;
+  display: inline-block;
+}
+
+@keyframes titleTextFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* title-text.pngのフェードアウトアニメーション */
+.fade-out-enter-active,
+.fade-out-leave-active {
+  transition: opacity 0.8s ease-out;
+}
+
+.fade-out-enter-from,
+.fade-out-leave-to {
   opacity: 0;
 }
 </style>

@@ -1,6 +1,11 @@
-import { Event } from '~~/server/database'
+import { Event, EventCategory } from '~~/server/database'
+import {
+  uploadImage,
+  downloadImageFromUrl,
+  getFileExtensionFromUrl,
+} from '~~/server/lib/supabase-repository'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 認証チェック
     const adminIdStr = getCookie(event, 'adminId')
@@ -26,6 +31,14 @@ export default defineEventHandler(async (event) => {
         id,
         admin_id: adminId,
       },
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
     })
 
     if (!originalEvent) {
@@ -36,18 +49,34 @@ export default defineEventHandler(async (event) => {
     }
 
     // 元のイベントデータを取得
-    const originalData = originalEvent.toJSON()
+    const originalData = originalEvent.toJSON() as any
 
-    // サムネイルをコピー（Bufferの場合はそのまま、Base64の場合は変換）
-    let thumbnailBuffer = null
-    if (originalData.thumbnail) {
-      if (Buffer.isBuffer(originalData.thumbnail)) {
-        // Bufferの場合はそのままコピー
-        thumbnailBuffer = Buffer.from(originalData.thumbnail)
-      } else if (typeof originalData.thumbnail === 'string' && originalData.thumbnail.startsWith('data:image')) {
-        // Base64文字列の場合はBufferに変換
-        const base64Data = originalData.thumbnail.replace(/^data:image\/\w+;base64,/, '')
-        thumbnailBuffer = Buffer.from(base64Data, 'base64')
+    // 元のイベントのカテゴリを取得（includeで取得したカテゴリを使用）
+    const originalCategories = (originalEvent as any).categories || []
+
+    // サムネイル画像を新しいファイルとしてアップロード
+    let thumbnailUrl: string | null = null
+    if (originalData.thumbnail && typeof originalData.thumbnail === 'string') {
+      try {
+        // URLから画像をダウンロード
+        const imageBuffer = await downloadImageFromUrl(originalData.thumbnail)
+        const extension = getFileExtensionFromUrl(originalData.thumbnail)
+        const fileName = `thumbnail.${extension}`
+
+        // 新しいファイルとしてSupabaseにアップロード
+        const result = await uploadImage({
+          file: imageBuffer,
+          fileName,
+          folder: 'events',
+          contentType: `image/${extension}`,
+        })
+
+        thumbnailUrl = result.url
+        console.log(`[Event Copy] 画像をコピーしました: ${result.url}`)
+      } catch (uploadError: any) {
+        console.error('画像コピーエラー:', uploadError)
+        // 画像のコピーに失敗してもイベントのコピーは続行（thumbnailはnullになる）
+        thumbnailUrl = null
       }
     }
 
@@ -63,22 +92,36 @@ export default defineEventHandler(async (event) => {
       location_name: originalData.location_name,
       location_address: originalData.location_address,
       location_url: originalData.location_url,
-      thumbnail: thumbnailBuffer,
+      thumbnail: thumbnailUrl as any,
       cta_button_text: originalData.cta_button_text || null,
       is_published: originalData.is_published ?? true,
       published_start: originalData.published_start || null,
       published_end: originalData.published_end || null,
     })
 
-    // レスポンス用にthumbnailをBase64文字列に変換
-    const eventData = newEvent.toJSON()
-    if (eventData.thumbnail && Buffer.isBuffer(eventData.thumbnail)) {
-      eventData.thumbnail = `data:image/png;base64,${eventData.thumbnail.toString('base64')}`
+    // カテゴリの関連付け（元のイベントから直接取得したカテゴリを使用）
+    if (originalCategories && originalCategories.length > 0) {
+      await (newEvent as any).setCategories(originalCategories)
+      console.log(
+        `[Event Copy] カテゴリをコピーしました: ${originalCategories.length}件`
+      )
     }
+
+    // カテゴリ情報を含めてリロード
+    await newEvent.reload({
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
+    })
 
     return {
       success: true,
-      data: eventData,
+      data: newEvent.toJSON(),
     }
   } catch (error: any) {
     if (error.statusCode) {
@@ -90,4 +133,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

@@ -26,6 +26,15 @@
           />
         </UFormField>
 
+        <UFormField label="カテゴリ" name="category_ids">
+          <AdminCategorySelector
+            :categories="categories"
+            :selected-category-ids="form.category_ids"
+            @update:selected-category-ids="form.category_ids = $event"
+            @add-category="handleAddCategory"
+          />
+        </UFormField>
+
         <UFormField label="CTAボタンのテキスト" name="cta_button_text">
           <UInput
             v-model="form.cta_button_text"
@@ -140,9 +149,20 @@ interface Event {
   is_published: boolean
   published_start: string | null
   published_end: string | null
+  categories?: Array<{
+    id: number
+    name: string
+    description: string | null
+    color: string | null
+  }>
 }
 
 interface Form {
+  id: number
+  name: string
+}
+
+interface Category {
   id: number
   name: string
 }
@@ -159,6 +179,7 @@ const eventId = computed(() => {
 const loading = ref(true)
 const submitting = ref(false)
 const forms = ref<Form[]>([])
+const categories = ref<Category[]>([])
 const thumbnailPreview = ref<string | null>(null)
 
 const form = reactive({
@@ -176,6 +197,7 @@ const form = reactive({
   is_published: true,
   published_start: '',
   published_end: '',
+  category_ids: [] as number[],
 })
 
 const publishOptions = [
@@ -190,6 +212,33 @@ const formOptions = computed(() => {
     ...forms.value.map(f => ({ label: f.name, value: f.id })),
   ]
 })
+
+const handleAddCategory = async (name: string): Promise<Category> => {
+  try {
+    const response = await $fetch<{ success: boolean; data: Category }>(
+      '/api/event-categories',
+      {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          name: name.trim(),
+        },
+      }
+    )
+    // カテゴリリストを更新
+    categories.value.push(response.data)
+    // 追加したカテゴリを自動的に選択
+    if (!form.category_ids.includes(response.data.id)) {
+      form.category_ids.push(response.data.id)
+    }
+    toastSuccess('カテゴリを追加しました')
+    return response.data
+  } catch (error) {
+    console.error('カテゴリ追加エラー:', error)
+    toastError('カテゴリの追加に失敗しました')
+    throw error
+  }
+}
 
 const fetchEvent = async () => {
   loading.value = true
@@ -215,6 +264,7 @@ const fetchEvent = async () => {
     form.is_published = eventData.is_published ?? true
     form.published_start = eventData.published_start || ''
     form.published_end = eventData.published_end || ''
+    form.category_ids = eventData.categories?.map(c => c.id) || []
     thumbnailPreview.value = eventData.thumbnail || null
   } catch (error) {
     console.error('イベント取得エラー:', error)
@@ -236,6 +286,20 @@ const fetchForms = async () => {
     forms.value = response.data || []
   } catch (error) {
     console.error('フォーム取得エラー:', error)
+  }
+}
+
+const fetchCategories = async () => {
+  try {
+    const response = await $fetch<{ success: boolean; data: Category[] }>(
+      '/api/event-categories',
+      {
+        credentials: 'include',
+      }
+    )
+    categories.value = response.data || []
+  } catch (error) {
+    console.error('カテゴリ取得エラー:', error)
   }
 }
 
@@ -284,6 +348,7 @@ const handleSubmit = async () => {
         is_published: form.is_published,
         published_start: form.published_start || null,
         published_end: form.published_end || null,
+        category_ids: form.category_ids,
       },
     })
 
@@ -300,5 +365,6 @@ const handleSubmit = async () => {
 onMounted(() => {
   fetchEvent()
   fetchForms()
+  fetchCategories()
 })
 </script>

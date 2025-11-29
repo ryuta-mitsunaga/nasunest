@@ -1,7 +1,7 @@
-import { Event } from '~~/server/database'
+import { Event, EventCategory } from '~~/server/database'
 import { Op } from 'sequelize'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 公開用なので認証不要でイベントを取得（公開されているもののみ）
     // 公開期間を考慮
@@ -28,6 +28,14 @@ export default defineEventHandler(async (event) => {
           },
         ],
       },
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
     })
 
     if (!eventData) {
@@ -37,15 +45,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // thumbnailをBase64文字列に変換
-    const eventDataJson = eventData.toJSON()
-    if (eventDataJson.thumbnail && Buffer.isBuffer(eventDataJson.thumbnail)) {
-      eventDataJson.thumbnail = `data:image/png;base64,${eventDataJson.thumbnail.toString('base64')}`
-    }
-
+    // thumbnailは既にURLなので変換不要
     return {
       success: true,
-      data: eventDataJson,
+      data: eventData.toJSON(),
     }
   } catch (error: any) {
     if (error.statusCode) {
@@ -57,4 +60,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

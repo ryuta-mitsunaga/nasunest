@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxt/ui'],
+  modules: ['@nuxt/ui', '@nuxt/fonts'],
   css: ['~/assets/css/main.css'],
   tailwindcss: {
     config: {
@@ -15,27 +15,23 @@ export default defineNuxtConfig({
       },
     },
   },
-  app: {
-    head: {
-      link: [
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.googleapis.com',
-        },
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.gstatic.com',
-          crossorigin: '',
-        },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700;800&display=swap',
-        },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap',
-        },
-      ],
-    },
+  fonts: {
+    families: [
+      {
+        name: 'Shippori Mincho',
+        provider: 'google',
+        weights: [400, 600, 700, 800],
+      },
+      {
+        name: 'Kosugi Maru',
+        provider: 'google',
+        weights: [400, 700],
+      },
+      {
+        name: 'Caveat',
+        provider: 'google',
+        weights: [400, 500, 600, 700],
+      },
+    ],
   },
 })

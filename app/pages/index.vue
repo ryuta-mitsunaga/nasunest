@@ -1,11 +1,11 @@
 <template>
   <TopHeroSection :events="allEvents" />
-  <TopNasuNestSection />
   <TopEventsSection
     :events="latestEvents"
     :loading="eventsLoading"
     :error="eventsError"
   />
+  <TopNasuNestSection />
   <TopAboutSection />
 </template>
 

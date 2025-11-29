@@ -1,6 +1,6 @@
-import { Event } from '~~/server/database'
+import { Event, EventCategory } from '~~/server/database'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 認証チェック
     const adminIdStr = getCookie(event, 'adminId')
@@ -26,6 +26,14 @@ export default defineEventHandler(async (event) => {
         id,
         admin_id: adminId,
       },
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
     })
 
     if (!eventData) {
@@ -35,24 +43,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // thumbnailをBase64文字列に変換
-    const eventDataJson = eventData.toJSON()
-    if (eventDataJson.thumbnail && Buffer.isBuffer(eventDataJson.thumbnail)) {
-      eventDataJson.thumbnail = `data:image/png;base64,${eventDataJson.thumbnail.toString('base64')}`
-    }
-
+    // thumbnailは既にURLなので変換不要
     return {
       success: true,
-      data: eventDataJson,
+      data: eventData.toJSON(),
     }
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
     throw createError({
       statusCode: 500,
       statusMessage: 'イベントの取得に失敗しました',
     })
   }
 })
-

@@ -58,6 +58,11 @@ const randomBetween = (min: number, max: number) =>
   Math.random() * (max - min) + min
 
 const photos = ref<Photo[]>([])
+const imagesLoaded = ref(false)
+
+const emit = defineEmits<{
+  'images-loaded': []
+}>()
 
 const spreadFactor = ref(0.3)
 
@@ -108,12 +113,35 @@ const generatePhotos = () => {
   }))
 }
 
+const loadImages = () => {
+  if (!process.client) return
+
+  const imagePromises = photos.value.map(photo => {
+    return new Promise<void>(resolve => {
+      const img = new Image()
+      img.onload = () => resolve()
+      img.onerror = () => resolve() // エラーでも続行
+      img.src = photo.imageSrc
+    })
+  })
+
+  Promise.all(imagePromises).then(() => {
+    imagesLoaded.value = true
+    emit('images-loaded')
+  })
+}
+
 onMounted(() => {
   if (!process.client) return
   generatePhotos()
   updateSpread()
   window.addEventListener('scroll', updateSpread, { passive: true })
   window.addEventListener('resize', updateSpread)
+
+  // 画像のロードを開始
+  nextTick(() => {
+    loadImages()
+  })
 })
 
 onBeforeUnmount(() => {

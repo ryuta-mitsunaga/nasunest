@@ -27,18 +27,10 @@ export default defineEventHandler(async event => {
       order: [['start_date', 'DESC']],
     })
 
-    // thumbnailをBase64文字列に変換
-    const eventsWithThumbnail = events.map(event => {
-      const eventData = event.toJSON()
-      if (eventData.thumbnail && Buffer.isBuffer(eventData.thumbnail)) {
-        eventData.thumbnail = `data:image/png;base64,${eventData.thumbnail.toString('base64')}`
-      }
-      return eventData
-    })
-
+    // thumbnailは既にURLなので変換不要
     return {
       success: true,
-      data: eventsWithThumbnail,
+      data: events.map(event => event.toJSON()),
     }
   } catch (error: any) {
     if (error.statusCode) {

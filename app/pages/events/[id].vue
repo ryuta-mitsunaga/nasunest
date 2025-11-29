@@ -51,6 +51,8 @@
 
         <!-- イベント情報 -->
         <div class="p-6 md:p-8 space-y-6">
+          <!-- カテゴリ -->
+          <EventsEventCategories :categories="event.categories" />
           <!-- 日付情報 -->
           <div class="flex items-center gap-2" style="color: #2e5e3e">
             <svg
@@ -180,6 +182,10 @@ interface Event {
   location_url: string | null
   thumbnail: string | null
   cta_button_text: string | null
+  categories?: Array<{
+    id: number
+    name: string
+  }>
 }
 
 const route = useRoute()

@@ -1,4 +1,9 @@
-import { Event } from '~~/server/database'
+import { Event, EventCategory } from '~~/server/database'
+import {
+  uploadImage,
+  base64ToBuffer,
+  getFileExtensionFromBase64,
+} from '~~/server/lib/supabase-repository'
 
 export default defineEventHandler(async event => {
   try {
@@ -22,12 +27,31 @@ export default defineEventHandler(async event => {
 
     const body = await readBody(event)
 
-    // Base64文字列をBufferに変換
-    let thumbnailBuffer = null
+    // Base64文字列をSupabaseにアップロード
+    let thumbnailUrl = null
     if (body.thumbnail && typeof body.thumbnail === 'string') {
-      // data:image/png;base64, のプレフィックスを除去
-      const base64Data = body.thumbnail.replace(/^data:image\/\w+;base64,/, '')
-      thumbnailBuffer = Buffer.from(base64Data, 'base64')
+      try {
+        // Base64文字列をBufferに変換
+        const buffer = base64ToBuffer(body.thumbnail)
+        const extension = getFileExtensionFromBase64(body.thumbnail)
+        const fileName = `thumbnail.${extension}`
+
+        // Supabaseにアップロード
+        const result = await uploadImage({
+          file: buffer,
+          fileName,
+          folder: 'events',
+          contentType: `image/${extension}`,
+        })
+
+        thumbnailUrl = result.url
+      } catch (uploadError: any) {
+        console.error('画像アップロードエラー:', uploadError)
+        throw createError({
+          statusCode: 500,
+          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+        })
+      }
     }
 
     const newEvent = await Event.create({
@@ -41,22 +65,42 @@ export default defineEventHandler(async event => {
       location_name: body.location_name || null,
       location_address: body.location_address || null,
       location_url: body.location_url || null,
-      thumbnail: thumbnailBuffer,
+      thumbnail: thumbnailUrl,
       cta_button_text: body.cta_button_text || null,
       is_published: body.is_published,
       published_start: body.published_start || null,
       published_end: body.published_end || null,
     })
 
-    // レスポンス用にthumbnailをBase64文字列に変換
-    const eventData = newEvent.toJSON()
-    if (eventData.thumbnail && Buffer.isBuffer(eventData.thumbnail)) {
-      eventData.thumbnail = `data:image/png;base64,${eventData.thumbnail.toString('base64')}`
+    // カテゴリの関連付け
+    if (
+      body.category_ids &&
+      Array.isArray(body.category_ids) &&
+      body.category_ids.length > 0
+    ) {
+      const categories = await EventCategory.findAll({
+        where: {
+          id: body.category_ids,
+        },
+      })
+      await newEvent.setCategories(categories)
     }
+
+    // カテゴリ情報を含めてリロード
+    await newEvent.reload({
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
+    })
 
     return {
       success: true,
-      data: eventData,
+      data: newEvent.toJSON(),
     }
   } catch (error: any) {
     if (error.statusCode) {

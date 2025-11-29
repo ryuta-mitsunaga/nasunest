@@ -409,8 +409,9 @@ Event.init(
       allowNull: true,
     },
     thumbnail: {
-      type: DataTypes.BLOB,
+      type: DataTypes.TEXT,
       allowNull: true,
+      comment: 'Supabase StorageのURL',
     },
     cta_button_text: {
       type: DataTypes.STRING,
@@ -731,6 +732,137 @@ AdminPermission.belongsToMany(Admin, {
   as: 'admins',
 })
 
+// EventCategoryモデル
+export interface EventCategoryAttributes {
+  id: number
+  name: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EventCategoryCreationAttributes
+  extends Optional<
+    EventCategoryAttributes,
+    'id' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EventCategory
+  extends Model<
+    EventCategoryAttributes,
+    EventCategoryCreationAttributes
+  >
+  implements EventCategoryAttributes
+{
+  public id!: number
+  public name!: string
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+EventCategory.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'event_categories',
+    timestamps: true,
+  }
+)
+
+// EventEventCategoryモデル（中間テーブル）
+export interface EventEventCategoryAttributes {
+  id: number
+  event_id: number
+  event_category_id: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EventEventCategoryCreationAttributes
+  extends Optional<
+    EventEventCategoryAttributes,
+    'id' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EventEventCategory
+  extends Model<
+    EventEventCategoryAttributes,
+    EventEventCategoryCreationAttributes
+  >
+  implements EventEventCategoryAttributes
+{
+  public id!: number
+  public event_id!: number
+  public event_category_id!: number
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+EventEventCategory.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    event_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'events',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    event_category_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'event_categories',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+  },
+  {
+    sequelize,
+    tableName: 'event_event_categories',
+    timestamps: true,
+  }
+)
+
+// EventとEventCategoryの多対多リレーション
+Event.belongsToMany(EventCategory, {
+  through: EventEventCategory,
+  foreignKey: 'event_id',
+  otherKey: 'event_category_id',
+  as: 'categories',
+})
+
+EventCategory.belongsToMany(Event, {
+  through: EventEventCategory,
+  foreignKey: 'event_category_id',
+  otherKey: 'event_id',
+  as: 'events',
+})
+
+// EventEventCategoryとEventCategoryの関連
+EventEventCategory.belongsTo(EventCategory, {
+  foreignKey: 'event_category_id',
+  as: 'category',
+})
+
 // すべてのモデルをエクスポート
 export const models = {
   Member,
@@ -742,4 +874,6 @@ export const models = {
   AdminInvitation,
   AdminPermission,
   AdminAdminPermission,
+  EventCategory,
+  EventEventCategory,
 }

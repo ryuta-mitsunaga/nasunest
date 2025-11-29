@@ -1,4 +1,10 @@
-import { Event } from '~~/server/database'
+import { Event, EventCategory } from '~~/server/database'
+import {
+  uploadImage,
+  deleteImage,
+  base64ToBuffer,
+  getFileExtensionFromBase64,
+} from '~~/server/lib/supabase-repository'
 
 export default defineEventHandler(async event => {
   try {
@@ -26,6 +32,14 @@ export default defineEventHandler(async event => {
         id,
         admin_id: adminId,
       },
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
     })
 
     if (!eventData) {
@@ -37,17 +51,66 @@ export default defineEventHandler(async event => {
 
     const body = await readBody(event)
 
-    // Base64文字列をBufferに変換
-    let thumbnailBuffer: Buffer | null | undefined = undefined
+    // 既存のthumbnail URLを取得（削除用）
+    const existingThumbnailUrl = eventData.thumbnail as string | null
+    let thumbnailUrl: string | null | undefined = undefined
+
     if (body.thumbnail && typeof body.thumbnail === 'string') {
-      // data:image/png;base64, のプレフィックスを除去
-      const base64Data = body.thumbnail.replace(/^data:image\/\w+;base64,/, '')
-      thumbnailBuffer = Buffer.from(base64Data, 'base64')
+      // Base64文字列の場合はSupabaseにアップロード
+      try {
+        const buffer = base64ToBuffer(body.thumbnail)
+        const extension = getFileExtensionFromBase64(body.thumbnail)
+        const fileName = `thumbnail.${extension}`
+
+        const result = await uploadImage({
+          file: buffer,
+          fileName,
+          folder: 'events',
+          contentType: `image/${extension}`,
+        })
+
+        thumbnailUrl = result.url
+
+        // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
+        if (existingThumbnailUrl) {
+          try {
+            // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/events/xxx.png）
+            const urlParts = existingThumbnailUrl.split('/event-thumbnail/')
+            if (urlParts.length > 1) {
+              // deleteImageはバケット名を含まないパスを期待する
+              const filePath = urlParts[1]
+              await deleteImage(filePath)
+            }
+          } catch (deleteError) {
+            console.error('既存画像の削除エラー（無視）:', deleteError)
+            // 削除エラーは無視（新しい画像はアップロード済み）
+          }
+        }
+      } catch (uploadError: any) {
+        console.error('画像アップロードエラー:', uploadError)
+        throw createError({
+          statusCode: 500,
+          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+        })
+      }
     } else if (body.thumbnail === null) {
       // 明示的にnullが送信された場合はnullを設定（削除）
-      thumbnailBuffer = null
+      thumbnailUrl = null
+
+      // 既存の画像を削除
+      if (existingThumbnailUrl) {
+        try {
+          const urlParts = existingThumbnailUrl.split('/event-thumbnail/')
+          if (urlParts.length > 1) {
+            const filePath = `event-thumbnail/${urlParts[1]}`
+            await deleteImage(filePath)
+          }
+        } catch (deleteError) {
+          console.error('既存画像の削除エラー（無視）:', deleteError)
+        }
+      }
     }
-    // body.thumbnailがundefinedの場合は、thumbnailBufferもundefinedのまま（既存のthumbnailを保持）
+    // body.thumbnailがundefinedの場合は、thumbnailUrlもundefinedのまま（既存のthumbnailを保持）
 
     const updateData: any = {
       title: body.title,
@@ -65,22 +128,42 @@ export default defineEventHandler(async event => {
       published_end: body.published_end || null,
     }
 
-    if (thumbnailBuffer !== undefined) {
-      updateData.thumbnail = thumbnailBuffer
+    if (thumbnailUrl !== undefined) {
+      updateData.thumbnail = thumbnailUrl
     }
 
     await eventData.update(updateData)
 
-    // レスポンス用にthumbnailをBase64文字列に変換
-    await eventData.reload()
-    const eventDataJson = eventData.toJSON()
-    if (eventDataJson.thumbnail && Buffer.isBuffer(eventDataJson.thumbnail)) {
-      eventDataJson.thumbnail = `data:image/png;base64,${eventDataJson.thumbnail.toString('base64')}`
+    // カテゴリの関連付けを更新
+    if (body.category_ids !== undefined) {
+      if (Array.isArray(body.category_ids) && body.category_ids.length > 0) {
+        const categories = await EventCategory.findAll({
+          where: {
+            id: body.category_ids,
+          },
+        })
+        await eventData.setCategories(categories)
+      } else {
+        // 空配列の場合はすべてのカテゴリを削除
+        await eventData.setCategories([])
+      }
     }
+
+    // カテゴリ情報を含めてリロード
+    await eventData.reload({
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
+      ],
+    })
 
     return {
       success: true,
-      data: eventDataJson,
+      data: eventData.toJSON(),
     }
   } catch (error: any) {
     if (error.statusCode) {

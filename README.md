@@ -234,3 +234,71 @@ module.exports = {
 ### データベースの同期
 
 開発中にモデルをデータベースに同期するには、`server/database/config.ts`の`syncDB`関数を使用できます。
+
+## Supabase Storage設定
+
+このプロジェクトでは、イベントのサムネイル画像をSupabase Storageに保存します。
+
+### 環境変数の設定
+
+`.env`ファイルに以下の環境変数を追加してください：
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+**重要**: `SUPABASE_SERVICE_ROLE_KEY`はサービスロールキーを使用してください。これはサーバーサイドでのみ使用され、クライアントに公開しないでください。
+
+### Supabase Storageのセットアップ
+
+1. Supabaseプロジェクトのダッシュボードにアクセス
+2. **Storage**セクションに移動
+3. **Create a new bucket**をクリック
+4. バケット名: `event-thumbnail`
+5. **Public bucket**にチェックを入れる（公開アクセスを許可）
+6. **Create bucket**をクリック
+
+### バケットポリシーの設定
+
+`event-thumbnail`バケットに対して、以下のポリシーを設定してください：
+
+**アップロードポリシー（INSERT）**:
+```sql
+CREATE POLICY "Allow authenticated uploads"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'event-thumbnail');
+```
+
+**読み取りポリシー（SELECT）**:
+```sql
+CREATE POLICY "Allow public read access"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'event-thumbnail');
+```
+
+**削除ポリシー（DELETE）**:
+```sql
+CREATE POLICY "Allow authenticated deletes"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'event-thumbnail');
+```
+
+### 画像アップロードの動作
+
+- イベント作成・更新時に、Base64形式の画像がSupabase Storageにアップロードされます
+- アップロードされた画像のURLが`events`テーブルの`thumbnail`カラムに保存されます
+- 画像は`events/`フォルダ内に保存されます（例: `events/1234567890-thumbnail.png`）
+- 既存の画像を更新する場合、古い画像は自動的に削除されます
+
+### リポジトリ
+
+画像アップロード機能は`server/repositories/supabase-repository.ts`に実装されています：
+
+- `uploadImage()`: 画像をSupabase Storageにアップロード
+- `deleteImage()`: Supabase Storageから画像を削除
+- `base64ToBuffer()`: Base64文字列をBufferに変換
+- `getFileExtensionFromBase64()`: Base64文字列からファイル拡張子を取得
