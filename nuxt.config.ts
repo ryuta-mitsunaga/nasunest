@@ -67,6 +67,16 @@ export default defineNuxtConfig({
         { rel: 'apple-touch-icon', href: '/favicon.ico' },
         { rel: 'canonical', href: 'https://www.nasunest.com' },
       ],
+      script: [
+        {
+          innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-T7B477Z4');`,
+          type: 'text/javascript',
+        },
+      ],
     },
   },
   fonts: {
