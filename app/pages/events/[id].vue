@@ -222,6 +222,106 @@ if (data.value?.success && data.value.data) {
 
 loading.value = false
 
+const baseUrl = 'https://www.nasunest.com'
+
+// SEO設定
+useHead({
+  title: computed(() => event.value?.title || 'イベント詳細'),
+  meta: computed(() => [
+    {
+      name: 'description',
+      content:
+        event.value?.description?.substring(0, 120) ||
+        '那須町のイベント情報詳細ページです。',
+    },
+    {
+      property: 'og:title',
+      content: `${event.value?.title || 'イベント詳細'} | NasuNest`,
+    },
+    {
+      property: 'og:description',
+      content:
+        event.value?.description?.substring(0, 120) ||
+        '那須町のイベント情報詳細ページです。',
+    },
+    {
+      property: 'og:image',
+      content: event.value?.thumbnail || `${baseUrl}/img/title-logo.png`,
+    },
+    {
+      property: 'og:url',
+      content: `${baseUrl}/events/${eventId.value}`,
+    },
+    { property: 'og:type', content: 'article' },
+  ]),
+  script: computed(() => {
+    if (!event.value) return []
+    const eventData = event.value
+    const startDate = new Date(eventData.start_date)
+    const endDate = eventData.end_date
+      ? new Date(eventData.end_date)
+      : startDate
+
+    return [
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: eventData.title,
+          description: eventData.description || '',
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          image: eventData.thumbnail || `${baseUrl}/img/title-logo.png`,
+          location: eventData.location_name
+            ? {
+                '@type': 'Place',
+                name: eventData.location_name,
+                address: eventData.location_address || '',
+                url: eventData.location_url || undefined,
+              }
+            : undefined,
+          organizer: {
+            '@type': 'Organization',
+            name: '那須町地域おこし協力隊',
+            url: baseUrl,
+          },
+          url: `${baseUrl}/events/${eventId.value}`,
+          eventStatus: 'https://schema.org/EventScheduled',
+          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        }),
+      },
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'ホーム',
+              item: baseUrl,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'イベント一覧',
+              item: `${baseUrl}/events`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: eventData.title,
+              item: `${baseUrl}/events/${eventId.value}`,
+            },
+          ],
+        }),
+      },
+    ]
+  }),
+})
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('ja-JP', {

@@ -28,7 +28,7 @@
     <div class="absolute bottom-3 right-3 md:bottom-10 md:right-10 z-10">
       <img
         src="/img/title-logo.png"
-        alt="那須町地域おこし協力隊"
+        alt="nasunest"
         class="logo-image md:w-[140px] w-[100px]"
       />
     </div>

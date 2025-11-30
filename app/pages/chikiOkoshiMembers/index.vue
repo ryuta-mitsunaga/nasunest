@@ -41,6 +41,57 @@
 <script setup lang="ts">
 import type { MembersResponse } from '~/types'
 
+const baseUrl = 'https://www.nasunest.com'
+
+// SEO設定
+useHead({
+  title: '地域おこし協力隊員一覧',
+  meta: [
+    {
+      name: 'description',
+      content:
+        '那須町地域おこし協力隊の隊員一覧。各隊員の活動内容やミッションを紹介しています。',
+    },
+    {
+      property: 'og:title',
+      content: '地域おこし協力隊員一覧 | NasuNest',
+    },
+    {
+      property: 'og:description',
+      content:
+        '那須町地域おこし協力隊の隊員一覧。各隊員の活動内容やミッションを紹介しています。',
+    },
+    {
+      property: 'og:url',
+      content: `${baseUrl}/chikiOkoshiMembers`,
+    },
+    { property: 'og:type', content: 'website' },
+  ],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'ホーム',
+            item: baseUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: '地域おこし協力隊員一覧',
+            item: `${baseUrl}/chikiOkoshiMembers`,
+          },
+        ],
+      }),
+    },
+  ],
+})
+
 const { data, pending, error } = await useFetch<MembersResponse>('/api/members')
 
 const members = computed(() => data.value?.data || [])

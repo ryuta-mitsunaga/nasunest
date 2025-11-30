@@ -23,6 +23,31 @@
 <script setup lang="ts">
 import type { Event } from '~/components/events/EventCard.vue'
 
+const baseUrl = 'https://www.nasunest.com'
+
+// SEO設定
+useHead({
+  title: 'イベント一覧',
+  meta: [
+    {
+      name: 'description',
+      content:
+        '那須町のイベント情報一覧。カテゴリ・キーワード・開催日で検索して、興味に合ったイベント・体験・交流会を見つけよう。',
+    },
+    {
+      property: 'og:title',
+      content: 'イベント一覧 | NasuNest',
+    },
+    {
+      property: 'og:description',
+      content:
+        '那須町のイベント情報一覧。カテゴリ・キーワード・開催日で検索して、興味に合ったイベント・体験・交流会を見つけよう。',
+    },
+    { property: 'og:url', content: `${baseUrl}/events` },
+    { property: 'og:type', content: 'website' },
+  ],
+})
+
 interface Category {
   id: number
   name: string
@@ -184,5 +209,51 @@ const displayEvents = computed(() => {
 // 総件数
 const totalCount = computed(() => {
   return eventsData.value?.pagination?.total || 0
+})
+
+// ItemList構造化データ
+const itemListSchema = computed(() => {
+  const allEvents = displayEvents.value
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: '那須町イベント一覧',
+    description: '那須町で開催されるイベント・体験・交流会の一覧',
+    numberOfItems: totalCount.value,
+    itemListElement: allEvents.map((event, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Event',
+        '@id': `${baseUrl}/events/${event.id}`,
+        name: event.title,
+        description: event.description?.substring(0, 200) || '',
+        startDate: event.start_date,
+        endDate: event.end_date || event.start_date,
+        image: event.thumbnail || `${baseUrl}/img/title-logo.png`,
+        location: event.location_name
+          ? {
+              '@type': 'Place',
+              name: event.location_name,
+              address: event.location_address || '',
+            }
+          : undefined,
+        organizer: {
+          '@type': 'Organization',
+          name: '那須町地域おこし協力隊',
+        },
+      },
+    })),
+  }
+})
+
+// 構造化データをheadに追加
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: computed(() => JSON.stringify(itemListSchema.value)),
+    },
+  ],
 })
 </script>

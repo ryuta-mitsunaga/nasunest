@@ -1,2 +1,5 @@
 User-Agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://www.nasunest.com/sitemap.xml

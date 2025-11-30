@@ -16,6 +16,82 @@ definePageMeta({
   layout: 'top',
 })
 
+// SEO設定
+const baseUrl = 'https://www.nasunest.com'
+
+useHead({
+  title:
+    'NasuNest - 那須町の人がつながるきっかけを生み出す地域コミュニティプラットフォーム',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。移住者・地域住民・観光者がイベント・体験・交流会を簡単に探して参加できます。',
+    },
+    {
+      property: 'og:title',
+      content:
+        'NasuNest - 那須町の人がつながるきっかけを生み出す地域コミュニティプラットフォーム',
+    },
+    {
+      property: 'og:description',
+      content:
+        'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。移住者・地域住民・観光者がイベント・体験・交流会を簡単に探して参加できます。',
+    },
+    { property: 'og:url', content: `${baseUrl}/` },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:image', content: `${baseUrl}/img/title-logo.png` },
+  ],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'NasuNest',
+        alternateName: 'ナスネスト',
+        url: baseUrl,
+        description:
+          'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。移住者・地域住民・観光者がイベント・体験・交流会を簡単に探して参加できます。',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${baseUrl}/events?keyword={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: '那須町地域おこし協力隊',
+          alternateName: 'NasuNest',
+          url: baseUrl,
+        },
+      }),
+    },
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: '那須町地域おこし協力隊',
+        alternateName: 'NasuNest',
+        url: baseUrl,
+        logo: `${baseUrl}/img/title-logo.png`,
+        description:
+          'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: '那須町',
+          addressRegion: '栃木県',
+          addressCountry: 'JP',
+        },
+        sameAs: [],
+      }),
+    },
+  ],
+})
+
 // イベントデータの取得
 const eventsLoading = ref(true)
 const eventsError = ref('')
