@@ -41,7 +41,7 @@ export default defineEventHandler(async event => {
     if (!eventData) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'イベントが見つかりません',
+        message: 'イベントが見つかりません',
       })
     }
 
@@ -56,7 +56,7 @@ export default defineEventHandler(async event => {
     }
     throw createError({
       statusCode: 500,
-      statusMessage: 'イベントの取得に失敗しました',
+      message: 'イベントの取得に失敗しました',
     })
   }
 })

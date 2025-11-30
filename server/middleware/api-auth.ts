@@ -1,11 +1,16 @@
 import { getHeader } from 'h3'
 
 export default defineEventHandler(async event => {
-  // 公開用APIも含めて全てのAPIを保護
-  // 公開用APIを除外したい場合は以下のコメントを外す
-  // if (event.node.req.url?.startsWith('/api/public/')) {
-  //   return
-  // }
+  // APIエンドポイントでない場合はスキップ
+  const url = event.node.req.url || ''
+  if (!url.startsWith('/api/')) {
+    return
+  }
+
+  // 公開用APIは除外
+  if (url.startsWith('/api/public/')) {
+    return
+  }
 
   // Originヘッダーをチェック
   const origin = getHeader(event, 'origin')
@@ -50,7 +55,7 @@ export default defineEventHandler(async event => {
       ) {
         throw createError({
           statusCode: 403,
-          statusMessage: '外部からのアクセスは許可されていません',
+          message: '外部からのアクセスは許可されていません',
         })
       }
     } catch (error: any) {
@@ -79,7 +84,7 @@ export default defineEventHandler(async event => {
       ) {
         throw createError({
           statusCode: 403,
-          statusMessage: '外部からのアクセスは許可されていません',
+          message: '外部からのアクセスは許可されていません',
         })
       }
     } catch (error: any) {
