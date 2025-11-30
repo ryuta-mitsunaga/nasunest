@@ -76,6 +76,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-T7B477Z4');`,
           type: 'text/javascript',
         },
+        {
+          src: 'https://www.googletagmanager.com/gtag/js?id=G-M5B43LHSBF',
+          async: true,
+        },
+        {
+          innerHTML: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-M5B43LHSBF');`,
+          type: 'text/javascript',
+        },
       ],
     },
   },
