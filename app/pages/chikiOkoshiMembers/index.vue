@@ -1,6 +1,34 @@
 <template>
-  <div style="color: #2E5E3E">
-    <UiPageTitle title="地域おこし協力隊員一覧" />
+  <div style="color: #2e5e3e">
+    <UiPageTitle title="那須町地域おこし協力隊員" />
+
+    <!-- 那須町地域おこし協力隊について -->
+    <section class="bg-page-bg mb-12">
+      <div class="container mx-auto px-4">
+        <div
+          class="mt-8 flex flex-col md:flex-row gap-8 items-center md:items-start max-w-screen-lg"
+        >
+          <!-- 左側：画像 -->
+          <div class="flex-shrink-0 w-full md:w-1/2">
+            <img
+              src="/img/chiki-okoshi-Introduction/chiki_okoshi_group_photo.jpg"
+              alt="那須町地域おこし協力隊"
+              class="w-full h-auto rounded-lg object-cover"
+            />
+          </div>
+
+          <!-- 右側：説明文 -->
+          <div class="w-full md:w-1/2 flex flex-col gap-4 text-[#2e5e3e]">
+            <h3 class="text-xl md:text-2xl font-semibold py-4">
+              地域と暮らしに寄り添う、那須町の協力隊
+            </h3>
+            <p class="text-base md:text-lg leading-relaxed">
+              那須町地域おこし協力隊は、豊かな自然に囲まれた那須町を舞台に、地域課題の解決や暮らしのサポートに取り組むメンバーです。住民の皆さんと協力しながら、地域の魅力を広げる活動を進めています。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- メンバー一覧 -->
     <div v-if="pending" class="flex justify-center items-center py-20">
@@ -32,9 +60,7 @@
       />
     </div>
 
-    <div v-else class="text-center py-20">
-      メンバーが登録されていません
-    </div>
+    <div v-else class="text-center py-20">メンバーが登録されていません</div>
   </div>
 </template>
 
@@ -45,7 +71,7 @@ const baseUrl = 'https://www.nasunest.com'
 
 // SEO設定
 useHead({
-  title: '地域おこし協力隊員一覧',
+  title: '那須町地域おこし協力隊員',
   meta: [
     {
       name: 'description',
@@ -96,4 +122,3 @@ const { data, pending, error } = await useFetch<MembersResponse>('/api/members')
 
 const members = computed(() => data.value?.data || [])
 </script>
-

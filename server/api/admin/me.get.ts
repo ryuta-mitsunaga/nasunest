@@ -1,18 +1,9 @@
 import { Admin, AdminPermission } from '~~/server/database'
-import { getCookie } from 'h3'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async (event) => {
   try {
-    const adminIdStr = getCookie(event, 'adminId')
-
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
-
-    const adminId = parseInt(adminIdStr, 10)
+    const adminId = requireAdminId(event)
     const admin = await Admin.findByPk(adminId, {
       include: [
         {

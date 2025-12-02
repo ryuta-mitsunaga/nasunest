@@ -38,8 +38,15 @@
           />
         </UFormField>
 
-        <UFormField label="公開設定" name="is_published">
-          <URadioGroup v-model="form.is_published" :items="publishOptions" />
+        <UFormField
+          label="このイベントでは、参加にログインが必要ですか？"
+          name="is_login_required"
+        >
+          <USwitch v-model="form.is_login_required" />
+        </UFormField>
+
+        <UFormField label="イベント表示設定" name="is_displayed">
+          <URadioGroup v-model="form.is_displayed" :items="displayOptions" />
         </UFormField>
 
         <UFormField label="イベント開始日" name="start_date" required>
@@ -123,7 +130,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 
@@ -151,15 +157,16 @@ const form = reactive({
   location_url: '',
   thumbnail: null as string | null,
   cta_button_text: '',
-  is_published: true,
+  is_displayed: true,
   published_start: '',
   published_end: '',
+  is_login_required: false,
   category_ids: [] as number[],
 })
 
-const publishOptions = [
-  { label: '公開', value: true },
-  { label: '非公開', value: false },
+const displayOptions = [
+  { label: '表示', value: true },
+  { label: '非表示', value: false },
 ]
 
 const formState = computed(() => form)
@@ -271,9 +278,10 @@ const handleSubmit = async () => {
         location_url: form.location_url || null,
         thumbnail: form.thumbnail || null,
         cta_button_text: form.cta_button_text || null,
-        is_published: form.is_published,
+        is_displayed: form.is_displayed,
         published_start: form.published_start || null,
         published_end: form.published_end || null,
+        is_login_required: form.is_login_required,
         category_ids: form.category_ids,
       },
     })

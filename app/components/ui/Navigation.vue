@@ -8,7 +8,7 @@
     >
       <img
         src="/img/title-logo.png"
-        alt="那須町地域おこし協力隊"
+        alt="NasuNestタイトルロゴ"
         class="w-16 md:w-22"
       />
     </NuxtLink>
@@ -27,17 +27,61 @@
       </NuxtLink>
     </div>
 
+    <!-- ログイン/ログアウトボタン（デスクトップ） -->
+    <div class="hidden md:flex items-center gap-4">
+      <!-- ログイン済み -->
+      <template v-if="isAuthenticated">
+        <NuxtLink
+          to="/mypage"
+          class="text-sm hover:opacity-70 transition-opacity text-[#2E5E3E] font-bold"
+          style="font-family: 'Kosugi Maru', sans-serif"
+        >
+          マイページ
+        </NuxtLink>
+        <UButton
+          size="sm"
+          variant="soft"
+          @click="handleLogout"
+          :loading="authLoading"
+          style="color: #2e5e3e"
+        >
+          ログアウト
+        </UButton>
+      </template>
+      <!-- 未ログイン -->
+      <template v-else>
+        <NuxtLink to="/login">
+          <UButton
+            size="sm"
+            style="background-color: #2e5e3e; color: white"
+            class="hover:opacity-80 transition-opacity"
+          >
+            ログイン
+          </UButton>
+        </NuxtLink>
+      </template>
+    </div>
+
     <!-- モバイルメニュー -->
     <UiMobileMenu />
   </nav>
 </template>
 
 <script setup lang="ts">
+const { isAuthenticated, logout, loading: authLoading } = useAuth()
+
 const linkMenus = [
   { label: 'トップ', to: '/' },
-  { label: '地域おこし協力隊員', to: '/chikiOkoshiMembers' },
+  { label: '那須町地域おこし協力隊員', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
 ]
+
+const handleLogout = async () => {
+  const result = await logout()
+  if (result.success) {
+    await navigateTo('/')
+  }
+}
 </script>
 
 <style scoped></style>

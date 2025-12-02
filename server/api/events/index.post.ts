@@ -4,26 +4,12 @@ import {
   base64ToBuffer,
   getFileExtensionFromBase64,
 } from '~~/server/lib/supabase-repository'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
-
-    const adminId = parseInt(adminIdStr, 10)
-    if (isNaN(adminId)) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証情報が無効です',
-      })
-    }
+    const adminId = requireAdminId(event)
 
     const body = await readBody(event)
 
@@ -67,9 +53,10 @@ export default defineEventHandler(async event => {
       location_url: body.location_url || null,
       thumbnail: thumbnailUrl,
       cta_button_text: body.cta_button_text || null,
-      is_published: body.is_published,
+      is_displayed: body.is_displayed,
       published_start: body.published_start || null,
       published_end: body.published_end || null,
+      is_login_required: body.is_login_required || false,
     })
 
     // カテゴリの関連付け

@@ -141,27 +141,62 @@
           </div>
 
           <!-- フォームリンク -->
-          <div v-if="event.form_id" class="pt-4">
-            <NuxtLink
-              :to="`/forms/${event.form_id}`"
-              class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-              style="background-color: #f4d35e; color: #2e5e3e"
-            >
-              <span>{{ event.cta_button_text || '参加申し込み' }}</span>
-              <svg
-                class="w-5 h-5 ml-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div v-if="event.form_id" class="pt-4 space-y-3">
+            <!-- 未ログインかつログイン必須の場合 -->
+            <template v-if="event.is_login_required && !isAuthenticated">
+              <button
+                disabled
+                class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm opacity-50 cursor-not-allowed"
+                style="background-color: #f4d35e; color: #2e5e3e"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </NuxtLink>
+                <span>ログインが必須です</span>
+              </button>
+              <div class="text-center md:text-left">
+                <NuxtLink
+                  :to="`/login?redirect=${encodeURIComponent(route.fullPath)}`"
+                  class="inline-flex items-center gap-1 text-sm hover:underline"
+                  style="color: #2e5e3e"
+                >
+                  <span>ログイン画面へ</span>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </NuxtLink>
+              </div>
+            </template>
+            <!-- ログイン済み、またはログイン不要の場合 -->
+            <template v-else>
+              <button
+                @click="handleCtaClick"
+                class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                style="background-color: #f4d35e; color: #2e5e3e"
+              >
+                <span>{{ event.cta_button_text || '参加申し込み' }}</span>
+                <svg
+                  class="w-5 h-5 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -182,6 +217,7 @@ interface Event {
   location_url: string | null
   thumbnail: string | null
   cta_button_text: string | null
+  is_login_required: boolean
   categories?: Array<{
     id: number
     name: string
@@ -189,6 +225,7 @@ interface Event {
 }
 
 const route = useRoute()
+const { isAuthenticated } = useAuth()
 const eventId = computed(() => {
   const id = route.params.id
   if (Array.isArray(id)) {
@@ -200,6 +237,16 @@ const eventId = computed(() => {
 const loading = ref(true)
 const error = ref('')
 const event = ref<Event | null>(null)
+
+const handleCtaClick = () => {
+  if (event.value?.is_login_required && !isAuthenticated.value) {
+    // ログイン必須の場合はログイン画面にリダイレクト
+    navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+  } else {
+    // ログイン不要、またはログイン済みの場合はフォームページに遷移
+    navigateTo(`/forms/${event.value?.form_id}`)
+  }
+}
 
 const { data } = await useFetch<{ success: boolean; data: Event }>(
   `/api/public/events/${eventId.value}`

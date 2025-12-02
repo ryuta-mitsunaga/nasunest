@@ -172,7 +172,6 @@ import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { Member } from '~/types'
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 

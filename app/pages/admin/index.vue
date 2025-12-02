@@ -33,7 +33,6 @@ interface AdminData {
 }
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 

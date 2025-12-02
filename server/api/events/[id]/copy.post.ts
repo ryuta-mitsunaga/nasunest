@@ -1,29 +1,15 @@
-import { Event, EventCategory } from '~~/server/database'
+import { Event, EventCategory, Form } from '~~/server/database'
 import {
   uploadImage,
   downloadImageFromUrl,
   getFileExtensionFromUrl,
 } from '~~/server/lib/supabase-repository'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
-
-    const adminId = parseInt(adminIdStr, 10)
-    if (isNaN(adminId)) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証情報が無効です',
-      })
-    }
+    const adminId = requireAdminId(event)
 
     const id = getRouterParam(event, 'id')
     const originalEvent = await Event.findOne({
@@ -53,6 +39,36 @@ export default defineEventHandler(async event => {
 
     // 元のイベントのカテゴリを取得（includeで取得したカテゴリを使用）
     const originalCategories = (originalEvent as any).categories || []
+
+    // フォームをコピー（元のイベントにフォームが紐づいている場合）
+    let newFormId: number | null = null
+    if (originalData.form_id) {
+      try {
+        const originalForm = await Form.findOne({
+          where: {
+            id: originalData.form_id,
+            admin_id: adminId,
+          },
+        })
+
+        if (originalForm) {
+          const originalFormData = originalForm.toJSON()
+          const newForm = await Form.create({
+            admin_id: adminId,
+            name: `${originalFormData.name} (コピー)`,
+            content: originalFormData.content || { fields: [] },
+            published_start: originalFormData.published_start || null,
+            published_end: originalFormData.published_end || null,
+          })
+          newFormId = newForm.id
+          console.log(`[Event Copy] フォームをコピーしました: ${newForm.id}`)
+        }
+      } catch (formError: any) {
+        console.error('フォームコピーエラー:', formError)
+        // フォームのコピーに失敗してもイベントのコピーは続行（form_idはnullになる）
+        newFormId = null
+      }
+    }
 
     // サムネイル画像を新しいファイルとしてアップロード
     let thumbnailUrl: string | null = null
@@ -84,7 +100,7 @@ export default defineEventHandler(async event => {
     const newEvent = await Event.create({
       admin_id: adminId,
       title: `${originalData.title} (コピー)`,
-      form_id: originalData.form_id,
+      form_id: newFormId,
       start_date: originalData.start_date,
       end_date: originalData.end_date,
       description: originalData.description,
@@ -94,9 +110,10 @@ export default defineEventHandler(async event => {
       location_url: originalData.location_url,
       thumbnail: thumbnailUrl as any,
       cta_button_text: originalData.cta_button_text || null,
-      is_published: originalData.is_published ?? true,
+      is_displayed: originalData.is_displayed ?? true,
       published_start: originalData.published_start || null,
       published_end: originalData.published_end || null,
+      is_login_required: originalData.is_login_required ?? false,
     })
 
     // カテゴリの関連付け（元のイベントから直接取得したカテゴリを使用）

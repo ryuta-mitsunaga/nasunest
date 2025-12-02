@@ -250,6 +250,30 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 **重要**: `SUPABASE_SERVICE_ROLE_KEY`はサービスロールキーを使用してください。これはサーバーサイドでのみ使用され、クライアントに公開しないでください。
 
+### 暗号化キーの設定
+
+Cookieに保存するIDを暗号化するために、`ENCRYPTION_KEY`環境変数を設定してください：
+
+```env
+ENCRYPTION_KEY=your-encryption-key-at-least-32-characters-long
+```
+
+**重要**: 
+- このキーは最低32文字以上であることを推奨します
+- 本番環境では、ランダムで推測不可能な文字列を使用してください
+- このキーを変更すると、既存のCookieが無効になります（ユーザーは再ログインが必要になります）
+- このキーは絶対に公開しないでください
+
+キーを生成するには、以下のコマンドを使用できます：
+
+```bash
+# Node.jsを使用
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# OpenSSLを使用
+openssl rand -hex 32
+```
+
 ### Supabase Storageのセットアップ
 
 1. Supabaseプロジェクトのダッシュボードにアクセス

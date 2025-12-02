@@ -12,7 +12,7 @@ export default defineEventHandler(async event => {
     const eventData = await Event.findOne({
       where: {
         id,
-        is_published: true,
+        is_displayed: true,
         [Op.and]: [
           {
             [Op.or]: [

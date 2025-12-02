@@ -117,7 +117,6 @@ import { useCustomToast } from '~/composables/useToast'
 import { useConfirm } from '~/composables/useConfirm'
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 

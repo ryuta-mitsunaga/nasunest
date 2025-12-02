@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
     // 公開されているイベントを取得
     const events = await Event.findAll({
       where: {
-        is_published: true,
+        is_displayed: true,
         [Op.and]: [
           {
             [Op.or]: [

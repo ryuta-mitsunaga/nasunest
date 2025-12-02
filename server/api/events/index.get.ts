@@ -1,36 +1,54 @@
-import { Event } from '~~/server/database'
+import { Event, Form } from '~~/server/database'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
-
-    const adminId = parseInt(adminIdStr, 10)
-    if (isNaN(adminId)) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証情報が無効です',
-      })
-    }
+    const adminId = requireAdminId(event)
 
     const events = await Event.findAll({
       where: {
         admin_id: adminId,
       },
+      include: [
+        {
+          model: Form,
+          as: 'form',
+          attributes: ['id', 'name'],
+          required: false,
+        },
+      ],
       order: [['start_date', 'DESC']],
     })
+
+    // 現在日付を取得（時刻を0時に設定）
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
     // thumbnailは既にURLなので変換不要
     return {
       success: true,
-      data: events.map(event => event.toJSON()),
+      data: events.map(event => {
+        const eventData = event.toJSON() as any
+        
+        // ステータスを計算
+        let status: 'published' | 'unpublished' | 'closed' = 'published'
+        if (!eventData.is_displayed) {
+          status = 'unpublished'
+        } else if (eventData.end_date) {
+          const endDate = new Date(eventData.end_date)
+          endDate.setHours(0, 0, 0, 0)
+          if (endDate < today) {
+            status = 'closed'
+          }
+        }
+
+        return {
+          ...eventData,
+          form: eventData.form || null,
+          status,
+        }
+      }),
     }
   } catch (error: any) {
     if (error.statusCode) {

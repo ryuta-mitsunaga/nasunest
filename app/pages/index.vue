@@ -6,7 +6,6 @@
     :error="eventsError"
   />
   <TopNasuNestSection />
-  <TopAboutSection />
 </template>
 
 <script setup lang="ts">
@@ -63,30 +62,10 @@ useHead({
         },
         publisher: {
           '@type': 'Organization',
-          name: '那須町地域おこし協力隊',
+          name: 'NasuNest',
           alternateName: 'NasuNest',
           url: baseUrl,
         },
-      }),
-    },
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        name: '那須町地域おこし協力隊',
-        alternateName: 'NasuNest',
-        url: baseUrl,
-        logo: `${baseUrl}/img/title-logo.png`,
-        description:
-          'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。',
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: '那須町',
-          addressRegion: '栃木県',
-          addressCountry: 'JP',
-        },
-        sameAs: [],
       }),
     },
   ],

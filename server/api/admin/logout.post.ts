@@ -1,6 +1,13 @@
+import { deleteCookie } from 'h3'
+
 export default defineEventHandler(async (event) => {
   try {
-    deleteCookie(event, 'adminId')
+    deleteCookie(event, 'adminId', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    })
 
     return {
       success: true,
