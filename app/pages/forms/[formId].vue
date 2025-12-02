@@ -55,7 +55,9 @@
               :required="field.required"
             >
               <template v-if="field.description" #description>
-                <p class="text-sm text-gray-600 mt-1">{{ field.description }}</p>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ field.description }}
+                </p>
               </template>
               <!-- テキストフィールド -->
               <UInput
@@ -129,6 +131,13 @@ interface Form {
     description?: string
     fields: FormField[]
   }
+}
+
+if (process.server) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'ページが見つかりません',
+  })
 }
 
 const route = useRoute()

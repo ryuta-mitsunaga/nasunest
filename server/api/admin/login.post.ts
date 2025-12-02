@@ -1,5 +1,7 @@
 import { Admin } from '~~/server/database'
 import bcrypt from 'bcryptjs'
+import { setCookie } from 'h3'
+import { encryptId } from '~~/server/lib/crypto-utils'
 
 export default defineEventHandler(async event => {
   try {
@@ -35,8 +37,9 @@ export default defineEventHandler(async event => {
       })
     }
 
-    // Cookieに管理者ID（数値）を保存
-    setCookie(event, 'adminId', String(admin.dataValues.id), {
+    // Cookieに暗号化された管理者IDを保存
+    const encryptedAdminId = encryptId(admin.dataValues.id)
+    setCookie(event, 'adminId', encryptedAdminId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',

@@ -9,7 +9,7 @@
         <h1 class="title-text-image text-center px-4">
           <span class="text-[#2e5e3e]">小さなご縁が、</span>
           <br />
-          <span class="text-[#2e5e3e]">ここから広がる。</span>
+          <span class="text-[#2e5e3e]">那須から広がる。</span>
         </h1>
       </div>
     </Transition>

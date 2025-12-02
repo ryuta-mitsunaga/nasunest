@@ -69,7 +69,6 @@
 import { useCustomToast } from '~/composables/useToast'
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 

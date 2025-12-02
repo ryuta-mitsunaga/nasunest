@@ -20,7 +20,6 @@
 import type { FormField } from '~/components/admin/FormEditor.vue'
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 

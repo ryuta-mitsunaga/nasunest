@@ -42,8 +42,15 @@
           />
         </UFormField>
 
-        <UFormField label="公開設定" name="is_published">
-          <URadioGroup v-model="form.is_published" :items="publishOptions" />
+        <UFormField
+          label="このイベントでは、参加にログインが必要ですか？"
+          name="is_login_required"
+        >
+          <USwitch v-model="form.is_login_required" />
+        </UFormField>
+
+        <UFormField label="イベント表示設定" name="is_displayed">
+          <URadioGroup v-model="form.is_displayed" :items="displayOptions" />
         </UFormField>
 
         <UFormField label="イベント開始日" name="start_date" required>
@@ -127,7 +134,6 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 
@@ -146,9 +152,10 @@ interface Event {
   location_url: string | null
   thumbnail: string | null
   cta_button_text: string | null
-  is_published: boolean
+  is_displayed: boolean
   published_start: string | null
   published_end: string | null
+  is_login_required: boolean
   categories?: Array<{
     id: number
     name: string
@@ -194,15 +201,16 @@ const form = reactive({
   location_url: '',
   thumbnail: null as string | null,
   cta_button_text: '',
-  is_published: true,
+  is_displayed: true,
   published_start: '',
   published_end: '',
+  is_login_required: false,
   category_ids: [] as number[],
 })
 
-const publishOptions = [
-  { label: '公開', value: true },
-  { label: '非公開', value: false },
+const displayOptions = [
+  { label: '表示', value: true },
+  { label: '非表示', value: false },
 ]
 
 const formState = computed(() => form)
@@ -261,9 +269,10 @@ const fetchEvent = async () => {
     form.location_url = eventData.location_url || ''
     form.thumbnail = eventData.thumbnail || null
     form.cta_button_text = eventData.cta_button_text || ''
-    form.is_published = eventData.is_published ?? true
+    form.is_displayed = eventData.is_displayed ?? true
     form.published_start = eventData.published_start || ''
     form.published_end = eventData.published_end || ''
+    form.is_login_required = eventData.is_login_required ?? false
     form.category_ids = eventData.categories?.map(c => c.id) || []
     thumbnailPreview.value = eventData.thumbnail || null
   } catch (error) {
@@ -345,9 +354,10 @@ const handleSubmit = async () => {
         location_url: form.location_url || null,
         thumbnail: form.thumbnail || null,
         cta_button_text: form.cta_button_text || null,
-        is_published: form.is_published,
+        is_displayed: form.is_displayed,
         published_start: form.published_start || null,
         published_end: form.published_end || null,
+        is_login_required: form.is_login_required,
         category_ids: form.category_ids,
       },
     })

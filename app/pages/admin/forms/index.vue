@@ -62,7 +62,6 @@
 import type { TableColumn } from '@nuxt/ui'
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 

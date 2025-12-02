@@ -86,6 +86,71 @@
                 </svg>
               </NuxtLink>
             </div>
+
+            <!-- 認証関連メニュー -->
+            <ClientOnly>
+              <div class="mt-4 pt-4 border-t border-gray-300">
+                <template v-if="isAuthenticated">
+                  <NuxtLink
+                    to="/mypage"
+                    class="text-[#2E5E3E] px-4 py-2 flex items-center justify-between hover:opacity-50 transition-opacity"
+                    style="font-family: 'Kosugi Maru', sans-serif"
+                    @click.stop="closeMenu"
+                  >
+                    <span>マイページ</span>
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </NuxtLink>
+                  <button
+                    @click.stop="handleLogout"
+                    :disabled="authLoading"
+                    class="w-full text-[#2E5E3E] px-4 py-2 flex items-center justify-between hover:opacity-50 transition-opacity text-left"
+                    style="font-family: 'Kosugi Maru', sans-serif"
+                  >
+                    <span>ログアウト</span>
+                    <UIcon
+                      v-if="authLoading"
+                      name="i-heroicons-arrow-path"
+                      class="w-5 h-5 animate-spin"
+                    />
+                  </button>
+                </template>
+                <template v-else>
+                  <NuxtLink
+                    to="/login"
+                    class="text-[#2E5E3E] px-4 py-2 flex items-center justify-between hover:opacity-50 transition-opacity"
+                    style="font-family: 'Kosugi Maru', sans-serif"
+                    @click.stop="closeMenu"
+                  >
+                    <span>ログイン</span>
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </NuxtLink>
+                </template>
+              </div>
+            </ClientOnly>
           </div>
         </div>
       </div>
@@ -101,11 +166,20 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: 'トップ', to: '/' },
-  { label: '地域おこし協力隊員一覧', to: '/chikiOkoshiMembers' },
+  { label: '那須町地域おこし協力隊員', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
 ]
 
 const { isOpen, toggleMenu, closeMenu } = useMobileMenu()
+const { isAuthenticated, logout, loading: authLoading } = useAuth()
+
+const handleLogout = async () => {
+  const result = await logout()
+  if (result.success) {
+    closeMenu()
+    await navigateTo('/')
+  }
+}
 
 // メニュー外をクリックしたら閉じる
 const handleClickOutside = (event: MouseEvent) => {

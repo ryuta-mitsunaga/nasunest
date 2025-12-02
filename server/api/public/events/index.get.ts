@@ -28,7 +28,7 @@ export default defineEventHandler(async event => {
     // 検索条件を構築
     const whereConditions: any[] = [
       {
-        is_published: true,
+        is_displayed: true,
         [Op.and]: [
           {
             [Op.or]: [
@@ -52,6 +52,8 @@ export default defineEventHandler(async event => {
         [Op.or]: [
           { title: { [Op.iLike]: `%${keyword.trim()}%` } },
           { description: { [Op.iLike]: `%${keyword.trim()}%` } },
+          { location_name: { [Op.iLike]: `%${keyword.trim()}%` } },
+          { location_address: { [Op.iLike]: `%${keyword.trim()}%` } },
         ],
       })
     }
@@ -161,7 +163,7 @@ export default defineEventHandler(async event => {
     }
     throw createError({
       statusCode: 500,
-      message: 'イベントの取得に失敗しました',
+      message: 'イベントの取得に失敗しました ' + error.message,
     })
   }
 })

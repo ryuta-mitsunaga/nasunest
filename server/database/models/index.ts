@@ -232,6 +232,7 @@ Form.init(
 export interface FormAnswerAttributes {
   id: number
   form_id: number
+  user_id: number | null
   date: Date
   content: any // JSON形式
   createdAt?: Date
@@ -239,7 +240,10 @@ export interface FormAnswerAttributes {
 }
 
 export interface FormAnswerCreationAttributes
-  extends Optional<FormAnswerAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+  extends Optional<
+    FormAnswerAttributes,
+    'id' | 'user_id' | 'createdAt' | 'updatedAt'
+  > {}
 
 export class FormAnswer
   extends Model<FormAnswerAttributes, FormAnswerCreationAttributes>
@@ -247,6 +251,7 @@ export class FormAnswer
 {
   public id!: number
   public form_id!: number
+  public user_id!: number | null
   public date!: Date
   public content!: any
   public readonly createdAt!: Date
@@ -267,6 +272,16 @@ FormAnswer.init(
         model: 'forms',
         key: 'id',
       },
+    },
+    user_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
     },
     date: {
       type: DataTypes.DATE,
@@ -300,9 +315,10 @@ export interface EventAttributes {
   location_url: string | null
   thumbnail: Buffer | null
   cta_button_text: string | null
-  is_published: boolean
+  is_displayed: boolean
   published_start: Date | null
   published_end: Date | null
+  is_login_required: boolean
   createdAt?: Date
   updatedAt?: Date
 }
@@ -319,9 +335,10 @@ export interface EventCreationAttributes
     | 'location_url'
     | 'thumbnail'
     | 'cta_button_text'
-    | 'is_published'
+    | 'is_displayed'
     | 'published_start'
     | 'published_end'
+    | 'is_login_required'
     | 'createdAt'
     | 'updatedAt'
   > {}
@@ -343,9 +360,10 @@ export class Event
   public location_url!: string | null
   public thumbnail!: Buffer | null
   public cta_button_text!: string | null
-  public is_published!: boolean
+  public is_displayed!: boolean
   public published_start!: Date | null
   public published_end!: Date | null
+  public is_login_required!: boolean
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 }
@@ -418,11 +436,11 @@ Event.init(
       allowNull: true,
       comment: 'CTAボタンのテキスト（デフォルト: 参加申し込み）',
     },
-    is_published: {
+    is_displayed: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      comment: '公開フラグ（true: 公開, false: 非公開）',
+      comment: '表示フラグ（true: 表示, false: 非表示）',
     },
     published_start: {
       type: DataTypes.DATEONLY,
@@ -433,6 +451,12 @@ Event.init(
       type: DataTypes.DATEONLY,
       allowNull: true,
       comment: '公開終了日',
+    },
+    is_login_required: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'ログイン必須フラグ（true: ログイン必須, false: ログイン不要）',
     },
   },
   {
@@ -741,16 +765,10 @@ export interface EventCategoryAttributes {
 }
 
 export interface EventCategoryCreationAttributes
-  extends Optional<
-    EventCategoryAttributes,
-    'id' | 'createdAt' | 'updatedAt'
-  > {}
+  extends Optional<EventCategoryAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
 
 export class EventCategory
-  extends Model<
-    EventCategoryAttributes,
-    EventCategoryCreationAttributes
-  >
+  extends Model<EventCategoryAttributes, EventCategoryCreationAttributes>
   implements EventCategoryAttributes
 {
   public id!: number
@@ -850,6 +868,16 @@ Event.belongsToMany(EventCategory, {
   as: 'categories',
 })
 
+Event.belongsTo(Form, {
+  foreignKey: 'form_id',
+  as: 'form',
+})
+
+Form.hasMany(Event, {
+  foreignKey: 'form_id',
+  as: 'events',
+})
+
 EventCategory.belongsToMany(Event, {
   through: EventEventCategory,
   foreignKey: 'event_category_id',
@@ -861,6 +889,118 @@ EventCategory.belongsToMany(Event, {
 EventEventCategory.belongsTo(EventCategory, {
   foreignKey: 'event_category_id',
   as: 'category',
+})
+
+// Userモデル
+export interface UserAttributes {
+  id: number
+  email: string
+  password: string
+  name: string | null
+  name_sei: string | null
+  name_mei: string | null
+  display_name: string | null
+  age: number | null
+  postal_code: string | null
+  address: string | null
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface UserCreationAttributes
+  extends Optional<
+    UserAttributes,
+    | 'id'
+    | 'name'
+    | 'name_sei'
+    | 'name_mei'
+    | 'display_name'
+    | 'age'
+    | 'postal_code'
+    | 'address'
+    | 'createdAt'
+    | 'updatedAt'
+  > {}
+
+export class User
+  extends Model<UserAttributes, UserCreationAttributes>
+  implements UserAttributes
+{
+  public id!: number
+  public email!: string
+  public password!: string
+  public name!: string | null
+  public name_sei!: string | null
+  public name_mei!: string | null
+  public display_name!: string | null
+  public age!: number | null
+  public postal_code!: string | null
+  public address!: string | null
+  public readonly createdAt!: Date
+  public readonly updatedAt!: Date
+}
+
+User.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    name_sei: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    name_mei: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    display_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    age: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    postal_code: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'users',
+    timestamps: true,
+  }
+)
+
+// FormAnswerとUserの関連
+FormAnswer.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+})
+
+User.hasMany(FormAnswer, {
+  foreignKey: 'user_id',
+  as: 'formAnswers',
 })
 
 // すべてのモデルをエクスポート
@@ -876,4 +1016,5 @@ export const models = {
   AdminAdminPermission,
   EventCategory,
   EventEventCategory,
+  User,
 }

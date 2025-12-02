@@ -25,14 +25,24 @@
         <template #title-cell="{ row }">
           {{ row.original.title }}
         </template>
-        <template #is_published-cell="{ row }">
-          <UiStatusBadge :is-published="row.original.is_published" />
+        <template #is_displayed-cell="{ row }">
+          <UiStatusBadge :status="row.original.status" />
         </template>
         <template #published_start-cell="{ row }">
           {{ formatDate(row.original.published_start) }}
         </template>
         <template #published_end-cell="{ row }">
           {{ formatDate(row.original.published_end) }}
+        </template>
+        <template #form-cell="{ row }">
+          <NuxtLink
+            v-if="row.original.form"
+            :to="`/admin/forms/${row.original.form.id}`"
+            class="text-primary hover:underline"
+          >
+            {{ row.original.form.name }}
+          </NuxtLink>
+          <span v-else class="text-gray-400">-</span>
         </template>
         <template #actions-cell="{ row }">
           <div class="flex gap-2">
@@ -71,7 +81,6 @@
 import type { TableColumn } from '@nuxt/ui'
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'admin',
 })
 
@@ -85,10 +94,15 @@ interface Event {
   location_name: string | null
   location_address: string | null
   location_url: string | null
-  is_published: boolean
+  is_displayed: boolean
   published_start: string | null
   published_end: string | null
   createdAt: string
+  status: 'published' | 'unpublished' | 'closed'
+  form?: {
+    id: number
+    name: string
+  } | null
 }
 
 const events = ref<Event[]>([])
@@ -116,7 +130,7 @@ const columns: TableColumn<Event>[] = [
   { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'title', header: 'タイトル' },
   {
-    accessorKey: 'is_published',
+    accessorKey: 'is_displayed',
     header: 'ステータス',
   },
   { accessorKey: 'start_date', header: 'イベント開始日' },
@@ -124,6 +138,7 @@ const columns: TableColumn<Event>[] = [
   { accessorKey: 'published_start', header: '公開開始日' },
   { accessorKey: 'published_end', header: '公開終了日' },
   { accessorKey: 'location_name', header: '場所' },
+  { accessorKey: 'form', header: 'フォーム' },
   { accessorKey: 'actions', header: '操作' },
 ]
 
