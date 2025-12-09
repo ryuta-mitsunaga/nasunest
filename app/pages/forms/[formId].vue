@@ -279,10 +279,16 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
+    // クエリパラメータからevent_idを取得
+    const eventId = route.query.event_id
+      ? String(route.query.event_id)
+      : null
+
     await $fetch(`/api/public/forms/${formId.value}/answers`, {
       method: 'POST',
       body: {
         content: formData.value,
+        event_id: eventId,
       },
     })
 

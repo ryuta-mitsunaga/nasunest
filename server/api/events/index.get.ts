@@ -1,4 +1,4 @@
-import { Event, Form } from '~~/server/database'
+import { Event, Form, FormAnswer } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
@@ -25,12 +25,36 @@ export default defineEventHandler(async event => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    // 各イベントの未回答申し込み数を取得（SQL側でCOUNT集計）
+    const eventIds = events.map(e => e.dataValues.id)
+    const pendingCountMap = new Map<number, number>()
+
+    if (eventIds.length > 0) {
+      const { Op, fn, col } = await import('sequelize')
+
+      const pendingAnswers = await FormAnswer.findAll({
+        where: {
+          event_id: { [Op.in]: eventIds },
+          status: 0, // 回答待ち
+        },
+        attributes: ['event_id', [fn('COUNT', col('id')), 'count']],
+        group: ['event_id'],
+        raw: true,
+      })
+
+      for (const answer of pendingAnswers as any[]) {
+        const eventId = (answer as any).event_id as number
+        const count = parseInt((answer as any).count as string, 10) || 0
+        pendingCountMap.set(eventId, count)
+      }
+    }
+
     // thumbnailは既にURLなので変換不要
     return {
       success: true,
       data: events.map(event => {
         const eventData = event.toJSON() as any
-        
+
         // ステータスを計算
         let status: 'published' | 'unpublished' | 'closed' = 'published'
         if (!eventData.is_displayed) {
@@ -43,10 +67,14 @@ export default defineEventHandler(async event => {
           }
         }
 
+        // 未回答申し込み数を取得
+        const pendingCount = pendingCountMap.get(eventData.id) || 0
+
         return {
           ...eventData,
           form: eventData.form || null,
           status,
+          pending_answers_count: pendingCount,
         }
       }),
     }

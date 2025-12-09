@@ -1,6 +1,11 @@
 import { Member } from '~~/server/database'
+import {
+  uploadImage,
+  base64ToBuffer,
+  getFileExtensionFromBase64,
+} from '~~/server/lib/supabase-repository'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 認証チェック
     const adminId = getCookie(event, 'adminId')
@@ -13,15 +18,34 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event)
-    
-    // Base64文字列をBufferに変換
-    let iconBuffer = null
+
+    // Base64文字列をSupabaseにアップロード
+    let iconUrl = null
     if (body.icon && typeof body.icon === 'string') {
-      // data:image/png;base64, のプレフィックスを除去
-      const base64Data = body.icon.replace(/^data:image\/\w+;base64,/, '')
-      iconBuffer = Buffer.from(base64Data, 'base64')
+      try {
+        // Base64文字列をBufferに変換
+        const buffer = base64ToBuffer(body.icon)
+        const extension = getFileExtensionFromBase64(body.icon)
+        const fileName = `icon.${extension}`
+
+        // Supabaseにアップロード
+        const result = await uploadImage({
+          file: buffer,
+          fileName,
+          folder: 'members',
+          contentType: `image/${extension}`,
+        })
+
+        iconUrl = result.url
+      } catch (uploadError: any) {
+        console.error('画像アップロードエラー:', uploadError)
+        throw createError({
+          statusCode: 500,
+          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+        })
+      }
     }
-    
+
     const member = await Member.create({
       name_sei: body.name_sei,
       name_mei: body.name_mei,
@@ -29,17 +53,15 @@ export default defineEventHandler(async (event) => {
       end_date: body.end_date || null,
       mission: body.mission,
       description: body.description,
-      icon: iconBuffer,
+      icon: iconUrl,
       x_url: body.x_url || null,
       instagram_url: body.instagram_url || null,
       facebook_url: body.facebook_url || null,
     })
-    
-    // レスポンス用にiconをBase64文字列に変換
+
+    // レスポンス用にiconをURLまたはBase64文字列に変換
     const memberData = member.toJSON()
-    if (memberData.icon && Buffer.isBuffer(memberData.icon)) {
-      memberData.icon = `data:image/png;base64,${memberData.icon.toString('base64')}`
-    }
+    // iconは既にURLとして保存されているので、そのまま返す
 
     return {
       success: true,
@@ -55,4 +77,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

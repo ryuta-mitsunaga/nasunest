@@ -72,8 +72,8 @@ const { isAuthenticated, logout, loading: authLoading } = useAuth()
 
 const linkMenus = [
   { label: 'トップ', to: '/' },
-  { label: '那須町地域おこし協力隊員', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
+  { label: '那須町地域おこし協力隊', to: '/chikiOkoshiMembers' },
 ]
 
 const handleLogout = async () => {

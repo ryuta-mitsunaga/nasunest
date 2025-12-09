@@ -140,8 +140,8 @@ module.exports = {
       },
     })
 
-    // 4. forms_answerテーブル（formsに依存）
-    await queryInterface.createTable('forms_answer', {
+    // 4. form_answersテーブル（formsに依存）
+    await queryInterface.createTable('form_answers', {
       id: {
         type: Sequelize.BIGINT,
         autoIncrement: true,
@@ -279,7 +279,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     // 依存関係を考慮して逆順に削除
     await queryInterface.dropTable('events')
-    await queryInterface.dropTable('forms_answer')
+    await queryInterface.dropTable('form_answers')
     await queryInterface.dropTable('forms')
     await queryInterface.dropTable('chiki_okoshi_members')
     await queryInterface.dropTable('admins')

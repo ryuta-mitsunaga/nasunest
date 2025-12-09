@@ -13,6 +13,9 @@
       </div>
 
       <UTable v-else :data="members" :columns="columns" class="w-full">
+        <template #id-cell="{ row }">
+          {{ members.indexOf(row.original) + 1 }}
+        </template>
         <template #icon-cell="{ row }">
           <div
             v-if="row.original.icon && typeof row.original.icon === 'string'"
@@ -199,7 +202,7 @@ const memberForm = reactive({
 })
 
 const columns: TableColumn<Member>[] = [
-  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'id', header: 'No.' },
   { accessorKey: 'name_sei', header: '姓' },
   { accessorKey: 'name_mei', header: '名' },
   { accessorKey: 'start_date', header: '開始日' },

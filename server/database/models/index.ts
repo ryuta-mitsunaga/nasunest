@@ -10,7 +10,7 @@ export interface MemberAttributes {
   end_date: Date | null
   mission: string
   description: string
-  icon: Buffer | null
+  icon: Buffer | string | null // Supabase URLまたはBuffer
   x_url: string | null
   instagram_url: string | null
   facebook_url: string | null
@@ -35,19 +35,19 @@ export class Member
   extends Model<MemberAttributes, MemberCreationAttributes>
   implements MemberAttributes
 {
-  public id!: number
-  public name_sei!: string
-  public name_mei!: string
-  public start_date!: Date
-  public end_date!: Date | null
-  public mission!: string
-  public description!: string
-  public icon!: Buffer | null
-  public x_url!: string | null
-  public instagram_url!: string | null
-  public facebook_url!: string | null
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare name_sei: string
+  declare name_mei: string
+  declare start_date: Date
+  declare end_date: Date | null
+  declare mission: string
+  declare description: string
+  declare icon: Buffer | string | null
+  declare x_url: string | null
+  declare instagram_url: string | null
+  declare facebook_url: string | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 Member.init(
@@ -82,8 +82,9 @@ Member.init(
       allowNull: false,
     },
     icon: {
-      type: DataTypes.BLOB,
+      type: DataTypes.TEXT, // Supabase URLまたはBase64文字列を保存
       allowNull: true,
+      comment: 'Supabase StorageのURLまたはBase64文字列',
     },
     x_url: {
       type: DataTypes.STRING,
@@ -124,11 +125,11 @@ export class Admin
   extends Model<AdminAttributes, AdminCreationAttributes>
   implements AdminAttributes
 {
-  public id!: number
-  public login_id!: string
-  public password!: string
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare login_id: string
+  declare password: string
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 Admin.init(
@@ -177,14 +178,14 @@ export class Form
   extends Model<FormAttributes, FormCreationAttributes>
   implements FormAttributes
 {
-  public id!: number
-  public admin_id!: number
-  public name!: string
-  public content!: any
-  public published_start!: Date | null
-  public published_end!: Date | null
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare admin_id: number
+  declare name: string
+  declare content: any
+  declare published_start: Date | null
+  declare published_end: Date | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 Form.init(
@@ -232,9 +233,11 @@ Form.init(
 export interface FormAnswerAttributes {
   id: number
   form_id: number
+  event_id: number | null
   user_id: number | null
   date: Date
   content: any // JSON形式
+  status: number | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -242,20 +245,22 @@ export interface FormAnswerAttributes {
 export interface FormAnswerCreationAttributes
   extends Optional<
     FormAnswerAttributes,
-    'id' | 'user_id' | 'createdAt' | 'updatedAt'
+    'id' | 'event_id' | 'user_id' | 'status' | 'createdAt' | 'updatedAt'
   > {}
 
 export class FormAnswer
   extends Model<FormAnswerAttributes, FormAnswerCreationAttributes>
   implements FormAnswerAttributes
 {
-  public id!: number
-  public form_id!: number
-  public user_id!: number | null
-  public date!: Date
-  public content!: any
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare form_id: number
+  declare event_id: number | null
+  declare user_id: number | null
+  declare date: Date
+  declare content: any
+  declare status: number | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 FormAnswer.init(
@@ -272,6 +277,17 @@ FormAnswer.init(
         model: 'forms',
         key: 'id',
       },
+    },
+    event_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'events',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+      comment: 'イベントID（イベント経由で回答した場合）',
     },
     user_id: {
       type: DataTypes.BIGINT,
@@ -292,10 +308,16 @@ FormAnswer.init(
       type: DataTypes.JSON,
       allowNull: false,
     },
+    status: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: '承認ステータス（0: 回答待ち, 1: OK, 2: NG）',
+    },
   },
   {
     sequelize,
-    tableName: 'forms_answer',
+    tableName: 'form_answers',
     timestamps: true,
   }
 )
@@ -318,7 +340,8 @@ export interface EventAttributes {
   is_displayed: boolean
   published_start: Date | null
   published_end: Date | null
-  is_login_required: boolean
+  capacity: number | null
+  approval_type: number | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -338,7 +361,8 @@ export interface EventCreationAttributes
     | 'is_displayed'
     | 'published_start'
     | 'published_end'
-    | 'is_login_required'
+    | 'capacity'
+    | 'approval_type'
     | 'createdAt'
     | 'updatedAt'
   > {}
@@ -347,25 +371,26 @@ export class Event
   extends Model<EventAttributes, EventCreationAttributes>
   implements EventAttributes
 {
-  public id!: number
-  public admin_id!: number
-  public title!: string
-  public form_id!: number | null
-  public start_date!: Date
-  public end_date!: Date | null
-  public description!: string
-  public body!: string | null
-  public location_name!: string | null
-  public location_address!: string | null
-  public location_url!: string | null
-  public thumbnail!: Buffer | null
-  public cta_button_text!: string | null
-  public is_displayed!: boolean
-  public published_start!: Date | null
-  public published_end!: Date | null
-  public is_login_required!: boolean
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare admin_id: number
+  declare title: string
+  declare form_id: number | null
+  declare start_date: Date
+  declare end_date: Date | null
+  declare description: string
+  declare body: string | null
+  declare location_name: string | null
+  declare location_address: string | null
+  declare location_url: string | null
+  declare thumbnail: Buffer | null
+  declare cta_button_text: string | null
+  declare is_displayed: boolean
+  declare published_start: Date | null
+  declare published_end: Date | null
+  declare capacity: number | null
+  declare approval_type: number | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 Event.init(
@@ -452,11 +477,16 @@ Event.init(
       allowNull: true,
       comment: '公開終了日',
     },
-    is_login_required: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      comment: 'ログイン必須フラグ（true: ログイン必須, false: ログイン不要）',
+    capacity: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: '定員（nullの場合は無制限）',
+    },
+    approval_type: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: '参加承認の方式（0: 自動承認, 1: 手動承認, 2: 承認なし）',
     },
   },
   {
@@ -484,13 +514,13 @@ export class PickupEvent
   extends Model<PickupEventAttributes, PickupEventCreationAttributes>
   implements PickupEventAttributes
 {
-  public id!: number
-  public event_id!: number
-  public pickup_datetime_start!: Date
-  public pickup_datetime_end!: Date
-  public left_text!: string
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare event_id: number
+  declare pickup_datetime_start: Date
+  declare pickup_datetime_end: Date
+  declare left_text: string
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 PickupEvent.init(
@@ -553,12 +583,12 @@ export class AdminInvitation
   extends Model<AdminInvitationAttributes, AdminInvitationCreationAttributes>
   implements AdminInvitationAttributes
 {
-  public id!: number
-  public admin_id!: number
-  public token!: string
-  public expiry_date!: Date
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare admin_id: number
+  declare token: string
+  declare expiry_date: Date
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 AdminInvitation.init(
@@ -638,12 +668,12 @@ export class AdminPermission
   extends Model<AdminPermissionAttributes, AdminPermissionCreationAttributes>
   implements AdminPermissionAttributes
 {
-  public id!: number
-  public code!: string
-  public name!: string
-  public description!: string | null
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare code: string
+  declare name: string
+  declare description: string | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 AdminPermission.init(
@@ -699,11 +729,11 @@ export class AdminAdminPermission
   >
   implements AdminAdminPermissionAttributes
 {
-  public id!: number
-  public admin_id!: number
-  public admin_permission_id!: number
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare admin_id: number
+  declare admin_permission_id: number
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 AdminAdminPermission.init(
@@ -771,10 +801,10 @@ export class EventCategory
   extends Model<EventCategoryAttributes, EventCategoryCreationAttributes>
   implements EventCategoryAttributes
 {
-  public id!: number
-  public name!: string
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare name: string
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 EventCategory.init(
@@ -818,11 +848,11 @@ export class EventEventCategory
   >
   implements EventEventCategoryAttributes
 {
-  public id!: number
-  public event_id!: number
-  public event_category_id!: number
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare event_id: number
+  declare event_category_id: number
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 EventEventCategory.init(
@@ -926,18 +956,18 @@ export class User
   extends Model<UserAttributes, UserCreationAttributes>
   implements UserAttributes
 {
-  public id!: number
-  public email!: string
-  public password!: string
-  public name!: string | null
-  public name_sei!: string | null
-  public name_mei!: string | null
-  public display_name!: string | null
-  public age!: number | null
-  public postal_code!: string | null
-  public address!: string | null
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  declare id: number
+  declare email: string
+  declare password: string
+  declare name: string | null
+  declare name_sei: string | null
+  declare name_mei: string | null
+  declare display_name: string | null
+  declare age: number | null
+  declare postal_code: string | null
+  declare address: string | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
 }
 
 User.init(
@@ -991,6 +1021,17 @@ User.init(
     timestamps: true,
   }
 )
+
+// FormAnswerとEventの関連
+FormAnswer.belongsTo(Event, {
+  foreignKey: 'event_id',
+  as: 'event',
+})
+
+Event.hasMany(FormAnswer, {
+  foreignKey: 'event_id',
+  as: 'formAnswers',
+})
 
 // FormAnswerとUserの関連
 FormAnswer.belongsTo(User, {

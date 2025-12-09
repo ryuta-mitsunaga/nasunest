@@ -6,12 +6,13 @@ export default defineEventHandler(async (event) => {
     // 認証チェック
     const adminId = requireAdminId(event)
 
-    const id = getRouterParam(event, 'id')
-    
+    const formId = getRouterParam(event, 'id')
+    const answerId = getRouterParam(event, 'answerId')
+
     // フォームが存在し、管理者のものか確認
     const form = await Form.findOne({
       where: {
-        id,
+        id: formId,
         admin_id: adminId,
       },
     })
@@ -23,26 +24,24 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // クエリパラメータでstatusフィルタを取得
-    const query = getQuery(event)
-    const statusFilter = query.status !== undefined ? parseInt(query.status as string, 10) : undefined
-
     // 回答データを取得
-    const whereClause: any = {
-      form_id: id,
-    }
-    if (statusFilter !== undefined) {
-      whereClause.status = statusFilter
-    }
-
-    const answers = await FormAnswer.findAll({
-      where: whereClause,
-      order: [['createdAt', 'DESC']],
+    const answer = await FormAnswer.findOne({
+      where: {
+        id: answerId,
+        form_id: formId,
+      },
     })
+
+    if (!answer) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: '回答が見つかりません',
+      })
+    }
 
     return {
       success: true,
-      data: answers.map((answer) => answer.toJSON()),
+      data: answer.toJSON(),
     }
   } catch (error: any) {
     if (error.statusCode) {
@@ -50,7 +49,7 @@ export default defineEventHandler(async (event) => {
     }
     throw createError({
       statusCode: 500,
-      statusMessage: '回答データの取得に失敗しました',
+      statusMessage: '回答の取得に失敗しました',
     })
   }
 })

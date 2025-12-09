@@ -15,6 +15,9 @@
       </div>
 
       <UTable v-else :data="admins" :columns="columns" class="w-full">
+        <template #id-cell="{ row }">
+          {{ admins.indexOf(row.original) + 1 }}
+        </template>
         <template #login_id-cell="{ row }">
           {{ row.original.login_id }}
         </template>
@@ -156,7 +159,7 @@ const form = reactive({
 })
 
 const columns: TableColumn<Admin>[] = [
-  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'id', header: 'No.' },
   { accessorKey: 'login_id', header: 'ログインID' },
   { accessorKey: 'permissions', header: '権限' },
   { accessorKey: 'actions', header: '操作' },

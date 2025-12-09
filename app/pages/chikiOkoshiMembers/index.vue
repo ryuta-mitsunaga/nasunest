@@ -1,6 +1,6 @@
 <template>
   <div style="color: #2e5e3e">
-    <UiPageTitle title="那須町地域おこし協力隊員" />
+    <UiPageTitle title="那須町地域おこし協力隊" />
 
     <!-- 那須町地域おこし協力隊について -->
     <section class="bg-page-bg mb-12">
@@ -71,7 +71,7 @@ const baseUrl = 'https://www.nasunest.com'
 
 // SEO設定
 useHead({
-  title: '那須町地域おこし協力隊員',
+  title: '那須町地域おこし協力隊',
   meta: [
     {
       name: 'description',
@@ -92,29 +92,6 @@ useHead({
       content: `${baseUrl}/chikiOkoshiMembers`,
     },
     { property: 'og:type', content: 'website' },
-  ],
-  script: [
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'ホーム',
-            item: baseUrl,
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: '地域おこし協力隊員一覧',
-            item: `${baseUrl}/chikiOkoshiMembers`,
-          },
-        ],
-      }),
-    },
   ],
 })
 

@@ -1,4 +1,10 @@
 import { Member } from '~~/server/database'
+import {
+  uploadImage,
+  deleteImage,
+  base64ToBuffer,
+  getFileExtensionFromBase64,
+} from '~~/server/lib/supabase-repository'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -23,17 +29,67 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Base64文字列をBufferに変換
-    let iconBuffer: Buffer | null | undefined = undefined
+    const memberData = member.toJSON() as any
+    const existingIconUrl = memberData.icon
+
+    // Base64文字列をSupabaseにアップロード
+    let iconUrl: string | null | undefined = undefined
     if (body.icon && typeof body.icon === 'string') {
-      // data:image/png;base64, のプレフィックスを除去
-      const base64Data = body.icon.replace(/^data:image\/\w+;base64,/, '')
-      iconBuffer = Buffer.from(base64Data, 'base64')
+      // Base64文字列の場合はSupabaseにアップロード
+      try {
+        const buffer = base64ToBuffer(body.icon)
+        const extension = getFileExtensionFromBase64(body.icon)
+        const fileName = `icon.${extension}`
+
+        const result = await uploadImage({
+          file: buffer,
+          fileName,
+          folder: 'members',
+          contentType: `image/${extension}`,
+        })
+
+        iconUrl = result.url
+
+        // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
+        if (existingIconUrl && typeof existingIconUrl === 'string' && existingIconUrl.startsWith('http')) {
+          try {
+            // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/members/xxx.png）
+            const urlParts = existingIconUrl.split('/event-thumbnail/')
+            if (urlParts.length > 1) {
+              // deleteImageはバケット名を含まないパスを期待する
+              const filePath = urlParts[1]
+              await deleteImage(filePath, 'event-thumbnail')
+            }
+          } catch (deleteError) {
+            console.error('既存画像の削除エラー（無視）:', deleteError)
+            // 削除エラーは無視（新しい画像はアップロード済み）
+          }
+        }
+      } catch (uploadError: any) {
+        console.error('画像アップロードエラー:', uploadError)
+        throw createError({
+          statusCode: 500,
+          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+        })
+      }
     } else if (body.icon === null) {
       // 明示的にnullが送信された場合はnullを設定（削除）
-      iconBuffer = null
+      iconUrl = null
+
+      // 既存の画像を削除
+      if (existingIconUrl && typeof existingIconUrl === 'string' && existingIconUrl.startsWith('http')) {
+        try {
+          const urlParts = existingIconUrl.split('/event-thumbnail/')
+          if (urlParts.length > 1) {
+            const filePath = urlParts[1]
+            await deleteImage(filePath, 'event-thumbnail')
+          }
+        } catch (deleteError) {
+          console.error('既存画像の削除エラー（無視）:', deleteError)
+        }
+      }
     }
-    // body.iconがundefinedの場合は、iconBufferもundefinedのまま（既存のiconを保持）
+    // body.iconがundefinedの場合は、iconUrlもundefinedのまま（既存のiconを保持）
 
     const updateData: any = {
       name_sei: body.name_sei,
@@ -47,22 +103,19 @@ export default defineEventHandler(async (event) => {
       facebook_url: body.facebook_url || null,
     }
     
-    if (iconBuffer !== undefined) {
-      updateData.icon = iconBuffer
+    if (iconUrl !== undefined) {
+      updateData.icon = iconUrl
     }
 
     await member.update(updateData)
     
-    // レスポンス用にiconをBase64文字列に変換
+    // レスポンス用にiconを返す（既にURLとして保存されている）
     await member.reload()
-    const memberData = member.toJSON()
-    if (memberData.icon && Buffer.isBuffer(memberData.icon)) {
-      memberData.icon = `data:image/png;base64,${memberData.icon.toString('base64')}`
-    }
+    const updatedMemberData = member.toJSON()
 
     return {
       success: true,
-      data: memberData,
+      data: updatedMemberData,
     }
   } catch (error: any) {
     if (error.statusCode) {
