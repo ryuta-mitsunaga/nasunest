@@ -11,6 +11,9 @@
       </div>
 
       <UTable v-else :data="forms" :columns="columns" class="w-full">
+        <template #id-cell="{ row }">
+          {{ forms.indexOf(row.original) + 1 }}
+        </template>
         <template #published_start-cell="{ row }">
           {{ formatDate(row.original.published_start) }}
         </template>
@@ -80,7 +83,7 @@ const forms = ref<Form[]>([])
 const loading = ref(true)
 
 const columns: TableColumn<Form>[] = [
-  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'id', header: 'No.' },
   { accessorKey: 'name', header: 'フォーム名' },
   { accessorKey: 'published_start', header: '公開開始日' },
   { accessorKey: 'published_end', header: '公開終了日' },

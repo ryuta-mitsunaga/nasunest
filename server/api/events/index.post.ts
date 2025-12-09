@@ -56,7 +56,8 @@ export default defineEventHandler(async event => {
       is_displayed: body.is_displayed,
       published_start: body.published_start || null,
       published_end: body.published_end || null,
-      is_login_required: body.is_login_required || false,
+      capacity: body.capacity ? parseInt(body.capacity, 10) : null,
+      approval_type: body.approval_type !== undefined ? parseInt(body.approval_type, 10) : 0,
     })
 
     // カテゴリの関連付け
