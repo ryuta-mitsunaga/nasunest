@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.addColumn('forms_answer', 'user_id', {
+    await queryInterface.addColumn('form_answers', 'user_id', {
       type: Sequelize.BIGINT,
       allowNull: true,
       comment: 'ユーザーID（ログインしている場合）',
@@ -17,7 +17,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeColumn('forms_answer', 'user_id')
+    await queryInterface.removeColumn('form_answers', 'user_id')
   },
 }
 

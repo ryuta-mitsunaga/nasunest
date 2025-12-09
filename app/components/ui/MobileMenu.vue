@@ -166,7 +166,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: 'トップ', to: '/' },
-  { label: '那須町地域おこし協力隊員', to: '/chikiOkoshiMembers' },
+  { label: '那須町地域おこし協力隊', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
 ]
 

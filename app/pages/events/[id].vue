@@ -1,13 +1,62 @@
 <template>
-  <div style="color: #2E5E3E">
-      <div class="mb-6">
-        <NuxtLink
-          to="/events"
-          class="inline-flex items-center gap-2 text-sm hover:underline mb-4"
-          style="color: #2e5e3e"
+  <div style="color: #2e5e3e">
+    <div class="mb-6">
+      <NuxtLink
+        to="/events"
+        class="inline-flex items-center gap-2 text-sm hover:underline mb-4"
+        style="color: #2e5e3e"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        <span>イベント一覧に戻る</span>
+      </NuxtLink>
+      <UiPageTitle :title="event?.title || 'イベント詳細'" />
+    </div>
+
+    <div v-if="loading" class="text-center py-12">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl" />
+    </div>
+
+    <div v-else-if="error" class="text-center py-12">
+      <p>{{ error }}</p>
+    </div>
+
+    <div
+      v-else-if="event"
+      class="bg-white rounded-2xl shadow-md overflow-hidden"
+    >
+      <!-- サムネイル画像 -->
+      <div
+        v-if="event.thumbnail"
+        class="relative w-full overflow-hidden"
+        style="aspect-ratio: 2 / 1"
+      >
+        <img
+          :src="event.thumbnail"
+          :alt="event.title"
+          class="w-full h-full object-cover"
+        />
+      </div>
+
+      <!-- イベント情報 -->
+      <div class="p-6 md:p-8 space-y-6">
+        <!-- カテゴリ -->
+        <EventsEventCategories :categories="event.categories" />
+        <!-- 日付情報 -->
+        <div class="flex items-center gap-2" style="color: #2e5e3e">
           <svg
-            class="w-4 h-4"
+            class="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -16,47 +65,26 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M15 19l-7-7 7-7"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <span>イベント一覧に戻る</span>
-        </NuxtLink>
-        <UiPageTitle :title="event?.title || 'イベント詳細'" />
-      </div>
-
-      <div v-if="loading" class="text-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl" />
-      </div>
-
-      <div v-else-if="error" class="text-center py-12">
-        <p>{{ error }}</p>
-      </div>
-
-      <div
-        v-else-if="event"
-        class="bg-white rounded-2xl shadow-md overflow-hidden"
-      >
-        <!-- サムネイル画像 -->
-        <div
-          v-if="event.thumbnail"
-          class="relative w-full overflow-hidden"
-          style="aspect-ratio: 2 / 1"
-        >
-          <img
-            :src="event.thumbnail"
-            :alt="event.title"
-            class="w-full h-full object-cover"
-          />
+          <span class="font-semibold">{{ formatDate(event.start_date) }}</span>
+          <span v-if="event.end_date && event.end_date !== event.start_date">
+            〜 {{ formatDate(event.end_date) }}
+          </span>
         </div>
 
-        <!-- イベント情報 -->
-        <div class="p-6 md:p-8 space-y-6">
-          <!-- カテゴリ -->
-          <EventsEventCategories :categories="event.categories" />
-          <!-- 日付情報 -->
-          <div class="flex items-center gap-2" style="color: #2e5e3e">
+        <!-- 本文（EditorJS） -->
+        <div v-if="event.body">
+          <AdminEditorJsEditor :data="event.body" :read-only="true" />
+        </div>
+
+        <!-- 場所情報 -->
+        <div v-if="event.location_name" class="space-y-2">
+          <h2 class="text-lg font-bold" style="color: #2e5e3e">場所</h2>
+          <div class="flex items-start gap-2" style="color: #2e5e3e">
             <svg
-              class="w-5 h-5"
+              class="w-5 h-5 mt-0.5 flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -65,125 +93,71 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <span class="font-semibold">{{
-              formatDate(event.start_date)
-            }}</span>
-            <span v-if="event.end_date && event.end_date !== event.start_date">
-              〜 {{ formatDate(event.end_date) }}
-            </span>
-          </div>
-
-          <!-- 本文（EditorJS） -->
-          <div v-if="event.body">
-            <AdminEditorJsEditor :data="event.body" :read-only="true" />
-          </div>
-
-          <!-- 場所情報 -->
-          <div v-if="event.location_name" class="space-y-2">
-            <h2 class="text-lg font-bold" style="color: #2e5e3e">場所</h2>
-            <div class="flex items-start gap-2" style="color: #2e5e3e">
-              <svg
-                class="w-5 h-5 mt-0.5 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div>
+              <p class="font-semibold">{{ event.location_name }}</p>
+              <p
+                v-if="event.location_address"
+                class="text-sm mt-1"
+                style="color: #8c5a3c"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <div>
-                <p class="font-semibold">{{ event.location_name }}</p>
-                <p
-                  v-if="event.location_address"
-                  class="text-sm mt-1"
-                  style="color: #8c5a3c"
-                >
-                  {{ event.location_address }}
-                </p>
-              </div>
+                {{ event.location_address }}
+              </p>
             </div>
-            <a
-              v-if="event.location_url"
-              :href="event.location_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 text-sm hover:underline"
-              style="color: #2e5e3e"
-            >
-              <span>地図を見る</span>
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </a>
           </div>
+          <a
+            v-if="event.location_url"
+            :href="event.location_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 text-sm hover:underline"
+            style="color: #2e5e3e"
+          >
+            <span>地図を見る</span>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        </div>
 
-          <!-- フォームリンク -->
-          <div v-if="event.form_id" class="pt-4 space-y-3">
-            <!-- 未ログインかつログイン必須の場合 -->
-            <template v-if="event.is_login_required && !isAuthenticated">
-              <button
-                disabled
-                class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm opacity-50 cursor-not-allowed"
-                style="background-color: #f4d35e; color: #2e5e3e"
+        <!-- フォームリンク -->
+        <div v-if="event.form_id" class="pt-4 space-y-3">
+          <!-- 未ログインかつ手動承認（ログイン必須）の場合 -->
+          <template v-if="event.approval_type === 1 && !isAuthenticated">
+            <button
+              disabled
+              class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm opacity-50 cursor-not-allowed"
+              style="background-color: #f4d35e; color: #2e5e3e"
+            >
+              <span>ログインが必須です</span>
+            </button>
+            <div class="text-center md:text-left">
+              <NuxtLink
+                :to="`/login?redirect=${encodeURIComponent(route.fullPath)}`"
+                class="inline-flex items-center gap-1 text-sm hover:underline"
+                style="color: #2e5e3e"
               >
-                <span>ログインが必須です</span>
-              </button>
-              <div class="text-center md:text-left">
-                <NuxtLink
-                  :to="`/login?redirect=${encodeURIComponent(route.fullPath)}`"
-                  class="inline-flex items-center gap-1 text-sm hover:underline"
-                  style="color: #2e5e3e"
-                >
-                  <span>ログイン画面へ</span>
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </NuxtLink>
-              </div>
-            </template>
-            <!-- ログイン済み、またはログイン不要の場合 -->
-            <template v-else>
-              <button
-                @click="handleCtaClick"
-                class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                style="background-color: #f4d35e; color: #2e5e3e"
-              >
-                <span>{{ event.cta_button_text || '参加申し込み' }}</span>
+                <span>ログイン画面へ</span>
                 <svg
-                  class="w-5 h-5 ml-2"
+                  class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -195,11 +169,35 @@
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-              </button>
-            </template>
-          </div>
+              </NuxtLink>
+            </div>
+          </template>
+          <!-- ログイン済み、またはログイン不要の場合 -->
+          <template v-else>
+            <button
+              @click="handleCtaClick"
+              class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              style="background-color: #f4d35e; color: #2e5e3e"
+            >
+              <span>{{ event.cta_button_text || '参加申し込み' }}</span>
+              <svg
+                class="w-5 h-5 ml-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </template>
         </div>
       </div>
+    </div>
   </div>
 </template>
 
@@ -217,7 +215,7 @@ interface Event {
   location_url: string | null
   thumbnail: string | null
   cta_button_text: string | null
-  is_login_required: boolean
+  approval_type: number | null
   categories?: Array<{
     id: number
     name: string
@@ -239,12 +237,13 @@ const error = ref('')
 const event = ref<Event | null>(null)
 
 const handleCtaClick = () => {
-  if (event.value?.is_login_required && !isAuthenticated.value) {
+  // 手動承認（approval_type === 1）の場合はログイン必須
+  if (event.value?.approval_type === 1 && !isAuthenticated.value) {
     // ログイン必須の場合はログイン画面にリダイレクト
     navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
   } else {
     // ログイン不要、またはログイン済みの場合はフォームページに遷移
-    navigateTo(`/forms/${event.value?.form_id}`)
+    navigateTo(`/forms/${event.value?.form_id}?event_id=${event.value?.id}`)
   }
 }
 
@@ -301,72 +300,6 @@ useHead({
     },
     { property: 'og:type', content: 'article' },
   ]),
-  script: computed(() => {
-    if (!event.value) return []
-    const eventData = event.value
-    const startDate = new Date(eventData.start_date)
-    const endDate = eventData.end_date
-      ? new Date(eventData.end_date)
-      : startDate
-
-    return [
-      {
-        type: 'application/ld+json',
-        innerHTML: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Event',
-          name: eventData.title,
-          description: eventData.description || '',
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          image: eventData.thumbnail || `${baseUrl}/img/title-logo.png`,
-          location: eventData.location_name
-            ? {
-                '@type': 'Place',
-                name: eventData.location_name,
-                address: eventData.location_address || '',
-                url: eventData.location_url || undefined,
-              }
-            : undefined,
-          organizer: {
-            '@type': 'Organization',
-            name: '那須町地域おこし協力隊',
-            url: baseUrl,
-          },
-          url: `${baseUrl}/events/${eventId.value}`,
-          eventStatus: 'https://schema.org/EventScheduled',
-          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-        }),
-      },
-      {
-        type: 'application/ld+json',
-        innerHTML: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'BreadcrumbList',
-          itemListElement: [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'ホーム',
-              item: baseUrl,
-            },
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: 'イベント一覧',
-              item: `${baseUrl}/events`,
-            },
-            {
-              '@type': 'ListItem',
-              position: 3,
-              name: eventData.title,
-              item: `${baseUrl}/events/${eventId.value}`,
-            },
-          ],
-        }),
-      },
-    ]
-  }),
 })
 
 const formatDate = (dateString: string) => {

@@ -12,16 +12,28 @@
       :loading="pickupLoading"
       @refresh="fetchPickupEvents"
     />
-
     <UCard>
       <template #header>
-        <h2 class="text-xl font-semibold">イベント一覧</h2>
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-semibold">イベント一覧</h2>
+          <UButton
+            v-if="hasPendingAnswers"
+            color="warning"
+            variant="soft"
+            @click="navigateToPendingAnswers"
+          >
+            未回答申し込みあり
+          </UButton>
+        </div>
       </template>
       <div v-if="loading" class="text-center py-8">
         <UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl" />
       </div>
 
       <UTable v-else :data="events" :columns="columns" class="w-full">
+        <template #id-cell="{ row }">
+          {{ events.indexOf(row.original) + 1 }}
+        </template>
         <template #title-cell="{ row }">
           {{ row.original.title }}
         </template>
@@ -99,6 +111,8 @@ interface Event {
   published_end: string | null
   createdAt: string
   status: 'published' | 'unpublished' | 'closed'
+  approval_type: number | null
+  pending_answers_count?: number
   form?: {
     id: number
     name: string
@@ -127,7 +141,7 @@ const pickupEvents = ref<PickupEvent[]>([])
 const pickupLoading = ref(true)
 
 const columns: TableColumn<Event>[] = [
-  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'id', header: 'No.' },
   { accessorKey: 'title', header: 'タイトル' },
   {
     accessorKey: 'is_displayed',
@@ -207,6 +221,28 @@ const formatDate = (dateString: string | null) => {
 
 const { success: toastSuccess, error: toastError } = useCustomToast()
 const { confirm } = useConfirm()
+
+const hasPendingAnswers = computed(() => {
+  return events.value.some(
+    event =>
+      event.approval_type === 1 && // 手動承認
+      event.form_id &&
+      (event.pending_answers_count || 0) > 0
+  )
+})
+
+const navigateToPendingAnswers = () => {
+  // 未回答申し込みがある最初のイベントのフォーム回答画面に遷移
+  const eventWithPending = events.value.find(
+    event =>
+      event.approval_type === 1 && // 手動承認
+      event.form_id &&
+      (event.pending_answers_count || 0) > 0
+  )
+  if (eventWithPending?.form_id) {
+    navigateTo(`/admin/forms/${eventWithPending.form_id}/answers`)
+  }
+}
 
 const fetchPickupEvents = async () => {
   pickupLoading.value = true

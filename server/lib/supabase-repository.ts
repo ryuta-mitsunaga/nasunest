@@ -32,10 +32,14 @@ export async function uploadImage(
     ? `${folder}/${timestamp}-${sanitizedFileName}`
     : `${timestamp}-${sanitizedFileName}`
 
+  // バケット名を決定（フォルダに応じて）
+  const bucketName =
+    folder === 'members' ? 'event-thumbnail' : 'event-thumbnail'
+
   try {
     // Supabase Storageにアップロード
     const { data, error } = await supabase.storage
-      .from('event-thumbnail')
+      .from(bucketName)
       .upload(filePath, file, {
         contentType,
         upsert: false, // 既存ファイルは上書きしない
@@ -49,7 +53,7 @@ export async function uploadImage(
     // 公開URLを取得
     const {
       data: { publicUrl },
-    } = supabase.storage.from('event-thumbnail').getPublicUrl(filePath)
+    } = supabase.storage.from(bucketName).getPublicUrl(filePath)
 
     console.log(`[Supabase] 画像アップロード成功: ${filePath}`)
     console.log(`[Supabase] 公開URL: ${publicUrl}`)
@@ -70,11 +74,12 @@ export async function uploadImage(
 /**
  * Supabase Storageから画像を削除
  */
-export async function deleteImage(filePath: string): Promise<void> {
+export async function deleteImage(
+  filePath: string,
+  bucketName: string = 'event-thumbnail'
+): Promise<void> {
   try {
-    const { error } = await supabase.storage
-      .from('event-thumbnail')
-      .remove([filePath])
+    const { error } = await supabase.storage.from(bucketName).remove([filePath])
 
     // エラーが発生した場合は、ログに記録（削除エラーは致命的ではないため、エラーを投げない）
     if (error) {

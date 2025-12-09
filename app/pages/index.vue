@@ -68,6 +68,35 @@ useHead({
         },
       }),
     },
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            item: {
+              '@type': 'WebPage',
+              '@id': `${baseUrl}/events`,
+              name: 'イベント一覧',
+              description: '那須町のイベント一覧です。',
+            },
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            item: {
+              '@type': 'WebPage',
+              '@id': `${baseUrl}/chikiOkoshiMembers`,
+              name: '地域おこし協力隊員一覧',
+              description: '那須町の地域おこし協力隊員一覧です。',
+            },
+          },
+        ],
+      }),
+    },
   ],
 })
 

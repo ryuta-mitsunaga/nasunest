@@ -2,6 +2,12 @@
   <div style="color: #2e5e3e">
     <UiPageTitle title="イベント一覧" />
 
+    <!-- 申し込み中のイベント -->
+    <EventsMyEventApplications
+      v-if="isAuthenticated"
+      :applications="myApplications"
+    />
+
     <!-- 検索コンポーネント -->
     <EventsEventSearch
       :categories="categories"
@@ -24,6 +30,17 @@
 import type { Event } from '~/components/events/EventCard.vue'
 
 const baseUrl = 'https://www.nasunest.com'
+const { isAuthenticated } = useAuth()
+
+interface EventApplication {
+  id: number
+  event_id: number
+  event_title: string
+  start_date: string
+  end_date: string | null
+  status: number
+  applied_at: Date
+}
 
 // SEO設定
 useHead({
@@ -139,6 +156,31 @@ const { data: categoriesData } = await useAsyncData<{
   $fetch<{ success: boolean; data: Category[] }>('/api/event-categories')
 )
 
+const requestFetch = useRequestFetch()
+
+// 申し込み中のイベント取得（ログイン中のみ）
+const { data: myApplicationsData } = await useAsyncData<{
+  success: boolean
+  data: EventApplication[]
+}>(
+  'my-event-applications',
+  () =>
+    requestFetch<{ success: boolean; data: EventApplication[] }>(
+      '/api/public/events/my-applications'
+    ),
+  {
+    default: () => ({
+      data: [],
+      success: true,
+    }),
+  }
+)
+
+const myApplications = computed(() => {
+  if (!myApplicationsData.value?.success) return []
+  return myApplicationsData.value.data || []
+})
+
 // リアクティブな値を計算
 const events = computed(() => {
   if (!eventsData.value?.success) return []
@@ -220,30 +262,6 @@ const itemListSchema = computed(() => {
     name: '那須町イベント一覧',
     description: '那須町で開催されるイベント・体験・交流会の一覧',
     numberOfItems: totalCount.value,
-    itemListElement: allEvents.map((event, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      item: {
-        '@type': 'Event',
-        '@id': `${baseUrl}/events/${event.id}`,
-        name: event.title,
-        description: event.description?.substring(0, 200) || '',
-        startDate: event.start_date,
-        endDate: event.end_date || event.start_date,
-        image: event.thumbnail || `${baseUrl}/img/title-logo.png`,
-        location: event.location_name
-          ? {
-              '@type': 'Place',
-              name: event.location_name,
-              address: event.location_address || '',
-            }
-          : undefined,
-        organizer: {
-          '@type': 'Organization',
-          name: '那須町地域おこし協力隊',
-        },
-      },
-    })),
   }
 })
 
