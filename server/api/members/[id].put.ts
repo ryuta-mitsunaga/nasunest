@@ -6,7 +6,7 @@ import {
   getFileExtensionFromBase64,
 } from '~~/server/lib/supabase-repository'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // 認証チェック
     const adminId = getCookie(event, 'adminId')
@@ -35,49 +35,67 @@ export default defineEventHandler(async (event) => {
     // Base64文字列をSupabaseにアップロード
     let iconUrl: string | null | undefined = undefined
     if (body.icon && typeof body.icon === 'string') {
-      // Base64文字列の場合はSupabaseにアップロード
-      try {
-        const buffer = base64ToBuffer(body.icon)
-        const extension = getFileExtensionFromBase64(body.icon)
-        const fileName = `icon.${extension}`
+      // URLかBase64かを判定
+      const isUrl =
+        body.icon.startsWith('http://') || body.icon.startsWith('https://')
 
-        const result = await uploadImage({
-          file: buffer,
-          fileName,
-          folder: 'members',
-          contentType: `image/${extension}`,
-        })
+      if (isUrl) {
+        // 既にURLの場合はそのまま使用（画像を変更しない場合）
+        iconUrl = body.icon
+      } else {
+        // Base64文字列の場合はSupabaseにアップロード
+        try {
+          const buffer = base64ToBuffer(body.icon)
+          const extension = getFileExtensionFromBase64(body.icon)
+          const fileName = `icon.${extension}`
 
-        iconUrl = result.url
+          const result = await uploadImage({
+            file: buffer,
+            fileName,
+            folder: 'members',
+            contentType: `image/${extension}`,
+          })
 
-        // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
-        if (existingIconUrl && typeof existingIconUrl === 'string' && existingIconUrl.startsWith('http')) {
-          try {
-            // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/members/xxx.png）
-            const urlParts = existingIconUrl.split('/event-thumbnail/')
-            if (urlParts.length > 1) {
-              // deleteImageはバケット名を含まないパスを期待する
-              const filePath = urlParts[1]
-              await deleteImage(filePath, 'event-thumbnail')
+          iconUrl = result.url
+
+          // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
+          if (
+            existingIconUrl &&
+            typeof existingIconUrl === 'string' &&
+            existingIconUrl.startsWith('http') &&
+            existingIconUrl !== result.url
+          ) {
+            try {
+              // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/members/xxx.png）
+              const urlParts = existingIconUrl.split('/event-thumbnail/')
+              if (urlParts.length > 1) {
+                // deleteImageはバケット名を含まないパスを期待する
+                const filePath = urlParts[1]
+                await deleteImage(filePath, 'event-thumbnail')
+              }
+            } catch (deleteError) {
+              console.error('既存画像の削除エラー（無視）:', deleteError)
+              // 削除エラーは無視（新しい画像はアップロード済み）
             }
-          } catch (deleteError) {
-            console.error('既存画像の削除エラー（無視）:', deleteError)
-            // 削除エラーは無視（新しい画像はアップロード済み）
           }
+        } catch (uploadError: any) {
+          console.error('画像アップロードエラー:', uploadError)
+          throw createError({
+            statusCode: 500,
+            statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+          })
         }
-      } catch (uploadError: any) {
-        console.error('画像アップロードエラー:', uploadError)
-        throw createError({
-          statusCode: 500,
-          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
-        })
       }
     } else if (body.icon === null) {
       // 明示的にnullが送信された場合はnullを設定（削除）
       iconUrl = null
 
       // 既存の画像を削除
-      if (existingIconUrl && typeof existingIconUrl === 'string' && existingIconUrl.startsWith('http')) {
+      if (
+        existingIconUrl &&
+        typeof existingIconUrl === 'string' &&
+        existingIconUrl.startsWith('http')
+      ) {
         try {
           const urlParts = existingIconUrl.split('/event-thumbnail/')
           if (urlParts.length > 1) {
@@ -102,13 +120,13 @@ export default defineEventHandler(async (event) => {
       instagram_url: body.instagram_url || null,
       facebook_url: body.facebook_url || null,
     }
-    
+
     if (iconUrl !== undefined) {
       updateData.icon = iconUrl
     }
 
     await member.update(updateData)
-    
+
     // レスポンス用にiconを返す（既にURLとして保存されている）
     await member.reload()
     const updatedMemberData = member.toJSON()
@@ -127,4 +145,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-
