@@ -42,42 +42,52 @@ export default defineEventHandler(async event => {
     let thumbnailUrl: string | null | undefined = undefined
 
     if (body.thumbnail && typeof body.thumbnail === 'string') {
-      // Base64文字列の場合はSupabaseにアップロード
-      try {
-        const buffer = base64ToBuffer(body.thumbnail)
-        const extension = getFileExtensionFromBase64(body.thumbnail)
-        const fileName = `thumbnail.${extension}`
+      // URLかBase64かを判定
+      const isUrl =
+        body.thumbnail.startsWith('http://') ||
+        body.thumbnail.startsWith('https://')
 
-        const result = await uploadImage({
-          file: buffer,
-          fileName,
-          folder: 'events',
-          contentType: `image/${extension}`,
-        })
+      if (isUrl) {
+        // 既にURLの場合はそのまま使用（画像を変更しない場合）
+        thumbnailUrl = body.thumbnail
+      } else {
+        // Base64文字列の場合はSupabaseにアップロード
+        try {
+          const buffer = base64ToBuffer(body.thumbnail)
+          const extension = getFileExtensionFromBase64(body.thumbnail)
+          const fileName = `thumbnail.${extension}`
 
-        thumbnailUrl = result.url
+          const result = await uploadImage({
+            file: buffer,
+            fileName,
+            folder: 'events',
+            contentType: `image/${extension}`,
+          })
 
-        // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
-        if (existingThumbnailUrl) {
-          try {
-            // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/events/xxx.png）
-            const urlParts = existingThumbnailUrl.split('/event-thumbnail/')
-            if (urlParts.length > 1) {
-              // deleteImageはバケット名を含まないパスを期待する
-              const filePath = urlParts[1]
-              await deleteImage(filePath)
+          thumbnailUrl = result.url
+
+          // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
+          if (existingThumbnailUrl && existingThumbnailUrl !== result.url) {
+            try {
+              // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/events/xxx.png）
+              const urlParts = existingThumbnailUrl.split('/event-thumbnail/')
+              if (urlParts.length > 1) {
+                // deleteImageはバケット名を含まないパスを期待する
+                const filePath = urlParts[1]
+                await deleteImage(filePath)
+              }
+            } catch (deleteError) {
+              console.error('既存画像の削除エラー（無視）:', deleteError)
+              // 削除エラーは無視（新しい画像はアップロード済み）
             }
-          } catch (deleteError) {
-            console.error('既存画像の削除エラー（無視）:', deleteError)
-            // 削除エラーは無視（新しい画像はアップロード済み）
           }
+        } catch (uploadError: any) {
+          console.error('画像アップロードエラー:', uploadError)
+          throw createError({
+            statusCode: 500,
+            statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+          })
         }
-      } catch (uploadError: any) {
-        console.error('画像アップロードエラー:', uploadError)
-        throw createError({
-          statusCode: 500,
-          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
-        })
       }
     } else if (body.thumbnail === null) {
       // 明示的にnullが送信された場合はnullを設定（削除）
@@ -112,8 +122,16 @@ export default defineEventHandler(async event => {
       is_displayed: body.is_displayed,
       published_start: body.published_start || null,
       published_end: body.published_end || null,
-      capacity: body.capacity !== undefined ? (body.capacity ? parseInt(body.capacity, 10) : null) : undefined,
-      approval_type: body.approval_type !== undefined ? parseInt(body.approval_type, 10) : undefined,
+      capacity:
+        body.capacity !== undefined
+          ? body.capacity
+            ? parseInt(body.capacity, 10)
+            : null
+          : undefined,
+      approval_type:
+        body.approval_type !== undefined
+          ? parseInt(body.approval_type, 10)
+          : undefined,
     }
 
     if (thumbnailUrl !== undefined) {

@@ -16,27 +16,38 @@ export default defineEventHandler(async event => {
     // Base64文字列をSupabaseにアップロード
     let thumbnailUrl = null
     if (body.thumbnail && typeof body.thumbnail === 'string') {
-      try {
-        // Base64文字列をBufferに変換
-        const buffer = base64ToBuffer(body.thumbnail)
-        const extension = getFileExtensionFromBase64(body.thumbnail)
-        const fileName = `thumbnail.${extension}`
+      // URLかBase64かを判定
+      const isUrl =
+        body.thumbnail.startsWith('http://') ||
+        body.thumbnail.startsWith('https://')
 
-        // Supabaseにアップロード
-        const result = await uploadImage({
-          file: buffer,
-          fileName,
-          folder: 'events',
-          contentType: `image/${extension}`,
-        })
+      if (isUrl) {
+        // 既にURLの場合はそのまま使用（画像を変更しない場合）
+        thumbnailUrl = body.thumbnail
+      } else {
+        // Base64文字列の場合はSupabaseにアップロード
+        try {
+          // Base64文字列をBufferに変換
+          const buffer = base64ToBuffer(body.thumbnail)
+          const extension = getFileExtensionFromBase64(body.thumbnail)
+          const fileName = `thumbnail.${extension}`
 
-        thumbnailUrl = result.url
-      } catch (uploadError: any) {
-        console.error('画像アップロードエラー:', uploadError)
-        throw createError({
-          statusCode: 500,
-          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
-        })
+          // Supabaseにアップロード
+          const result = await uploadImage({
+            file: buffer,
+            fileName,
+            folder: 'events',
+            contentType: `image/${extension}`,
+          })
+
+          thumbnailUrl = result.url
+        } catch (uploadError: any) {
+          console.error('画像アップロードエラー:', uploadError)
+          throw createError({
+            statusCode: 500,
+            statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+          })
+        }
       }
     }
 
@@ -57,7 +68,8 @@ export default defineEventHandler(async event => {
       published_start: body.published_start || null,
       published_end: body.published_end || null,
       capacity: body.capacity ? parseInt(body.capacity, 10) : null,
-      approval_type: body.approval_type !== undefined ? parseInt(body.approval_type, 10) : 0,
+      approval_type:
+        body.approval_type !== undefined ? parseInt(body.approval_type, 10) : 0,
     })
 
     // カテゴリの関連付け
@@ -71,7 +83,7 @@ export default defineEventHandler(async event => {
           id: body.category_ids,
         },
       })
-      await newEvent.setCategories(categories)
+      await (newEvent as any).setCategories(categories)
     }
 
     // カテゴリ情報を含めてリロード

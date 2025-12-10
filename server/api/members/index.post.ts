@@ -22,27 +22,37 @@ export default defineEventHandler(async event => {
     // Base64文字列をSupabaseにアップロード
     let iconUrl = null
     if (body.icon && typeof body.icon === 'string') {
-      try {
-        // Base64文字列をBufferに変換
-        const buffer = base64ToBuffer(body.icon)
-        const extension = getFileExtensionFromBase64(body.icon)
-        const fileName = `icon.${extension}`
+      // URLかBase64かを判定
+      const isUrl =
+        body.icon.startsWith('http://') || body.icon.startsWith('https://')
 
-        // Supabaseにアップロード
-        const result = await uploadImage({
-          file: buffer,
-          fileName,
-          folder: 'members',
-          contentType: `image/${extension}`,
-        })
+      if (isUrl) {
+        // 既にURLの場合はそのまま使用（画像を変更しない場合）
+        iconUrl = body.icon
+      } else {
+        // Base64文字列の場合はSupabaseにアップロード
+        try {
+          // Base64文字列をBufferに変換
+          const buffer = base64ToBuffer(body.icon)
+          const extension = getFileExtensionFromBase64(body.icon)
+          const fileName = `icon.${extension}`
 
-        iconUrl = result.url
-      } catch (uploadError: any) {
-        console.error('画像アップロードエラー:', uploadError)
-        throw createError({
-          statusCode: 500,
-          statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
-        })
+          // Supabaseにアップロード
+          const result = await uploadImage({
+            file: buffer,
+            fileName,
+            folder: 'members',
+            contentType: `image/${extension}`,
+          })
+
+          iconUrl = result.url
+        } catch (uploadError: any) {
+          console.error('画像アップロードエラー:', uploadError)
+          throw createError({
+            statusCode: 500,
+            statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
+          })
+        }
       }
     }
 
