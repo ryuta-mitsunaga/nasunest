@@ -3,13 +3,23 @@
     <div v-if="!readOnly" class="mb-4 space-y-4">
       <!-- イベント内容入力欄 -->
       <div>
-        <label class="block text-sm font-medium mb-2"
-          >イベント内容（自動でJSON生成）</label
-        >
+        <div class="flex items-center justify-between mb-2">
+          <UiLabelWithHelp
+            label="イベント内容（AIによる自動生成）"
+            help-text="イベントの情報を入力すると、AIが自動的にイベント記事を生成します。フォーマットを使用することで、より自然で正確な記事を生成できます。"
+          />
+          <button
+            type="button"
+            @click="copyExampleFormat"
+            class="text-xs text-blue-600 hover:text-blue-800 underline"
+          >
+            自動生成用のフォーマットをコピー
+          </button>
+        </div>
         <textarea
           v-model="eventContent"
           class="w-full border rounded-lg p-3 text-sm min-h-[150px]"
-          placeholder="イベントの内容を入力してください。例：&#10;イベント名：地域おこしフェスティバル&#10;日時：2024年3月15日 10:00-16:00&#10;場所：市民会館&#10;内容：地域の特産品の販売やワークショップを行います。"
+          placeholder="イベントの内容を入力してください。&#10;例）&#10;イベント名：地域おこしフェスティバル&#10;日時：2024年3月15日 10:00-16:00&#10;場所：市民会館&#10;内容：地域の特産品の販売やワークショップを行います。"
         ></textarea>
         <button
           type="button"
@@ -18,26 +28,10 @@
           class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
         >
           <span v-if="generating">生成中...</span>
-          <span v-else>JSONを自動生成</span>
+          <span v-else>イベント内容を自動生成</span>
         </button>
         <p v-if="generateError" class="text-red-500 text-sm mt-1">
           {{ generateError }}
-        </p>
-      </div>
-
-      <!-- JSONデータ入力欄 -->
-      <div>
-        <label class="block text-sm font-medium mb-2"
-          >JSONデータ（直接編集）</label
-        >
-        <textarea
-          v-model="jsonInput"
-          class="w-full border rounded-lg p-3 font-mono text-sm min-h-[200px]"
-          placeholder='{"blocks": []}'
-          @blur="handleJsonInput"
-        ></textarea>
-        <p v-if="jsonError" class="text-red-500 text-sm mt-1">
-          {{ jsonError }}
         </p>
       </div>
     </div>
@@ -77,6 +71,23 @@ const jsonError = ref('')
 const eventContent = ref('')
 const generating = ref(false)
 const generateError = ref('')
+const { success: toastSuccess, error: toastError } = useCustomToast()
+
+// 例のフォーマットをクリップボードにコピー
+const copyExampleFormat = async () => {
+  const exampleFormat = `イベント名：
+日時：
+場所：
+内容：`
+
+  try {
+    await navigator.clipboard.writeText(exampleFormat)
+
+    toastSuccess('自動生成用のフォーマットをコピーしました')
+  } catch (error) {
+    toastError('自動生成用のフォーマットをコピーに失敗しました')
+  }
+}
 
 // VueのProxyオブジェクトを通常のオブジェクトに変換
 const toPlainObject = (obj: any): any => {
