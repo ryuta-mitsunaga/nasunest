@@ -1,26 +1,18 @@
 import { Admin } from '~~/server/database'
-import { getCookie } from 'h3'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async (event) => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
+    const adminId = requireAdminId(event)
 
     const id = getRouterParam(event, 'id')
     if (!id) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'IDが指定されていません',
+        message: 'IDが指定されていません',
       })
     }
-
-    const adminId = parseInt(adminIdStr, 10)
     const targetId = parseInt(id, 10)
 
     // 自分自身を削除できないようにする

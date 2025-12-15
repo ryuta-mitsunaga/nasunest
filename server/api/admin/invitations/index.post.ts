@@ -1,25 +1,11 @@
 import { AdminInvitation, Admin } from '~~/server/database'
-import { getCookie } from 'h3'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 import crypto from 'crypto'
 
 export default defineEventHandler(async (event) => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
-
-    const adminId = parseInt(adminIdStr, 10)
-    if (isNaN(adminId)) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
+    const adminId = requireAdminId(event)
 
     // 管理者が存在するか確認
     const admin = await Admin.findByPk(adminId)

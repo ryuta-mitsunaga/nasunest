@@ -1,15 +1,10 @@
 import { PickupEvent, Event } from '~~/server/database'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
+    requireAdminId(event)
 
     // 最新の1つだけを取得
     const pickupEvents = await PickupEvent.findAll({
