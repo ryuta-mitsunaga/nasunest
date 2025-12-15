@@ -34,6 +34,9 @@
             <UButton size="sm" @click="addField('checkbox')"
               >チェックボックス</UButton
             >
+            <UButton size="sm" @click="addField('date-picker')"
+              >日程調整</UButton
+            >
           </div>
         </div>
 
@@ -80,7 +83,9 @@
                   placeholder="プレースホルダー（任意）"
                 />
               </div>
-              <div v-if="field.type === 'select' && field.options">
+              <div
+                v-if="field.type === 'select' && isStringArray(field.options)"
+              >
                 <div
                   v-for="(option, optIndex) in field.options"
                   :key="optIndex"
@@ -103,7 +108,9 @@
                   選択肢を追加
                 </UButton>
               </div>
-              <div v-if="field.type === 'checkbox' && field.options">
+              <div
+                v-if="field.type === 'checkbox' && isStringArray(field.options)"
+              >
                 <div
                   v-for="(option, optIndex) in field.options"
                   :key="optIndex"
@@ -124,6 +131,94 @@
                 </div>
                 <UButton size="sm" variant="soft" @click="addOption(index)">
                   選択肢を追加
+                </UButton>
+              </div>
+              <div v-if="field.type === 'date-picker'">
+                <div
+                  v-for="(dateOption, optIndex) in getDateOptions(field)"
+                  :key="optIndex"
+                  class="flex gap-2 mb-2 items-end"
+                >
+                  <div class="flex-1">
+                    <label class="text-xs text-gray-600 mb-1 block">日付</label>
+                    <UInput
+                      v-model="dateOption.date"
+                      type="date"
+                      class="w-full"
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <label class="text-xs text-gray-600 mb-1 block">時刻</label>
+                    <UInput
+                      v-model="dateOption.time"
+                      list="data-list"
+                      type="time"
+                      class="w-full"
+                      :step="1800"
+                    />
+                    <datalist id="data-list">
+                      <option value="00:00">00:00</option>
+                      <option value="00:30">00:30</option>
+                      <option value="01:00">01:00</option>
+                      <option value="01:30">01:30</option>
+                      <option value="02:00">02:00</option>
+                      <option value="02:30">02:30</option>
+                      <option value="03:00">03:00</option>
+                      <option value="03:30">03:30</option>
+                      <option value="04:00">04:00</option>
+                      <option value="04:30">04:30</option>
+                      <option value="05:00">05:00</option>
+                      <option value="05:30">05:30</option>
+                      <option value="06:00">06:00</option>
+                      <option value="06:30">06:30</option>
+                      <option value="07:00">07:00</option>
+                      <option value="07:30">07:30</option>
+                      <option value="08:00">08:00</option>
+                      <option value="08:30">08:30</option>
+                      <option value="09:00">09:00</option>
+                      <option value="09:30">09:30</option>
+                      <option value="10:00">10:00</option>
+                      <option value="10:30">10:30</option>
+                      <option value="11:00">11:00</option>
+                      <option value="11:30">11:30</option>
+                      <option value="12:00">12:00</option>
+                      <option value="12:30">12:30</option>
+                      <option value="13:00">13:00</option>
+                      <option value="13:30">13:30</option>
+                      <option value="14:00">14:00</option>
+                      <option value="14:30">14:30</option>
+                      <option value="15:00">15:00</option>
+                      <option value="15:30">15:30</option>
+                      <option value="16:00">16:00</option>
+                      <option value="16:30">16:30</option>
+                      <option value="17:00">17:00</option>
+                      <option value="17:30">17:30</option>
+                      <option value="18:00">18:00</option>
+                      <option value="18:30">18:30</option>
+                      <option value="19:00">19:00</option>
+                      <option value="19:30">19:30</option>
+                      <option value="20:00">20:00</option>
+                      <option value="20:30">20:30</option>
+                      <option value="21:00">21:00</option>
+                      <option value="21:30">21:30</option>
+                      <option value="22:00">22:00</option>
+                      <option value="22:30">22:30</option>
+                      <option value="23:00">23:00</option>
+                      <option value="23:30">23:30</option>
+                    </datalist>
+                  </div>
+                  <UButton
+                    color="error"
+                    variant="soft"
+                    size="sm"
+                    @click="removeDateOption(index, optIndex)"
+                    class="mb-0"
+                  >
+                    削除
+                  </UButton>
+                </div>
+                <UButton size="sm" variant="soft" @click="addDateOption(index)">
+                  日程を追加
                 </UButton>
               </div>
             </div>
@@ -168,13 +263,18 @@
 </template>
 
 <script setup lang="ts">
+export interface DateOption {
+  date: string
+  time: string
+}
+
 export interface FormField {
   id: string
-  type: 'text' | 'select' | 'checkbox'
+  type: 'text' | 'select' | 'checkbox' | 'date-picker'
   label: string
   description?: string
   placeholder?: string
-  options?: string[]
+  options?: string[] | DateOption[]
   required?: boolean
 }
 
@@ -271,7 +371,7 @@ watch(
   { immediate: true }
 )
 
-const addField = (type: 'text' | 'select' | 'checkbox') => {
+const addField = (type: 'text' | 'select' | 'checkbox' | 'date-picker') => {
   const field: FormField = {
     id: `field_${++fieldIdCounter}`,
     type,
@@ -279,6 +379,8 @@ const addField = (type: 'text' | 'select' | 'checkbox') => {
   }
   if (type === 'select' || type === 'checkbox') {
     field.options = ['']
+  } else if (type === 'date-picker') {
+    field.options = [{ date: '', time: '' }]
   }
   localFormFields.value.push(field)
 }
@@ -296,18 +398,53 @@ const moveField = (fromIndex: number, toIndex: number) => {
 
 const addOption = (fieldIndex: number) => {
   const field = localFormFields.value[fieldIndex]
-  if (field) {
+  if (field && (field.type === 'select' || field.type === 'checkbox')) {
     if (!field.options) {
       field.options = []
     }
-    field.options.push('')
+    if (isStringArray(field.options)) {
+      field.options.push('')
+    }
   }
+}
+
+const isStringArray = (
+  options: string[] | DateOption[] | undefined
+): options is string[] => {
+  if (!options || !Array.isArray(options) || options.length === 0) {
+    return false
+  }
+  return typeof options[0] === 'string'
 }
 
 const removeOption = (fieldIndex: number, optionIndex: number) => {
   const field = localFormFields.value[fieldIndex]
-  if (field && field.options) {
+  if (field && field.options && isStringArray(field.options)) {
     field.options.splice(optionIndex, 1)
+  }
+}
+
+const getDateOptions = (field: FormField): DateOption[] => {
+  if (field.type === 'date-picker' && Array.isArray(field.options)) {
+    return field.options as DateOption[]
+  }
+  return []
+}
+
+const addDateOption = (fieldIndex: number) => {
+  const field = localFormFields.value[fieldIndex]
+  if (field && field.type === 'date-picker') {
+    if (!field.options) {
+      field.options = []
+    }
+    ;(field.options as DateOption[]).push({ date: '', time: '' })
+  }
+}
+
+const removeDateOption = (fieldIndex: number, optionIndex: number) => {
+  const field = localFormFields.value[fieldIndex]
+  if (field && field.type === 'date-picker' && field.options) {
+    ;(field.options as DateOption[]).splice(optionIndex, 1)
   }
 }
 

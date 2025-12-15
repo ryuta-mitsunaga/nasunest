@@ -82,6 +82,7 @@
               <div v-else-if="field.type === 'checkbox'" class="space-y-2">
                 <UCheckbox
                   v-for="option in field.options"
+                  :id="`${field.id}-${option}`"
                   :key="option"
                   :model-value="isChecked(field.id, option)"
                   :required="field.required"
@@ -90,6 +91,22 @@
                   size="lg"
                   @update:model-value="
                     val => toggleCheckbox(field.id, option, val)
+                  "
+                />
+              </div>
+
+              <!-- 日程調整フィールド -->
+              <div v-else-if="field.type === 'date-picker'" class="space-y-3">
+                <UCheckbox
+                  v-for="(dateOption, index) in getDateOptions(field)"
+                  :id="`${dateOption.date}-${dateOption.time}-${index}`"
+                  :key="`${dateOption.date}-${dateOption.time}-${index}`"
+                  :model-value="isDateChecked(field.id, dateOption)"
+                  :required="field.required"
+                  :label="formatDateOption(dateOption)"
+                  size="lg"
+                  @update:model-value="
+                    val => toggleDateCheckbox(field.id, dateOption, val)
                   "
                 />
               </div>
@@ -114,13 +131,18 @@
 </template>
 
 <script setup lang="ts">
+interface DateOption {
+  date: string
+  time: string
+}
+
 interface FormField {
   id: string
-  type: 'text' | 'select' | 'checkbox'
+  type: 'text' | 'select' | 'checkbox' | 'date-picker'
   label: string
   description?: string
   placeholder?: string
-  options?: string[]
+  options?: string[] | DateOption[]
   required?: boolean
 }
 
@@ -176,7 +198,7 @@ const fetchForm = async () => {
 
     // フォームデータを初期化
     formFields.value.forEach(field => {
-      if (field.type === 'checkbox') {
+      if (field.type === 'checkbox' || field.type === 'date-picker') {
         formData.value[field.id] = []
       } else {
         formData.value[field.id] = ''
@@ -228,6 +250,71 @@ const toggleCheckbox = (
   }
 }
 
+const isStringArray = (
+  options: string[] | DateOption[] | undefined
+): options is string[] => {
+  if (!options || !Array.isArray(options) || options.length === 0) {
+    return false
+  }
+  return typeof options[0] === 'string'
+}
+
+const getDateOptions = (field: FormField): DateOption[] => {
+  if (
+    field.type === 'date-picker' &&
+    Array.isArray(field.options) &&
+    !isStringArray(field.options)
+  ) {
+    return field.options as DateOption[]
+  }
+  return []
+}
+
+const formatDateOption = (dateOption: DateOption): string => {
+  if (!dateOption.date || !dateOption.time) {
+    return ''
+  }
+  const date = new Date(`${dateOption.date}T${dateOption.time}`)
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土']
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const weekday = weekdays[date.getDay()]
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${month}/${day}(${weekday}) ${hours}:${minutes}～`
+}
+
+const isDateChecked = (fieldId: string, dateOption: DateOption): boolean => {
+  const value = formData.value[fieldId]
+  if (!Array.isArray(value)) {
+    return false
+  }
+  const dateTimeString = `${dateOption.date}T${dateOption.time}`
+  return value.includes(dateTimeString)
+}
+
+const toggleDateCheckbox = (
+  fieldId: string,
+  dateOption: DateOption,
+  checked: boolean | string
+) => {
+  const isChecked = !!checked
+  if (!Array.isArray(formData.value[fieldId])) {
+    formData.value[fieldId] = []
+  }
+  const dateTimeString = `${dateOption.date}T${dateOption.time}`
+  const index = formData.value[fieldId].indexOf(dateTimeString)
+  if (isChecked && index === -1) {
+    formData.value[fieldId].push(dateTimeString)
+  } else if (!isChecked && index > -1) {
+    formData.value[fieldId].splice(index, 1)
+  }
+  // エラーをクリア
+  if (fieldErrors.value[fieldId] && formData.value[fieldId].length > 0) {
+    delete fieldErrors.value[fieldId]
+  }
+}
+
 const getFieldError = (fieldId: string) => {
   return fieldErrors.value[fieldId] || ''
 }
@@ -241,7 +328,7 @@ const validateForm = () => {
       const value = formData.value[field.id]
       let isValid = false
 
-      if (field.type === 'checkbox') {
+      if (field.type === 'checkbox' || field.type === 'date-picker') {
         isValid = Array.isArray(value) && value.length > 0
       } else if (field.type === 'select') {
         isValid = value !== '' && value !== null && value !== undefined
@@ -280,9 +367,7 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     // クエリパラメータからevent_idを取得
-    const eventId = route.query.event_id
-      ? String(route.query.event_id)
-      : null
+    const eventId = route.query.event_id ? String(route.query.event_id) : null
 
     await $fetch(`/api/public/forms/${formId.value}/answers`, {
       method: 'POST',
@@ -312,7 +397,7 @@ watch(
         const value = formData.value[fieldId]
         let isValid = false
 
-        if (field.type === 'checkbox') {
+        if (field.type === 'checkbox' || field.type === 'date-picker') {
           isValid = Array.isArray(value) && value.length > 0
         } else if (field.type === 'select') {
           isValid = value !== '' && value !== null && value !== undefined
