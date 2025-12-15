@@ -29,6 +29,7 @@
     "@nuxt/ui": "^4.2.1",
     "@supabase/supabase-js": "2.35.0",
     "bcryptjs": "^3.0.3",
+    "floating-vue": "^5.2.2",
     "nuxt": "^4.2.1",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",

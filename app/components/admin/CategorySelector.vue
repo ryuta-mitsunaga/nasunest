@@ -166,6 +166,10 @@ const addNewCategory = async () => {
       searchQuery.value = ''
       showSuggestions.value = false
     }
+
+    // 入力をクリア
+    searchQuery.value = ''
+    showSuggestions.value = false
   } catch (error) {
     console.error('カテゴリ追加エラー:', error)
   }

@@ -35,9 +35,6 @@
         placeholder="定員数（空欄の場合は無制限）"
         :min="1"
       />
-      <template #help>
-        定員数を入力してください。空欄の場合は無制限となります。
-      </template>
     </UFormField>
 
     <UFormField label="参加承認の方式" name="approval_type">
