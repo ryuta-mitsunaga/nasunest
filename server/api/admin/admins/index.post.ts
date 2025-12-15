@@ -1,17 +1,11 @@
 import { Admin, AdminPermission } from '~~/server/database'
-import { getCookie } from 'h3'
+import { requireAdminId } from '~~/server/lib/admin-auth'
 import bcrypt from 'bcryptjs'
 
 export default defineEventHandler(async (event) => {
   try {
     // 認証チェック
-    const adminIdStr = getCookie(event, 'adminId')
-    if (!adminIdStr) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
+    requireAdminId(event)
 
     const body = await readBody(event)
     const { login_id, password, permission_ids } = body as {

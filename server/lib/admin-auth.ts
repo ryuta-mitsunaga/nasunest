@@ -11,7 +11,7 @@ export const requireAdminId = (event: any): number => {
   if (!encryptedAdminId) {
     throw createError({
       statusCode: 401,
-      statusMessage: '認証が必要です',
+      message: '認証が必要です',
     })
   }
 
@@ -20,7 +20,7 @@ export const requireAdminId = (event: any): number => {
   if (!adminId) {
     throw createError({
       statusCode: 401,
-      statusMessage: '認証情報が無効です',
+      message: '認証情報が無効です',
     })
   }
 

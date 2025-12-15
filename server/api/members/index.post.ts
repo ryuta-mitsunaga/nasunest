@@ -5,17 +5,12 @@ import {
   getFileExtensionFromBase64,
 } from '~~/server/lib/supabase-repository'
 
+import { requireAdminId } from '~~/server/lib/admin-auth'
+
 export default defineEventHandler(async event => {
   try {
     // 認証チェック
-    const adminId = getCookie(event, 'adminId')
-
-    if (!adminId) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: '認証が必要です',
-      })
-    }
+    requireAdminId(event)
 
     const body = await readBody(event)
 
