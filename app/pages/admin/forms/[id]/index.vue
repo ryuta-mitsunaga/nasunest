@@ -78,6 +78,17 @@
                 </li>
               </ul>
             </div>
+            <div v-if="field.type === 'date-picker'">
+              <p class="text-sm text-gray-600 mt-2">候補日程:</p>
+              <ul class="list-disc list-inside text-sm text-gray-500 ml-4">
+                <li
+                  v-for="(dateOption, index) in getDateOptions(field)"
+                  :key="index"
+                >
+                  {{ formatDateOption(dateOption) }}
+                </li>
+              </ul>
+            </div>
             <div v-if="field.placeholder" class="mt-2">
               <p class="text-sm text-gray-500">
                 プレースホルダー: {{ field.placeholder }}
@@ -142,6 +153,27 @@
                   <span class="text-sm">{{ option }}</span>
                   <span class="text-sm font-semibold text-blue-600">
                     {{ getOptionCount(field.id, option) }}件
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 日程調整の集計 -->
+            <div v-if="field.type === 'date-picker'">
+              <p class="text-sm text-gray-600 mb-2">
+                回答数: {{ getAnswerCount(field.id) }}件
+              </p>
+              <div v-if="getDateOptions(field).length > 0" class="space-y-2">
+                <div
+                  v-for="(dateOption, index) in getDateOptions(field)"
+                  :key="index"
+                  class="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
+                  <span class="text-sm">{{
+                    formatDateOption(dateOption)
+                  }}</span>
+                  <span class="text-sm font-semibold text-blue-600">
+                    {{ getDateOptionCount(field.id, dateOption) }}件
                   </span>
                 </div>
               </div>
@@ -277,6 +309,7 @@ const getFieldTypeLabel = (type: string) => {
     text: 'テキスト',
     select: 'プルダウン',
     checkbox: 'チェックボックス',
+    'date-picker': '日程調整',
   }
   return labels[type] || type
 }
@@ -310,6 +343,19 @@ const getAnswerValue = (content: Record<string, any>, fieldId: string) => {
     return '（未回答）'
   }
   if (Array.isArray(value)) {
+    // 日程調整フィールドの場合は日時をフォーマット
+    const field = formFields.value.find(f => f.id === fieldId)
+    if (field && field.type === 'date-picker') {
+      return value
+        .map((dateTimeString: string) => {
+          const [date, time] = dateTimeString.split('T')
+          if (date && time) {
+            return formatDateOption({ date, time })
+          }
+          return dateTimeString
+        })
+        .join(', ')
+    }
     return value.join(', ')
   }
   return String(value)
@@ -324,6 +370,59 @@ const formatDate = (date: Date | string) => {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+interface DateOption {
+  date: string
+  time: string
+}
+
+const isStringArray = (
+  options: string[] | DateOption[] | undefined
+): options is string[] => {
+  if (!options || !Array.isArray(options) || options.length === 0) {
+    return false
+  }
+  return typeof options[0] === 'string'
+}
+
+const getDateOptions = (field: FormField): DateOption[] => {
+  if (
+    field.type === 'date-picker' &&
+    Array.isArray(field.options) &&
+    !isStringArray(field.options)
+  ) {
+    return field.options as DateOption[]
+  }
+  return []
+}
+
+const formatDateOption = (dateOption: DateOption): string => {
+  if (!dateOption.date || !dateOption.time) {
+    return ''
+  }
+  const date = new Date(`${dateOption.date}T${dateOption.time}`)
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土']
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const weekday = weekdays[date.getDay()]
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${month}/${day}(${weekday}) ${hours}:${minutes}～`
+}
+
+const getDateOptionCount = (
+  fieldId: string,
+  dateOption: DateOption
+): number => {
+  const dateTimeString = `${dateOption.date}T${dateOption.time}`
+  return answers.value.filter(answer => {
+    const value = answer.content[fieldId]
+    if (Array.isArray(value)) {
+      return value.includes(dateTimeString)
+    }
+    return false
+  }).length
 }
 
 onMounted(() => {

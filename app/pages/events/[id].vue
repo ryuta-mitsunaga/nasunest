@@ -40,7 +40,7 @@
       <div
         v-if="event.thumbnail"
         class="relative w-full overflow-hidden"
-        style="aspect-ratio: 2 / 1"
+        style="aspect-ratio: 1.618 / 1"
       >
         <img
           :src="event.thumbnail"
