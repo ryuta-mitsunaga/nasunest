@@ -43,6 +43,27 @@
           : 'border rounded-lg p-4 min-h-[400px] bg-white',
       ]"
     ></div>
+
+    <!-- プレビューモーダル -->
+    <UiPreviewModal
+      v-model:open="isPreviewModalOpen"
+      title="生成された記事のプレビュー"
+      confirm-text="反映する"
+      cancel-text="キャンセル"
+      @confirm="applyGeneratedContent"
+      @cancel="cancelPreview"
+    >
+      <div class="border rounded-lg p-4 bg-white min-h-[300px]">
+        <AdminEditorJsEditor
+          v-if="previewData"
+          :data="previewData"
+          :read-only="true"
+        />
+        <div v-else class="text-gray-400 text-center py-8">
+          プレビューを読み込み中...
+        </div>
+      </div>
+    </UiPreviewModal>
   </div>
 </template>
 
@@ -71,6 +92,8 @@ const jsonError = ref('')
 const eventContent = ref('')
 const generating = ref(false)
 const generateError = ref('')
+const isPreviewModalOpen = ref(false)
+const previewData = ref<any>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
 
 // 例のフォーマットをクリップボードにコピー
@@ -196,10 +219,9 @@ const generateJsonFromContent = async () => {
     )
 
     if (response.success && response.data) {
-      // 生成されたJSONを適用
-      emit('update:modelValue', response.data)
-      // JSON入力欄も更新
-      jsonInput.value = JSON.stringify(response.data, null, 2)
+      // 生成されたJSONをプレビューモーダルに表示
+      previewData.value = response.data
+      isPreviewModalOpen.value = true
       generateError.value = ''
     } else {
       generateError.value = 'JSONの生成に失敗しました'
@@ -211,6 +233,24 @@ const generateJsonFromContent = async () => {
   } finally {
     generating.value = false
   }
+}
+
+// プレビューで「反映する」をクリックしたときの処理
+const applyGeneratedContent = () => {
+  if (previewData.value) {
+    // 生成されたJSONを適用
+    emit('update:modelValue', previewData.value)
+    // JSON入力欄も更新
+    jsonInput.value = JSON.stringify(previewData.value, null, 2)
+    toastSuccess('記事を反映しました')
+  }
+  isPreviewModalOpen.value = false
+  previewData.value = null
+}
+
+// プレビューで「キャンセル」をクリックしたときの処理
+const cancelPreview = () => {
+  previewData.value = null
 }
 
 onMounted(async () => {

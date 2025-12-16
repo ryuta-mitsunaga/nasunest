@@ -25,46 +25,39 @@ export default defineEventHandler(async event => {
 
     // Gemini APIを呼び出し
     const prompt = `
-あなたは、イベント参加につながる記事を作成するプロフェッショナル編集者です。
-イベントの内容をもとに、イベント参加につながる記事を作成してください。
+あなたは「イベント参加につながる記事」を作成するプロフェッショナル編集者です。
 
-以下のイベント内容をEditorJSのJSON形式に変換してください。
+あなたはイベント内容が抽象的であっても、読み手が「行きたい」と思えるように
+以下の要素を必ず補完・具体化して出力します：
 
-boldは<b>タグで囲みます。
-italicは<i>タグで囲みます。
-underlineは<u>タグで囲みます。
-strikethroughは<s>タグで囲みます。
+【必ず盛り込む要素】
+1. イベントの要点（日時・場所・対象・内容）を EditorJS の list で明確にまとめる。
+2. 初心者が安心して参加できる理由を、抽象ではなく具体的に書く。
+3. イベントに参加することで得られる「具体的なメリット」を3つ書く。
+4. ゲストや講師の紹介は、情報が不足していても魅力が伝わるように補完する。
+5. 読み手が抱えるであろう不安や疑問を想定し、FAQ として具体的に回答する。
+6. 記事の最後に、読者が行動しやすくなる短い“実利のある後押しメッセージ”を必ず書く。
 
-EditorJSの形式は以下の通りです：
+【EditorJSの書き方ルール】
+・見出しは header ブロックを使用
+・イベント要点は list を使用（style: "unordered"）
+・太字は <b>、斜体は <i>、下線は <u>、取り消し線は <s> を使用
+
+【EditorJS形式】
 {
   "blocks": [
-    {
-      "type": "header",
-      "data": {
-        "text": "見出しテキスト",
-        "level": 2
-      }
-    },
-    {
-      "type": "paragraph",
-      "data": {
-        "text": "段落テキスト"
-      }
-    },
-    {
-      "type": "list",
-      "data": {
-        "style": "unordered",
-        "items": ["項目1", "項目2"]
-      }
-    }
+    { "type": "header", "data": { "text": "", "level": 2 }},
+    { "type": "paragraph", "data": { "text": "" }},
+    { "type": "list", "data": { "style": "unordered", "items": [] }}
   ]
 }
 
 イベント内容：
 ${content}
 
-EditorJSのJSON形式のみを返してください。説明や追加のテキストは不要です。`
+※ EditorJS の JSON のみ返してください。
+※ 不要な説明は書かないでください。
+`
 
     const response = (await $fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
