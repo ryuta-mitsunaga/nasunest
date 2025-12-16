@@ -139,65 +139,44 @@
         </div>
 
         <!-- フォームリンク -->
-        <div v-if="event.form_id" class="pt-4 space-y-3">
-          <!-- 未ログインかつ手動承認（ログイン必須）の場合 -->
-          <template v-if="event.approval_type === 1 && !isAuthenticated">
-            <button
-              disabled
-              class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm opacity-50 cursor-not-allowed"
-              style="background-color: #f4d35e; color: #2e5e3e"
-            >
-              <span>ログインが必須です</span>
-            </button>
-            <div class="text-center md:text-left">
-              <NuxtLink
-                :to="`/login?redirect=${encodeURIComponent(route.fullPath)}`"
-                class="inline-flex items-center gap-1 text-sm hover:underline"
-                style="color: #2e5e3e"
-              >
-                <span>ログイン画面へ</span>
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </NuxtLink>
-            </div>
-          </template>
-          <!-- ログイン済み、またはログイン不要の場合 -->
-          <template v-else>
-            <button
-              @click="handleCtaClick"
-              class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-              style="background-color: #f4d35e; color: #2e5e3e"
-            >
-              <span>{{ event.cta_button_text || '参加申し込み' }}</span>
-              <svg
-                class="w-5 h-5 ml-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          </template>
+        <div v-if="event.form_id" ref="ctaButtonContainer" class="pt-4">
+          <EventsEventCtaButton
+            :approval-type="event.approval_type"
+            :is-authenticated="isAuthenticated"
+            :button-text="event.cta_button_text"
+            :redirect-path="route.fullPath"
+            @click="handleCtaClick"
+          />
         </div>
       </div>
     </div>
+    <!-- 固定CTAボタン（画面下部） -->
+    <Transition
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="translate-y-full opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition-all duration-300 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-full opacity-0"
+    >
+      <div
+        v-if="showFixedCta && event?.form_id"
+        class="fixed bottom-[130px] left-0 right-0 z-50 bg-white p-4 md:px-6"
+        style="border-color: #2e5e3e"
+      >
+        <div class="max-w-7xl mx-auto">
+          <EventsEventCtaButton
+            :approval-type="event.approval_type"
+            :is-authenticated="isAuthenticated"
+            :button-text="event.cta_button_text"
+            :redirect-path="route.fullPath"
+            :full-width="true"
+            :compact="true"
+            @click="handleCtaClick"
+          />
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -235,6 +214,8 @@ const eventId = computed(() => {
 const loading = ref(true)
 const error = ref('')
 const event = ref<Event | null>(null)
+const ctaButtonContainer = ref<HTMLElement | null>(null)
+const showFixedCta = ref(false)
 
 const handleCtaClick = () => {
   // 手動承認（approval_type === 1）の場合はログイン必須
@@ -246,6 +227,30 @@ const handleCtaClick = () => {
     navigateTo(`/forms/${event.value?.form_id}?event_id=${event.value?.id}`)
   }
 }
+
+// CTAボタンの表示状態を監視
+onMounted(() => {
+  if (!ctaButtonContainer.value || typeof window === 'undefined') return
+
+  const observer = new IntersectionObserver(
+    entries => {
+      // CTAボタンが画面外に出た場合、固定CTAを表示
+      if (entries[0]) {
+        showFixedCta.value = !entries[0].isIntersecting
+      }
+    },
+    {
+      threshold: 0,
+      rootMargin: '0px',
+    }
+  )
+
+  observer.observe(ctaButtonContainer.value)
+
+  onBeforeUnmount(() => {
+    observer.disconnect()
+  })
+})
 
 const { data } = await useFetch<{ success: boolean; data: Event }>(
   `/api/public/events/${eventId.value}`
