@@ -1,5 +1,5 @@
 <template>
-  <div style="color: #2e5e3e">
+  <div class="relative" style="color: #2e5e3e">
     <div class="mb-6">
       <NuxtLink
         to="/events"
@@ -36,7 +36,7 @@
       v-else-if="event"
       class="bg-white rounded-2xl shadow-md overflow-hidden"
     >
-      <!-- サムネイル画像 -->
+      <!--130 サムネイル画像 -->
       <div
         v-if="event.thumbnail"
         class="relative w-full overflow-hidden"
@@ -161,7 +161,7 @@
     >
       <div
         v-if="showFixedCta && event?.form_id"
-        class="fixed bottom-[130px] left-0 right-0 z-50 bg-white p-4 md:px-6"
+        class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
         style="border-color: #2e5e3e"
       >
         <div class="max-w-7xl mx-auto">
