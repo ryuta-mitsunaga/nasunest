@@ -11,14 +11,32 @@
       </template>
 
       <div class="p-6">
+        <div class="mb-6">
+          <p class="font-medium text-gray-900 mb-2">LINE連携について</p>
+          <p class="text-sm text-gray-600 mb-4">
+            フォーム申込みがあった際に、連携したLINEアカウントへ通知を送信します。
+          </p>
+          <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+            <p class="text-sm font-medium text-gray-900">連携手順</p>
+            <ol
+              class="text-sm text-gray-600 space-y-1 list-decimal list-inside"
+            >
+              <li>「LINE連携」ボタンをクリック</li>
+              <li>LINEアプリでログイン（必要に応じて）</li>
+              <li>公式アカウントを友達追加</li>
+              <li>連携完了後、通知が届くようになります</li>
+            </ol>
+          </div>
+        </div>
+
         <div class="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <p class="font-medium text-gray-900">通知先（LINEユーザー）</p>
-            <p class="text-sm text-gray-600">
-              フォーム申込みがあった際に、このLINEユーザーへ通知します。
-            </p>
-            <p class="text-xs text-gray-500 mt-2">
-              現在の連携: {{ lineUserId || '未連携' }}
+            <p class="text-sm text-gray-600 mt-1">
+              現在の連携:
+              <span class="font-mono text-xs">{{
+                lineUserId || '未連携'
+              }}</span>
             </p>
           </div>
 
@@ -99,6 +117,7 @@ type Liff = {
   isLoggedIn: () => boolean
   login: (p?: { redirectUri?: string }) => void
   getProfile: () => Promise<{ userId: string }>
+  openWindow: (p: { url: string; external?: boolean }) => void
 }
 
 const loadLiffSdk = async () => {
@@ -141,6 +160,8 @@ const handleLinkLine = async () => {
     })
     await loadAdminMe()
     toastSuccess('LINE連携が完了しました')
+    // 公式アカウントの友達追加ページを開く
+    liff.openWindow({ url: 'https://lin.ee/0myGCTz1', external: true })
   } catch (e) {
     console.error('LINE連携エラー:', e)
     alert('LINE連携に失敗しました')
@@ -199,6 +220,8 @@ onMounted(async () => {
       })
       await loadAdminMe()
       toastSuccess('LINE連携が完了しました')
+      // 公式アカウントの友達追加ページを開く
+      liff.openWindow({ url: 'https://lin.ee/0myGCTz1', external: true })
     }
   } catch (e) {
     // エラーは無視（手動連携ボタンで再試行可能）
