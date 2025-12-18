@@ -74,7 +74,9 @@
               <p class="text-sm text-gray-600 mt-2">選択肢:</p>
               <ul class="list-disc list-inside text-sm text-gray-500 ml-4">
                 <li
-                  v-for="option in (isStringArray(field.options) ? field.options : [])"
+                  v-for="option in isStringArray(field.options)
+                    ? field.options
+                    : []"
                   :key="option"
                 >
                   {{ option }}
@@ -208,6 +210,16 @@
               </span>
             </template>
 
+            <template
+              v-for="field in formFields"
+              :key="field.id"
+              #[`${field.id}-cell`]="{ row }"
+            >
+              <span class="text-sm">
+                {{ getAnswerValue(row.original.content, field.id) }}
+              </span>
+            </template>
+
             <template #actions-cell="{ row }">
               <UButton
                 size="sm"
@@ -264,11 +276,17 @@ const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const answers = ref<FormAnswer[]>([])
 
-const columns: TableColumn<FormAnswer>[] = [
-  { accessorKey: 'no', header: 'No.' },
-  { accessorKey: 'createdAt', header: '回答日時' },
-  { accessorKey: 'actions', header: '操作' },
-]
+const columns = computed<TableColumn<FormAnswer>[]>(() => {
+  return [
+    { accessorKey: 'no', header: 'No.' },
+    { accessorKey: 'createdAt', header: '回答日時' },
+    ...formFields.value.map(field => ({
+      accessorKey: field.id,
+      header: field.label || '（未設定）',
+    })),
+    { accessorKey: 'actions', header: '操作' },
+  ]
+})
 
 const fetchFormData = async () => {
   loading.value = true
@@ -339,7 +357,7 @@ const getOptionCount = (fieldId: string, option: string) => {
 const getAnswerValue = (content: Record<string, any>, fieldId: string) => {
   const value = content[fieldId]
   if (value === undefined || value === null || value === '') {
-    return '（未回答）'
+    return ''
   }
   if (Array.isArray(value)) {
     // 日程調整フィールドの場合は日時をフォーマット

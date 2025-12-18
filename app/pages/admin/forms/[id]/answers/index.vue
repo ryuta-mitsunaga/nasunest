@@ -45,6 +45,16 @@
             </span>
           </template>
 
+          <template
+            v-for="field in formFields"
+            :key="field.id"
+            #[`${field.id}-cell`]="{ row }"
+          >
+            <span class="text-sm">
+              {{ getAnswerValue(row.original.content, field.id) }}
+            </span>
+          </template>
+
           <template #event_id-cell="{ row }">
             {{ row.original.event_id || 'なし' }}
           </template>
@@ -91,10 +101,19 @@
 
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import type { FormField } from '~/components/admin/FormEditor.vue'
 
 definePageMeta({
   layout: 'admin',
 })
+
+interface Form {
+  id: number
+  name: string
+  content: {
+    fields: FormField[]
+  }
+}
 
 interface FormAnswer {
   id: number
@@ -118,17 +137,39 @@ const formId = computed(() => {
 
 const loading = ref(true)
 const answers = ref<FormAnswer[]>([])
+const formFields = ref<FormField[]>([])
 const processingAnswerId = ref<number | null>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
 
-const columns: TableColumn<FormAnswer>[] = [
-  { accessorKey: 'no', header: 'No.' },
-  { accessorKey: 'id', header: '回答ID' },
-  { accessorKey: 'createdAt', header: '回答日時' },
-  { accessorKey: 'event_id', header: 'イベントID' },
-  { accessorKey: 'user_id', header: 'ユーザーID' },
-  { accessorKey: 'actions', header: '操作' },
-]
+const columns = computed<TableColumn<FormAnswer>[]>(() => {
+  return [
+    { accessorKey: 'no', header: 'No.' },
+    { accessorKey: 'id', header: '回答ID' },
+    { accessorKey: 'createdAt', header: '回答日時' },
+    ...formFields.value.map(field => ({
+      accessorKey: field.id,
+      header: field.label || '（未設定）',
+    })),
+    { accessorKey: 'event_id', header: 'イベントID' },
+    { accessorKey: 'user_id', header: 'ユーザーID' },
+    { accessorKey: 'actions', header: '操作' },
+  ]
+})
+
+const fetchFormFields = async () => {
+  try {
+    const response = await $fetch<{ success: boolean; data: Form }>(
+      `/api/forms/${formId.value}`,
+      { credentials: 'include' }
+    )
+    formFields.value = JSON.parse(
+      JSON.stringify(response.data.content.fields || [])
+    )
+  } catch (e) {
+    console.error('フォーム項目取得エラー:', e)
+    formFields.value = []
+  }
+}
 
 const fetchAnswers = async () => {
   loading.value = true
@@ -199,7 +240,16 @@ const formatDate = (date: Date | string) => {
   })
 }
 
+const getAnswerValue = (content: Record<string, any>, fieldId: string) => {
+  const value = content?.[fieldId]
+  if (value === undefined || value === null || value === '') return '—'
+  if (Array.isArray(value)) return value.join(', ')
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
+
 onMounted(() => {
+  fetchFormFields()
   fetchAnswers()
 })
 </script>
