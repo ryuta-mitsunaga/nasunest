@@ -328,6 +328,7 @@ export interface EventAttributes {
   admin_id: number
   title: string
   form_id: number | null
+  form_link: string | null
   start_date: Date
   end_date: Date | null
   description: string
@@ -351,6 +352,7 @@ export interface EventCreationAttributes
     EventAttributes,
     | 'id'
     | 'form_id'
+    | 'form_link'
     | 'end_date'
     | 'body'
     | 'location_name'
@@ -375,6 +377,7 @@ export class Event
   declare admin_id: number
   declare title: string
   declare form_id: number | null
+  declare form_link: string | null
   declare start_date: Date
   declare end_date: Date | null
   declare description: string
@@ -421,6 +424,11 @@ Event.init(
         model: 'forms',
         key: 'id',
       },
+    },
+    form_link: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: '外部フォームURL（NasuNestフォームではなく外部リンクを使う場合）',
     },
     start_date: {
       type: DataTypes.DATEONLY,

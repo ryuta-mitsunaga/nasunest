@@ -43,6 +43,7 @@ interface Event {
   id: number
   title: string
   form_id: number | null
+  form_link?: string | null
   start_date: string
   end_date: string | null
   description: string
@@ -93,6 +94,7 @@ const thumbnailPreview = ref<string | null>(null)
 const form = reactive({
   title: '',
   form_id: null as number | null,
+  form_link: '',
   start_date: '',
   end_date: '',
   description: '',
@@ -149,6 +151,7 @@ const fetchEvent = async () => {
     const eventData = response.data
     form.title = eventData.title
     form.form_id = eventData.form_id
+    form.form_link = eventData.form_link || ''
     form.start_date = eventData.start_date
     form.end_date = eventData.end_date || ''
     form.description = eventData.description
@@ -235,6 +238,7 @@ const handleSubmit = async () => {
       body: {
         title: form.title,
         form_id: form.form_id || null,
+        form_link: form.form_link || null,
         start_date: form.start_date,
         end_date: form.end_date || null,
         description: form.description,

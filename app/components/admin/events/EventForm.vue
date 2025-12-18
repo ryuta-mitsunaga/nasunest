@@ -5,11 +5,26 @@
     </UFormField>
 
     <UFormField label="フォーム" name="form_id">
-      <USelect
-        v-model="form.form_id"
-        :items="formOptions"
-        placeholder="フォームを選択（任意）"
-      />
+      <div class="space-y-3">
+        <USwitch v-model="useExternalForm" label="外部フォームを使う" />
+        <USelect
+          v-if="!useExternalForm"
+          v-model="form.form_id"
+          :items="formOptions"
+          placeholder="フォームを選択（任意）"
+        />
+
+        <div v-else class="space-y-1">
+          <UInput
+            v-model="form.form_link"
+            placeholder="https://example.com/form（任意）"
+            type="url"
+          />
+          <p class="text-xs text-gray-500">
+            ONのときはイベント詳細の「参加申し込み」ボタンが外部リンクを開きます。
+          </p>
+        </div>
+      </div>
     </UFormField>
 
     <UFormField label="カテゴリ" name="category_ids">
@@ -137,6 +152,7 @@ interface Category {
 interface EventFormData {
   title: string
   form_id: number | null
+  form_link: string
   start_date: string
   end_date: string
   description: string
@@ -170,6 +186,8 @@ const emit = defineEmits<{
 
 const formState = computed(() => props.form)
 
+const useExternalForm = ref(!!props.form.form_link?.trim())
+
 const displayOptions = [
   { label: '表示', value: true },
   { label: '非表示', value: false },
@@ -186,5 +204,13 @@ const formOptions = computed(() => {
     { label: 'フォームを選択しない', value: null },
     ...props.forms.map(f => ({ label: f.name, value: f.id })),
   ]
+})
+
+watch(useExternalForm, val => {
+  if (val) {
+    props.form.form_id = null
+  } else {
+    props.form.form_link = ''
+  }
 })
 </script>
