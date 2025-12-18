@@ -73,7 +73,10 @@
             <div v-if="field.type === 'select' || field.type === 'checkbox'">
               <p class="text-sm text-gray-600 mt-2">選択肢:</p>
               <ul class="list-disc list-inside text-sm text-gray-500 ml-4">
-                <li v-for="option in field.options" :key="option">
+                <li
+                  v-for="option in (isStringArray(field.options) ? field.options : [])"
+                  :key="option"
+                >
                   {{ option }}
                 </li>
               </ul>
@@ -144,7 +147,7 @@
               <p class="text-sm text-gray-600 mb-2">
                 回答数: {{ getAnswerCount(field.id) }}件
               </p>
-              <div v-if="field.options" class="space-y-2">
+              <div v-if="isStringArray(field.options)" class="space-y-2">
                 <div
                   v-for="option in field.options"
                   :key="option"
@@ -194,38 +197,27 @@
           >
             回答がありません
           </div>
-          <div v-else class="space-y-4">
-            <div
-              v-for="(answer, index) in answers"
-              :key="answer.id"
-              class="border rounded-lg p-4"
-            >
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <p class="text-sm text-gray-500">
-                    回答 #{{ answers.length - index }}
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    {{ formatDate(answer.createdAt) }}
-                  </p>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div
-                  v-for="field in formFields"
-                  :key="field.id"
-                  class="text-sm"
-                >
-                  <span class="font-medium text-gray-600"
-                    >{{ field.label }}:</span
-                  >
-                  <span class="ml-2">
-                    {{ getAnswerValue(answer.content, field.id) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <UTable v-else :data="answers" :columns="columns" class="w-full">
+            <template #no-cell="{ row }">
+              {{ answers.indexOf(row.original) + 1 }}
+            </template>
+
+            <template #createdAt-cell="{ row }">
+              <span class="text-xs text-gray-500">
+                {{ formatDate(row.original.createdAt) }}
+              </span>
+            </template>
+
+            <template #actions-cell="{ row }">
+              <UButton
+                size="sm"
+                variant="soft"
+                :to="`/admin/forms/${formId}/answers/${row.original.id}`"
+              >
+                詳細
+              </UButton>
+            </template>
+          </UTable>
         </div>
       </UCard>
     </div>
@@ -233,6 +225,7 @@
 </template>
 
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
 import type { FormField } from '~/components/admin/FormEditor.vue'
 
 definePageMeta({
@@ -270,6 +263,12 @@ const formName = ref('')
 const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const answers = ref<FormAnswer[]>([])
+
+const columns: TableColumn<FormAnswer>[] = [
+  { accessorKey: 'no', header: 'No.' },
+  { accessorKey: 'createdAt', header: '回答日時' },
+  { accessorKey: 'actions', header: '操作' },
+]
 
 const fetchFormData = async () => {
   loading.value = true

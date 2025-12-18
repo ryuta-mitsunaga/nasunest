@@ -428,7 +428,8 @@ Event.init(
     form_link: {
       type: DataTypes.TEXT,
       allowNull: true,
-      comment: '外部フォームURL（NasuNestフォームではなく外部リンクを使う場合）',
+      comment:
+        '外部フォームURL（NasuNestフォームではなく外部リンクを使う場合）',
     },
     start_date: {
       type: DataTypes.DATEONLY,
@@ -1050,6 +1051,16 @@ FormAnswer.belongsTo(User, {
 User.hasMany(FormAnswer, {
   foreignKey: 'user_id',
   as: 'formAnswers',
+})
+
+Form.hasMany(FormAnswer, {
+  foreignKey: 'form_id',
+  as: 'answers',
+})
+
+FormAnswer.belongsTo(Form, {
+  foreignKey: 'form_id',
+  as: 'form',
 })
 
 // すべてのモデルをエクスポート

@@ -25,57 +25,73 @@
         >
           回答待ちの申し込みはありません
         </div>
-        <div v-else class="space-y-4">
-          <div
-            v-for="answer in answers"
-            :key="answer.id"
-            class="border rounded-lg p-4 hover:bg-gray-50"
-          >
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <NuxtLink
-                  :to="`/admin/forms/${formId}/answers/${answer.id}`"
-                  class="text-primary hover:underline font-medium"
-                >
-                  回答 #{{ answer.id }}
-                </NuxtLink>
-                <p class="text-xs text-gray-400 mt-1">
-                  {{ formatDate(answer.createdAt) }}
-                </p>
-              </div>
-              <div class="flex gap-2">
-                <UButton
-                  color="success"
-                  variant="soft"
-                  size="sm"
-                  @click="handleApprove(answer.id)"
-                  :loading="processingAnswerId === answer.id"
-                >
-                  承認
-                </UButton>
-                <UButton
-                  color="error"
-                  variant="soft"
-                  size="sm"
-                  @click="handleReject(answer.id)"
-                  :loading="processingAnswerId === answer.id"
-                >
-                  却下
-                </UButton>
-              </div>
+        <UTable v-else :data="answers" :columns="columns" class="w-full">
+          <template #no-cell="{ row }">
+            {{ answers.indexOf(row.original) + 1 }}
+          </template>
+
+          <template #id-cell="{ row }">
+            <NuxtLink
+              :to="`/admin/forms/${formId}/answers/${row.original.id}`"
+              class="text-primary hover:underline font-medium"
+            >
+              #{{ row.original.id }}
+            </NuxtLink>
+          </template>
+
+          <template #createdAt-cell="{ row }">
+            <span class="text-xs text-gray-500">
+              {{ formatDate(row.original.createdAt) }}
+            </span>
+          </template>
+
+          <template #event_id-cell="{ row }">
+            {{ row.original.event_id || 'なし' }}
+          </template>
+
+          <template #user_id-cell="{ row }">
+            {{ row.original.user_id || 'なし' }}
+          </template>
+
+          <template #actions-cell="{ row }">
+            <div class="flex gap-2 flex-wrap">
+              <UButton
+                color="primary"
+                variant="soft"
+                size="sm"
+                :to="`/admin/forms/${formId}/answers/${row.original.id}`"
+              >
+                詳細
+              </UButton>
+              <UButton
+                color="success"
+                variant="soft"
+                size="sm"
+                @click="handleApprove(row.original.id)"
+                :loading="processingAnswerId === row.original.id"
+              >
+                承認
+              </UButton>
+              <UButton
+                color="error"
+                variant="soft"
+                size="sm"
+                @click="handleReject(row.original.id)"
+                :loading="processingAnswerId === row.original.id"
+              >
+                却下
+              </UButton>
             </div>
-            <div class="text-sm text-gray-600">
-              <p>イベントID: {{ answer.event_id || 'なし' }}</p>
-              <p>ユーザーID: {{ answer.user_id || 'なし' }}</p>
-            </div>
-          </div>
-        </div>
+          </template>
+        </UTable>
       </div>
     </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+
 definePageMeta({
   layout: 'admin',
 })
@@ -104,6 +120,15 @@ const loading = ref(true)
 const answers = ref<FormAnswer[]>([])
 const processingAnswerId = ref<number | null>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
+
+const columns: TableColumn<FormAnswer>[] = [
+  { accessorKey: 'no', header: 'No.' },
+  { accessorKey: 'id', header: '回答ID' },
+  { accessorKey: 'createdAt', header: '回答日時' },
+  { accessorKey: 'event_id', header: 'イベントID' },
+  { accessorKey: 'user_id', header: 'ユーザーID' },
+  { accessorKey: 'actions', header: '操作' },
+]
 
 const fetchAnswers = async () => {
   loading.value = true
