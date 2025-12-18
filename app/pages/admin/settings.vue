@@ -80,6 +80,7 @@ definePageMeta({
 const loading = ref(false)
 const linking = ref(false)
 const lineUserId = ref<string | null>(null)
+const { success: toastSuccess } = useCustomToast()
 
 const loadAdminMe = async () => {
   try {
@@ -139,6 +140,7 @@ const handleLinkLine = async () => {
       body: { line_user_id: profile.userId },
     })
     await loadAdminMe()
+    toastSuccess('LINE連携が完了しました')
   } catch (e) {
     console.error('LINE連携エラー:', e)
     alert('LINE連携に失敗しました')
@@ -175,7 +177,34 @@ const handleLogout = async () => {
   }
 }
 
-onMounted(() => {
-  loadAdminMe()
+onMounted(async () => {
+  await loadAdminMe()
+
+  // リダイレクト後、LIFFログイン済みなら自動で連携処理
+  const liffId = useRuntimeConfig().public.liffId as string | undefined
+  if (!liffId || lineUserId.value) return // 既に連携済みならスキップ
+
+  try {
+    const liff = await loadLiffSdk()
+    await liff.init({ liffId })
+
+    if (liff.isLoggedIn()) {
+      // リダイレクト後、ログイン済みなら自動で連携
+      linking.value = true
+      const profile = await liff.getProfile()
+      await $fetch('/api/admin/line-user', {
+        method: 'PUT',
+        credentials: 'include',
+        body: { line_user_id: profile.userId },
+      })
+      await loadAdminMe()
+      toastSuccess('LINE連携が完了しました')
+    }
+  } catch (e) {
+    // エラーは無視（手動連携ボタンで再試行可能）
+    console.error('LINE自動連携エラー:', e)
+  } finally {
+    linking.value = false
+  }
 })
 </script>
