@@ -114,6 +114,7 @@ export interface AdminAttributes {
   id: number
   login_id: string
   password: string
+  line_user_id: string | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -128,6 +129,7 @@ export class Admin
   declare id: number
   declare login_id: string
   declare password: string
+  declare line_user_id: string | null
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -147,6 +149,11 @@ Admin.init(
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    line_user_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'LINEユーザーID（LIFF連携用）',
     },
   },
   {
