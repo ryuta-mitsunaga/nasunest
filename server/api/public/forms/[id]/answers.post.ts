@@ -1,6 +1,7 @@
-import { Form, FormAnswer, Event } from '~~/server/database'
+import { Admin, Form, FormAnswer, Event } from '~~/server/database'
 import { getCookie } from 'h3'
 import { decryptId } from '~~/server/lib/crypto-utils'
+import { pushLineMessage } from '~~/server/lib/line'
 
 export default defineEventHandler(async event => {
   try {
@@ -73,6 +74,26 @@ export default defineEventHandler(async event => {
       content: body.content || {},
       user_id: userId,
     })
+
+    // LINE通知（フォーム作成者=管理者に通知）
+    try {
+      const admin = await Admin.findByPk(form.admin_id)
+      if (admin?.line_user_id) {
+        const messageLines = [
+          'フォームに新しい申込みがありました。',
+          `フォーム: ${form.name}`,
+          eventId ? `イベントID: ${eventId}` : null,
+        ].filter(Boolean) as string[]
+
+        await pushLineMessage({
+          to: admin.line_user_id,
+          messages: [{ type: 'text', text: messageLines.join('\n') }],
+        })
+      }
+    } catch (notifyError) {
+      // 通知失敗でもフォーム送信自体は成功させる
+      console.error('LINE通知エラー:', notifyError)
+    }
 
     return {
       success: true,

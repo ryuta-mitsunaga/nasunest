@@ -109,4 +109,16 @@ gtag('config', 'G-M5B43LHSBF');`,
       },
     ],
   },
+  runtimeConfig: {
+    allowedApiHosts: process.env.ALLOWED_API_HOSTS,
+    public: {
+      liffId: process.env.NUXT_PUBLIC_LIFF_ID,
+    },
+  },
+
+  vite: {
+    server: {
+      allowedHosts: process.env.ALLOWED_API_HOSTS?.split(',') || [],
+    },
+  },
 })

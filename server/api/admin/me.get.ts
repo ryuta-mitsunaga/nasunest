@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
       data: {
         id: adminData.id,
         login_id: adminData.login_id,
+        line_user_id: adminData.line_user_id || null,
         permissions: adminData.permissions || [],
       },
     }
