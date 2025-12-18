@@ -139,7 +139,11 @@
         </div>
 
         <!-- フォームリンク -->
-        <div v-if="event.form_id" ref="ctaButtonContainer" class="pt-4">
+        <div
+          v-if="event.form_id || (event as any).form_link"
+          ref="ctaButtonContainer"
+          class="pt-4"
+        >
           <EventsEventCtaButton
             :approval-type="event.approval_type"
             :is-authenticated="isAuthenticated"
@@ -160,7 +164,7 @@
       leave-to-class="translate-y-full opacity-0"
     >
       <div
-        v-if="showFixedCta && event?.form_id"
+        v-if="showFixedCta && (event?.form_id || (event as any)?.form_link)"
         class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
         style="border-color: #2e5e3e"
       >
@@ -185,6 +189,7 @@ interface Event {
   id: number
   title: string
   form_id: number | null
+  form_link?: string | null
   start_date: string
   end_date: string | null
   description: string
@@ -223,6 +228,15 @@ const handleCtaClick = () => {
     // ログイン必須の場合はログイン画面にリダイレクト
     navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
   } else {
+    // 外部フォームURLが設定されている場合はそちらへ遷移（新規タブ）
+    if (event.value?.form_link) {
+      if (typeof window !== 'undefined') {
+        window.open(event.value.form_link, '_blank', 'noopener,noreferrer')
+      } else {
+        navigateTo(event.value.form_link, { external: true })
+      }
+      return
+    }
     // ログイン不要、またはログイン済みの場合はフォームページに遷移
     navigateTo(`/forms/${event.value?.form_id}?event_id=${event.value?.id}`)
   }

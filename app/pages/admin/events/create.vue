@@ -48,6 +48,7 @@ interface Category {
 const form = reactive({
   title: '',
   form_id: null as number | null,
+  form_link: '',
   start_date: '',
   end_date: '',
   description: '',
@@ -158,6 +159,7 @@ const handleSubmit = async () => {
       body: {
         title: form.title,
         form_id: form.form_id || null,
+        form_link: form.form_link || null,
         start_date: form.start_date,
         end_date: form.end_date || null,
         description: form.description,

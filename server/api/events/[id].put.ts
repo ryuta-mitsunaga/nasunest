@@ -111,6 +111,7 @@ export default defineEventHandler(async event => {
     const updateData: any = {
       title: body.title,
       form_id: body.form_id || null,
+      form_link: body.form_link || null,
       start_date: body.start_date,
       end_date: body.end_date || null,
       description: body.description,
