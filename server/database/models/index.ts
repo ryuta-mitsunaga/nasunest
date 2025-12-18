@@ -238,6 +238,7 @@ export interface FormAnswerAttributes {
   date: Date
   content: any // JSON形式
   status: number | null
+  is_cancel: boolean
   createdAt?: Date
   updatedAt?: Date
 }
@@ -245,7 +246,13 @@ export interface FormAnswerAttributes {
 export interface FormAnswerCreationAttributes
   extends Optional<
     FormAnswerAttributes,
-    'id' | 'event_id' | 'user_id' | 'status' | 'createdAt' | 'updatedAt'
+    | 'id'
+    | 'event_id'
+    | 'user_id'
+    | 'status'
+    | 'is_cancel'
+    | 'createdAt'
+    | 'updatedAt'
   > {}
 
 export class FormAnswer
@@ -259,6 +266,7 @@ export class FormAnswer
   declare date: Date
   declare content: any
   declare status: number | null
+  declare is_cancel: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -313,6 +321,12 @@ FormAnswer.init(
       allowNull: true,
       defaultValue: 0,
       comment: '承認ステータス（0: 回答待ち, 1: OK, 2: NG）',
+    },
+    is_cancel: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'キャンセルフラグ（true: キャンセル済み）',
     },
   },
   {
@@ -428,7 +442,8 @@ Event.init(
     form_link: {
       type: DataTypes.TEXT,
       allowNull: true,
-      comment: '外部フォームURL（NasuNestフォームではなく外部リンクを使う場合）',
+      comment:
+        '外部フォームURL（NasuNestフォームではなく外部リンクを使う場合）',
     },
     start_date: {
       type: DataTypes.DATEONLY,
@@ -1050,6 +1065,16 @@ FormAnswer.belongsTo(User, {
 User.hasMany(FormAnswer, {
   foreignKey: 'user_id',
   as: 'formAnswers',
+})
+
+Form.hasMany(FormAnswer, {
+  foreignKey: 'form_id',
+  as: 'answers',
+})
+
+FormAnswer.belongsTo(Form, {
+  foreignKey: 'form_id',
+  as: 'form',
 })
 
 // すべてのモデルをエクスポート

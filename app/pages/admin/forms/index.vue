@@ -11,6 +11,11 @@
       </div>
 
       <UTable v-else :data="forms" :columns="columns" class="w-full">
+        <template #answers_count-cell="{ row }">
+          <span class="font-semibold">
+            {{ row.original.answers_count ?? 0 }}
+          </span>
+        </template>
         <template #id-cell="{ row }">
           {{ forms.indexOf(row.original) + 1 }}
         </template>
@@ -70,6 +75,7 @@ definePageMeta({
 
 interface Form {
   id: number
+  answers_count?: number
   name: string
   content: {
     fields: any[]
@@ -85,12 +91,12 @@ const loading = ref(true)
 const columns: TableColumn<Form>[] = [
   { accessorKey: 'id', header: 'No.' },
   { accessorKey: 'name', header: 'フォーム名' },
+  { accessorKey: 'answers_count', header: '応募数' },
   { accessorKey: 'published_start', header: '公開開始日' },
   { accessorKey: 'published_end', header: '公開終了日' },
   { accessorKey: 'createdAt', header: '作成日' },
   { accessorKey: 'actions', header: '操作' },
 ]
-
 const fetchForms = async () => {
   loading.value = true
   try {

@@ -73,7 +73,12 @@
             <div v-if="field.type === 'select' || field.type === 'checkbox'">
               <p class="text-sm text-gray-600 mt-2">選択肢:</p>
               <ul class="list-disc list-inside text-sm text-gray-500 ml-4">
-                <li v-for="option in field.options" :key="option">
+                <li
+                  v-for="option in isStringArray(field.options)
+                    ? field.options
+                    : []"
+                  :key="option"
+                >
                   {{ option }}
                 </li>
               </ul>
@@ -144,7 +149,7 @@
               <p class="text-sm text-gray-600 mb-2">
                 回答数: {{ getAnswerCount(field.id) }}件
               </p>
-              <div v-if="field.options" class="space-y-2">
+              <div v-if="isStringArray(field.options)" class="space-y-2">
                 <div
                   v-for="option in field.options"
                   :key="option"
@@ -194,38 +199,56 @@
           >
             回答がありません
           </div>
-          <div v-else class="space-y-4">
-            <div
-              v-for="(answer, index) in answers"
-              :key="answer.id"
-              class="border rounded-lg p-4"
+          <UTable
+            v-else
+            :data="answers"
+            :columns="columns"
+            :meta="tableMeta"
+            class="w-full"
+          >
+            <template #no-cell="{ row }">
+              {{ answers.indexOf(row.original) + 1 }}
+            </template>
+
+            <template #createdAt-cell="{ row }">
+              <span class="text-xs text-gray-500">
+                {{ formatDate(row.original.createdAt) }}
+              </span>
+            </template>
+
+            <template
+              v-for="field in formFields"
+              :key="field.id"
+              #[`${field.id}-cell`]="{ row }"
             >
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <p class="text-sm text-gray-500">
-                    回答 #{{ answers.length - index }}
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    {{ formatDate(answer.createdAt) }}
-                  </p>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div
-                  v-for="field in formFields"
-                  :key="field.id"
-                  class="text-sm"
+              <span class="text-sm">
+                {{ getAnswerValue(row.original.content, field.id) }}
+              </span>
+            </template>
+
+            <template #is_cancel-cell="{ row }">
+              <UCheckbox
+                :model-value="row.original.is_cancel"
+                @update:model-value="
+                  v => handleToggleCancel(row.original.id, !!v)
+                "
+                :disabled="processingCancelAnswerId === row.original.id"
+                label=""
+              />
+            </template>
+
+            <template #actions-cell="{ row }">
+              <div class="flex gap-2 flex-wrap">
+                <UButton
+                  size="sm"
+                  variant="soft"
+                  :to="`/admin/forms/${formId}/answers/${row.original.id}`"
                 >
-                  <span class="font-medium text-gray-600"
-                    >{{ field.label }}:</span
-                  >
-                  <span class="ml-2">
-                    {{ getAnswerValue(answer.content, field.id) }}
-                  </span>
-                </div>
+                  詳細
+                </UButton>
               </div>
-            </div>
-          </div>
+            </template>
+          </UTable>
         </div>
       </UCard>
     </div>
@@ -233,6 +256,7 @@
 </template>
 
 <script setup lang="ts">
+import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { FormField } from '~/components/admin/FormEditor.vue'
 
 definePageMeta({
@@ -254,6 +278,7 @@ interface FormAnswer {
   date: Date
   content: Record<string, any>
   createdAt: Date
+  is_cancel: boolean
 }
 
 const route = useRoute()
@@ -270,6 +295,47 @@ const formName = ref('')
 const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const answers = ref<FormAnswer[]>([])
+const processingCancelAnswerId = ref<number | null>(null)
+const { success: toastSuccess, error: toastError } = useCustomToast()
+const tableMeta = computed(() => ({
+  class: {
+    tr: (row: TableRow<FormAnswer>) =>
+      row.original.is_cancel ? 'bg-gray-200 opacity-60' : '',
+  },
+}))
+
+const columns = computed<TableColumn<FormAnswer>[]>(() => {
+  const withColWidth = (
+    col: TableColumn<FormAnswer>
+  ): TableColumn<FormAnswer> =>
+    ({
+      ...col,
+      meta: {
+        ...(col as any).meta,
+        class: {
+          ...(((col as any).meta?.class as any) || {}),
+          th: `min-w-[100px] max-w-[200px] ${((col as any).meta?.class?.th as string) || ''}`.trim(),
+          td: `whitespace-normal break-words overflow-hidden ${((col as any).meta?.class?.td as string) || ''}`.trim(),
+        },
+      },
+    }) as TableColumn<FormAnswer>
+
+  return [
+    withColWidth({ accessorKey: 'no', header: 'No.' }),
+    withColWidth({ accessorKey: 'createdAt', header: '回答日時' }),
+    ...formFields.value.map(field =>
+      withColWidth({
+        accessorKey: field.id,
+        header: field.label || '（未設定）',
+      })
+    ),
+    withColWidth({
+      accessorKey: 'is_cancel',
+      header: '申込みキャンセル',
+    }),
+    withColWidth({ accessorKey: 'actions', header: '操作' }),
+  ]
+})
 
 const fetchFormData = async () => {
   loading.value = true
@@ -296,11 +362,30 @@ const fetchFormData = async () => {
     answers.value = answersResponse.data || []
   } catch (error) {
     console.error('データ取得エラー:', error)
-    const { error: toastError } = useCustomToast()
     toastError('データの取得に失敗しました')
     await navigateTo('/admin/forms')
   } finally {
     loading.value = false
+  }
+}
+
+const handleToggleCancel = async (answerId: number, nextValue: boolean) => {
+  processingCancelAnswerId.value = answerId
+  try {
+    await $fetch(`/api/admin/forms/${formId.value}/answers/${answerId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: { is_cancel: nextValue },
+    })
+    toastSuccess(
+      nextValue ? 'キャンセルにしました' : 'キャンセルを解除しました'
+    )
+    await fetchFormData()
+  } catch (error) {
+    console.error('キャンセル更新エラー:', error)
+    toastError('キャンセル更新に失敗しました')
+  } finally {
+    processingCancelAnswerId.value = null
   }
 }
 
@@ -340,7 +425,7 @@ const getOptionCount = (fieldId: string, option: string) => {
 const getAnswerValue = (content: Record<string, any>, fieldId: string) => {
   const value = content[fieldId]
   if (value === undefined || value === null || value === '') {
-    return '（未回答）'
+    return ''
   }
   if (Array.isArray(value)) {
     // 日程調整フィールドの場合は日時をフォーマット
