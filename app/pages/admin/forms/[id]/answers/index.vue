@@ -14,18 +14,13 @@
 
     <UCard v-else>
       <template #header>
-        <h2 class="text-xl font-semibold">
-          回答待ち: {{ answers.length }}件
-        </h2>
+        <h2 class="text-xl font-semibold">回答待ち: {{ answers.length }}件</h2>
       </template>
       <div class="p-6">
-        <div
-          v-if="answers.length === 0"
-          class="text-center py-8 text-gray-400"
-        >
+        <div v-if="answers.length === 0" class="text-center py-8 text-gray-400">
           回答待ちの申し込みはありません
         </div>
-        <UTable v-else :data="answers" :columns="columns" class="w-full">
+        <UTable v-else :data="answers" :columns="columns" :meta="tableMeta" class="w-full">
           <template #no-cell="{ row }">
             {{ answers.indexOf(row.original) + 1 }}
           </template>
@@ -63,6 +58,15 @@
             {{ row.original.user_id || 'なし' }}
           </template>
 
+          <template #is_cancel-cell="{ row }">
+            <UCheckbox
+              :model-value="row.original.is_cancel"
+              @update:model-value="(v) => handleToggleCancel(row.original.id, !!v)"
+              :disabled="processingAnswerId === row.original.id"
+              label=""
+            />
+          </template>
+
           <template #actions-cell="{ row }">
             <div class="flex gap-2 flex-wrap">
               <UButton
@@ -79,6 +83,7 @@
                 size="sm"
                 @click="handleApprove(row.original.id)"
                 :loading="processingAnswerId === row.original.id"
+                :disabled="row.original.is_cancel"
               >
                 承認
               </UButton>
@@ -88,6 +93,7 @@
                 size="sm"
                 @click="handleReject(row.original.id)"
                 :loading="processingAnswerId === row.original.id"
+                :disabled="row.original.is_cancel"
               >
                 却下
               </UButton>
@@ -100,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { FormField } from '~/components/admin/FormEditor.vue'
 
 definePageMeta({
@@ -123,6 +129,7 @@ interface FormAnswer {
   date: Date
   content: Record<string, any>
   status: number | null
+  is_cancel: boolean
   createdAt: Date
 }
 
@@ -140,19 +147,47 @@ const answers = ref<FormAnswer[]>([])
 const formFields = ref<FormField[]>([])
 const processingAnswerId = ref<number | null>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
+const tableMeta = computed(() => ({
+  class: {
+    tr: (row: TableRow<FormAnswer>) =>
+      row.original.is_cancel ? 'bg-gray-50 opacity-60' : '',
+  },
+}))
 
 const columns = computed<TableColumn<FormAnswer>[]>(() => {
+  const withColWidth = <T>(col: TableColumn<T>) => ({
+    ...col,
+    meta: {
+      ...(col as any).meta,
+      class: {
+        ...(((col as any).meta?.class as any) || {}),
+        th: `min-w-[130px] max-w-[200px] ${((col as any).meta?.class?.th as string) || ''}`.trim(),
+        td: `min-w-[130px] max-w-[200px] whitespace-normal break-words overflow-hidden ${((col as any).meta?.class?.td as string) || ''}`.trim(),
+      },
+    },
+  })
+
   return [
-    { accessorKey: 'no', header: 'No.' },
-    { accessorKey: 'id', header: '回答ID' },
-    { accessorKey: 'createdAt', header: '回答日時' },
-    ...formFields.value.map(field => ({
+    withColWidth({ accessorKey: 'no', header: 'No.' }),
+    withColWidth({ accessorKey: 'id', header: '回答ID' }),
+    withColWidth({ accessorKey: 'createdAt', header: '回答日時' }),
+    ...formFields.value.map(field => withColWidth({
       accessorKey: field.id,
       header: field.label || '（未設定）',
     })),
-    { accessorKey: 'event_id', header: 'イベントID' },
-    { accessorKey: 'user_id', header: 'ユーザーID' },
-    { accessorKey: 'actions', header: '操作' },
+    withColWidth({ accessorKey: 'event_id', header: 'イベントID' }),
+    withColWidth({ accessorKey: 'user_id', header: 'ユーザーID' }),
+    withColWidth({
+      accessorKey: 'is_cancel',
+      header: '申込みキャンセル',
+      meta: {
+        class: {
+          th: 'text-center',
+          td: 'flex justify-center items-center',
+        },
+      },
+    }),
+    withColWidth({ accessorKey: 'actions', header: '操作' }),
   ]
 })
 
@@ -229,6 +264,26 @@ const handleReject = async (answerId: number) => {
   }
 }
 
+const handleToggleCancel = async (answerId: number, nextValue: boolean) => {
+  processingAnswerId.value = answerId
+  try {
+    await $fetch(`/api/admin/forms/${formId.value}/answers/${answerId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: {
+        is_cancel: nextValue,
+      },
+    })
+    toastSuccess(nextValue ? 'キャンセルにしました' : 'キャンセルを解除しました')
+    await fetchAnswers()
+  } catch (error) {
+    console.error('キャンセル更新エラー:', error)
+    toastError('キャンセル更新に失敗しました')
+  } finally {
+    processingAnswerId.value = null
+  }
+}
+
 const formatDate = (date: Date | string) => {
   const d = new Date(date)
   return d.toLocaleString('ja-JP', {
@@ -242,7 +297,7 @@ const formatDate = (date: Date | string) => {
 
 const getAnswerValue = (content: Record<string, any>, fieldId: string) => {
   const value = content?.[fieldId]
-  if (value === undefined || value === null || value === '') return '—'
+  if (value === undefined || value === null || value === '') return ''
   if (Array.isArray(value)) return value.join(', ')
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)
@@ -253,4 +308,3 @@ onMounted(() => {
   fetchAnswers()
 })
 </script>
-

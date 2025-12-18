@@ -38,19 +38,14 @@
             @click="isMobileMenuOpen = !isMobileMenuOpen"
           />
 
-          <!-- ログアウトボタン -->
+          <!-- 設定 -->
           <UButton
-            color="error"
-            variant="soft"
+            color="neutral"
+            variant="ghost"
+            icon="i-heroicons-cog-6-tooth"
+            :to="`/admin/settings`"
             class="hidden md:flex"
-            @click="handleLogout"
-          >
-            <UIcon
-              name="i-heroicons-arrow-right-on-rectangle"
-              class="w-4 h-4 mr-2"
-            />
-            ログアウト
-          </UButton>
+          />
         </div>
       </div>
 
@@ -76,18 +71,14 @@
               <UIcon :name="menu.icon" class="w-5 h-5" />
               <span>{{ menu.label }}</span>
             </NuxtLink>
-            <UButton
-              color="error"
-              variant="soft"
-              class="mt-2 mx-4"
-              @click="handleLogout"
+            <NuxtLink
+              to="/admin/settings"
+              class="mt-2 mx-4 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 text-gray-700 hover:bg-gray-100"
+              @click="isMobileMenuOpen = false"
             >
-              <UIcon
-                name="i-heroicons-arrow-right-on-rectangle"
-                class="w-4 h-4 mr-2"
-              />
-              ログアウト
-            </UButton>
+              <UIcon name="i-heroicons-cog-6-tooth" class="w-5 h-5" />
+              <span>設定</span>
+            </NuxtLink>
           </nav>
         </div>
       </Transition>
@@ -187,16 +178,6 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
-const handleLogout = async () => {
-  try {
-    await $fetch('/api/admin/logout', {
-      method: 'POST',
-    })
-    await navigateTo('/admin/login')
-  } catch (error) {
-    console.error('ログアウトエラー:', error)
-  }
-}
 </script>
 
 <style scoped>

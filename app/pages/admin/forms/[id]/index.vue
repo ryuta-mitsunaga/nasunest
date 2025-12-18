@@ -199,7 +199,13 @@
           >
             回答がありません
           </div>
-          <UTable v-else :data="answers" :columns="columns" class="w-full">
+          <UTable
+            v-else
+            :data="answers"
+            :columns="columns"
+            :meta="tableMeta"
+            class="w-full"
+          >
             <template #no-cell="{ row }">
               {{ answers.indexOf(row.original) + 1 }}
             </template>
@@ -220,14 +226,27 @@
               </span>
             </template>
 
+            <template #is_cancel-cell="{ row }">
+              <UCheckbox
+                :model-value="row.original.is_cancel"
+                @update:model-value="
+                  v => handleToggleCancel(row.original.id, !!v)
+                "
+                :disabled="processingCancelAnswerId === row.original.id"
+                label=""
+              />
+            </template>
+
             <template #actions-cell="{ row }">
-              <UButton
-                size="sm"
-                variant="soft"
-                :to="`/admin/forms/${formId}/answers/${row.original.id}`"
-              >
-                詳細
-              </UButton>
+              <div class="flex gap-2 flex-wrap">
+                <UButton
+                  size="sm"
+                  variant="soft"
+                  :to="`/admin/forms/${formId}/answers/${row.original.id}`"
+                >
+                  詳細
+                </UButton>
+              </div>
             </template>
           </UTable>
         </div>
@@ -237,7 +256,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { FormField } from '~/components/admin/FormEditor.vue'
 
 definePageMeta({
@@ -259,6 +278,7 @@ interface FormAnswer {
   date: Date
   content: Record<string, any>
   createdAt: Date
+  is_cancel: boolean
 }
 
 const route = useRoute()
@@ -275,16 +295,45 @@ const formName = ref('')
 const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const answers = ref<FormAnswer[]>([])
+const processingCancelAnswerId = ref<number | null>(null)
+const { success: toastSuccess, error: toastError } = useCustomToast()
+const tableMeta = computed(() => ({
+  class: {
+    tr: (row: TableRow<FormAnswer>) =>
+      row.original.is_cancel ? 'bg-gray-200 opacity-60' : '',
+  },
+}))
 
 const columns = computed<TableColumn<FormAnswer>[]>(() => {
+  const withColWidth = (
+    col: TableColumn<FormAnswer>
+  ): TableColumn<FormAnswer> =>
+    ({
+      ...col,
+      meta: {
+        ...(col as any).meta,
+        class: {
+          ...(((col as any).meta?.class as any) || {}),
+          th: `min-w-[100px] max-w-[200px] ${((col as any).meta?.class?.th as string) || ''}`.trim(),
+          td: `whitespace-normal break-words overflow-hidden ${((col as any).meta?.class?.td as string) || ''}`.trim(),
+        },
+      },
+    }) as TableColumn<FormAnswer>
+
   return [
-    { accessorKey: 'no', header: 'No.' },
-    { accessorKey: 'createdAt', header: '回答日時' },
-    ...formFields.value.map(field => ({
-      accessorKey: field.id,
-      header: field.label || '（未設定）',
-    })),
-    { accessorKey: 'actions', header: '操作' },
+    withColWidth({ accessorKey: 'no', header: 'No.' }),
+    withColWidth({ accessorKey: 'createdAt', header: '回答日時' }),
+    ...formFields.value.map(field =>
+      withColWidth({
+        accessorKey: field.id,
+        header: field.label || '（未設定）',
+      })
+    ),
+    withColWidth({
+      accessorKey: 'is_cancel',
+      header: '申込みキャンセル',
+    }),
+    withColWidth({ accessorKey: 'actions', header: '操作' }),
   ]
 })
 
@@ -313,11 +362,30 @@ const fetchFormData = async () => {
     answers.value = answersResponse.data || []
   } catch (error) {
     console.error('データ取得エラー:', error)
-    const { error: toastError } = useCustomToast()
     toastError('データの取得に失敗しました')
     await navigateTo('/admin/forms')
   } finally {
     loading.value = false
+  }
+}
+
+const handleToggleCancel = async (answerId: number, nextValue: boolean) => {
+  processingCancelAnswerId.value = answerId
+  try {
+    await $fetch(`/api/admin/forms/${formId.value}/answers/${answerId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: { is_cancel: nextValue },
+    })
+    toastSuccess(
+      nextValue ? 'キャンセルにしました' : 'キャンセルを解除しました'
+    )
+    await fetchFormData()
+  } catch (error) {
+    console.error('キャンセル更新エラー:', error)
+    toastError('キャンセル更新に失敗しました')
+  } finally {
+    processingCancelAnswerId.value = null
   }
 }
 

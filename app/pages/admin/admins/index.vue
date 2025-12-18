@@ -93,6 +93,7 @@
               <UCheckbox
                 v-for="permission in permissions"
                 :key="permission.id"
+                :id="`permission-${permission.id}`"
                 :model-value="isPermissionChecked(permission.id)"
                 :label="permission.name"
                 @update:model-value="

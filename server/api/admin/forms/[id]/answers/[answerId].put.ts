@@ -54,6 +54,12 @@ export default defineEventHandler(async event => {
       }
     }
 
+    // キャンセルフラグを更新
+    if (body.is_cancel !== undefined) {
+      answer.is_cancel = !!body.is_cancel
+      await answer.save()
+    }
+
     return {
       success: true,
       data: answer.toJSON(),
