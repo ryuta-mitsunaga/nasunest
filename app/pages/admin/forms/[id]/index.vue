@@ -193,6 +193,13 @@
           <h2 class="text-xl font-semibold">回答一覧</h2>
         </template>
         <div class="p-6">
+          <AdminFormsBulkEmailSender
+            v-if="hasEmailField && hasAnyEmailAnswer"
+            :disabled-message="allEmailAnswersDisabledMessage"
+            class="mb-2"
+            :selected-count="selectedAnswerIds.length"
+            @open-email-modal="openEmailModalForSelected"
+          />
           <div
             v-if="answers.length === 0"
             class="text-center py-8 text-gray-400"
@@ -206,6 +213,25 @@
             :meta="tableMeta"
             class="w-full"
           >
+            <template #select-header>
+              <UCheckbox
+                :model-value="isAllSelected"
+                :indeterminate="isIndeterminate"
+                @update:model-value="toggleSelectAll"
+                label=""
+              />
+            </template>
+
+            <template #select-cell="{ row }">
+              <UCheckbox
+                :model-value="selectedAnswerIds.includes(row.original.id)"
+                @update:model-value="
+                  v => toggleAnswerSelection(row.original.id, !!v)
+                "
+                label=""
+              />
+            </template>
+
             <template #no-cell="{ row }">
               {{ answers.indexOf(row.original) + 1 }}
             </template>
@@ -252,12 +278,22 @@
         </div>
       </UCard>
     </div>
+
+    <!-- メール送信モーダル -->
+    <AdminFormsEmailSendModal
+      v-model:open="isEmailModalOpen"
+      :recipient-emails="selectedRecipientEmails"
+      @send="handleEmailSend"
+      ref="emailModalRef"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { FormField } from '~/components/admin/FormEditor.vue'
+import AdminFormsBulkEmailSender from '~/components/admin/forms/BulkEmailSender.vue'
+import AdminFormsEmailSendModal from '~/components/admin/forms/EmailSendModal.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -297,6 +333,16 @@ const formFields = ref<FormField[]>([])
 const answers = ref<FormAnswer[]>([])
 const processingCancelAnswerId = ref<number | null>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
+
+// 選択状態管理
+const selectedAnswerIds = ref<number[]>([])
+
+// メール送信関連
+const isEmailModalOpen = ref(false)
+const emailModalRef = ref<{
+  setSending: (value: boolean) => void
+  reset: () => void
+} | null>(null)
 const tableMeta = computed(() => ({
   class: {
     tr: (row: TableRow<FormAnswer>) =>
@@ -321,6 +367,16 @@ const columns = computed<TableColumn<FormAnswer>[]>(() => {
     }) as TableColumn<FormAnswer>
 
   return [
+    withColWidth({
+      accessorKey: 'select',
+      header: '',
+      meta: {
+        class: {
+          th: 'w-12 text-center',
+          td: 'text-center',
+        },
+      },
+    }),
     withColWidth({ accessorKey: 'no', header: 'No.' }),
     withColWidth({ accessorKey: 'createdAt', header: '回答日時' }),
     ...formFields.value.map(field =>
@@ -335,6 +391,30 @@ const columns = computed<TableColumn<FormAnswer>[]>(() => {
     }),
     withColWidth({ accessorKey: 'actions', header: '操作' }),
   ]
+})
+
+/**選択中の回答全てにメールアドレスが含まれているかどうか */
+const hasAllEmailAnswers = computed(() => {
+  return selectedAnswerIds.value.every(answerId => {
+    const answer = answers.value.find(answer => answer.id === answerId)
+    return answer && getEmailFromAnswer(answer.content) !== null
+  })
+})
+
+const allEmailAnswersDisabledMessage = computed(() => {
+  return hasAllEmailAnswers.value
+    ? ''
+    : `メールアドレスが入力されていない回答があります。${selectedAnswerIds.value
+        .map(answerId => {
+          const answer = answers.value.find(answer => answer.id === answerId)
+
+          if (!answer) return
+
+          const email = getEmailFromAnswer(answer.content)
+          return email ? undefined : `No.${answers.value.indexOf(answer) + 1}`
+        })
+        .filter(Boolean)
+        .join(', ')}`
 })
 
 const fetchFormData = async () => {
@@ -392,6 +472,7 @@ const handleToggleCancel = async (answerId: number, nextValue: boolean) => {
 const getFieldTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
     text: 'テキスト',
+    email: 'メールアドレス',
     select: 'プルダウン',
     checkbox: 'チェックボックス',
     'date-picker': '日程調整',
@@ -508,6 +589,150 @@ const getDateOptionCount = (
     }
     return false
   }).length
+}
+
+// メールアドレスフィールドが存在するかチェック
+const hasEmailField = computed(() => {
+  return formFields.value.some(field => field.type === 'email')
+})
+
+// メールアドレスが入力されている回答が存在するかチェック
+const hasAnyEmailAnswer = computed(() => {
+  return answers.value.some(answer => {
+    const email = getEmailFromAnswer(answer.content)
+    return email !== null
+  })
+})
+
+// 回答からメールアドレスを取得
+const getEmailFromAnswer = (content: Record<string, any>): string | null => {
+  const emailField = formFields.value.find(field => field.type === 'email')
+  if (!emailField) return null
+  const email = content[emailField.id]
+  return email && typeof email === 'string' && email.trim()
+    ? email.trim()
+    : null
+}
+
+// メールアドレスが入力されている回答のリスト
+const answersWithEmail = computed(() => {
+  return answers.value
+    .map(answer => ({
+      answer,
+      email: getEmailFromAnswer(answer.content),
+    }))
+    .filter(item => item.email !== null)
+})
+
+// 回答の選択をトグル
+const toggleAnswerSelection = (answerId: number, selected: boolean) => {
+  if (selected) {
+    if (!selectedAnswerIds.value.includes(answerId)) {
+      selectedAnswerIds.value.push(answerId)
+    }
+  } else {
+    selectedAnswerIds.value = selectedAnswerIds.value.filter(
+      id => id !== answerId
+    )
+  }
+}
+
+// 全選択状態をチェック
+const isAllSelected = computed(() => {
+  return (
+    answers.value.length > 0 &&
+    selectedAnswerIds.value.length === answers.value.length
+  )
+})
+
+// 中間状態（一部選択）をチェック
+const isIndeterminate = computed(() => {
+  return (
+    selectedAnswerIds.value.length > 0 &&
+    selectedAnswerIds.value.length < answers.value.length
+  )
+})
+
+// 全選択/全解除をトグル
+const toggleSelectAll = (selected: boolean | 'indeterminate') => {
+  if (selected === true) {
+    // すべて選択
+    selectedAnswerIds.value = answers.value.map(answer => answer.id)
+  } else {
+    // すべて解除
+    selectedAnswerIds.value = []
+  }
+}
+
+// 選択された回答からメールアドレスを取得
+const getSelectedAnswersWithEmail = computed(() => {
+  return answers.value
+    .filter(answer => selectedAnswerIds.value.includes(answer.id))
+    .map(answer => ({
+      answer,
+      email: getEmailFromAnswer(answer.content),
+    }))
+    .filter(item => item.email !== null)
+})
+
+// 選択された回答のメールアドレス一覧（送信先として使用）
+const selectedRecipientEmails = computed(() => {
+  return getSelectedAnswersWithEmail.value
+    .map(item => item.email!)
+    .filter(Boolean)
+})
+
+// メール送信モーダルを開く（選択された回答に対して）
+const openEmailModalForSelected = () => {
+  if (getSelectedAnswersWithEmail.value.length === 0) {
+    toastError('メールアドレスが入力されている回答を選択してください')
+    return
+  }
+
+  isEmailModalOpen.value = true
+}
+
+// メール送信処理
+const handleEmailSend = async (data: {
+  to: string[]
+  subject: string
+  html: string
+}) => {
+  if (emailModalRef.value) {
+    emailModalRef.value.setSending(true)
+  }
+
+  try {
+    // 複数のメールアドレスに順次送信
+    const sendPromises = data.to.map(email =>
+      $fetch('/api/admin/send-email', {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          to: email,
+          subject: data.subject,
+          html: data.html,
+          from: undefined, // 送信者はサーバー側のデフォルトを使用
+        },
+      })
+    )
+
+    await Promise.all(sendPromises)
+    toastSuccess(`${data.to.length}件のメールを送信しました`)
+    if (emailModalRef.value) {
+      emailModalRef.value.reset()
+    }
+    isEmailModalOpen.value = false
+  } catch (error: any) {
+    console.error('メール送信エラー:', error)
+    toastError(
+      error.data?.statusMessage || error.message || 'メールの送信に失敗しました'
+    )
+  } finally {
+    if (emailModalRef.value) {
+      emailModalRef.value.setSending(false)
+    }
+  }
 }
 
 onMounted(() => {
