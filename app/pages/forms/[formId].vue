@@ -68,6 +68,16 @@
                 size="lg"
               />
 
+              <!-- メールアドレスフィールド -->
+              <UInput
+                v-else-if="field.type === 'email'"
+                v-model="formData[field.id]"
+                type="email"
+                :required="field.required"
+                :placeholder="field.placeholder || ''"
+                size="lg"
+              />
+
               <!-- プルダウンフィールド -->
               <USelect
                 v-else-if="field.type === 'select'"
@@ -138,7 +148,7 @@ interface DateOption {
 
 interface FormField {
   id: string
-  type: 'text' | 'select' | 'checkbox' | 'date-picker'
+  type: 'text' | 'email' | 'select' | 'checkbox' | 'date-picker'
   label: string
   description?: string
   placeholder?: string

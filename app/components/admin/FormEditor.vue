@@ -30,6 +30,9 @@
           <h4 class="text-lg font-semibold">フィールド</h4>
           <div class="flex gap-2">
             <UButton size="sm" @click="addField('text')">テキスト</UButton>
+            <UButton size="sm" @click="addField('email')"
+              >メールアドレス</UButton
+            >
             <UButton size="sm" @click="addField('select')">プルダウン</UButton>
             <UButton size="sm" @click="addField('checkbox')"
               >チェックボックス</UButton
@@ -77,7 +80,7 @@
                   class="text-sm"
                 />
               </div>
-              <div v-if="field.type === 'text'">
+              <div v-if="field.type === 'text' || field.type === 'email'">
                 <UInput
                   v-model="field.placeholder"
                   placeholder="プレースホルダー（任意）"
@@ -270,7 +273,7 @@ export interface DateOption {
 
 export interface FormField {
   id: string
-  type: 'text' | 'select' | 'checkbox' | 'date-picker'
+  type: 'text' | 'email' | 'select' | 'checkbox' | 'date-picker'
   label: string
   description?: string
   placeholder?: string
@@ -371,7 +374,9 @@ watch(
   { immediate: true }
 )
 
-const addField = (type: 'text' | 'select' | 'checkbox' | 'date-picker') => {
+const addField = (
+  type: 'text' | 'email' | 'select' | 'checkbox' | 'date-picker'
+) => {
   const field: FormField = {
     id: `field_${++fieldIdCounter}`,
     type,
