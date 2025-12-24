@@ -1,10 +1,4 @@
 import { Event, EventCategory } from '~~/server/database'
-import {
-  uploadImage,
-  deleteImage,
-  base64ToBuffer,
-  getFileExtensionFromBase64,
-} from '~~/server/lib/supabase-repository'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
@@ -37,76 +31,14 @@ export default defineEventHandler(async event => {
 
     const body = await readBody(event)
 
-    // 既存のthumbnail URLを取得（削除用）
-    const existingThumbnailUrl = eventData.thumbnail as string | null
-    let thumbnailUrl: string | null | undefined = undefined
-
-    if (body.thumbnail && typeof body.thumbnail === 'string') {
-      // URLかBase64かを判定
-      const isUrl =
-        body.thumbnail.startsWith('http://') ||
-        body.thumbnail.startsWith('https://')
-
-      if (isUrl) {
-        // 既にURLの場合はそのまま使用（画像を変更しない場合）
-        thumbnailUrl = body.thumbnail
-      } else {
-        // Base64文字列の場合はSupabaseにアップロード
-        try {
-          const buffer = base64ToBuffer(body.thumbnail)
-          const extension = getFileExtensionFromBase64(body.thumbnail)
-          const fileName = `thumbnail.${extension}`
-
-          const result = await uploadImage({
-            file: buffer,
-            fileName,
-            folder: 'events',
-            contentType: `image/${extension}`,
-          })
-
-          thumbnailUrl = result.url
-
-          // 既存の画像を削除（新しい画像がアップロード成功した場合のみ）
-          if (existingThumbnailUrl && existingThumbnailUrl !== result.url) {
-            try {
-              // URLからパスを抽出（例: https://xxx.supabase.co/storage/v1/object/public/event-thumbnail/events/xxx.png）
-              const urlParts = existingThumbnailUrl.split('/event-thumbnail/')
-              if (urlParts.length > 1) {
-                // deleteImageはバケット名を含まないパスを期待する
-                const filePath = urlParts[1]
-                await deleteImage(filePath)
-              }
-            } catch (deleteError) {
-              console.error('既存画像の削除エラー（無視）:', deleteError)
-              // 削除エラーは無視（新しい画像はアップロード済み）
-            }
-          }
-        } catch (uploadError: any) {
-          console.error('画像アップロードエラー:', uploadError)
-          throw createError({
-            statusCode: 500,
-            statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
-          })
-        }
-      }
-    } else if (body.thumbnail === null) {
-      // 明示的にnullが送信された場合はnullを設定（削除）
-      thumbnailUrl = null
-
-      // 既存の画像を削除
-      if (existingThumbnailUrl) {
-        try {
-          const urlParts = existingThumbnailUrl.split('/event-thumbnail/')
-          if (urlParts.length > 1) {
-            const filePath = `event-thumbnail/${urlParts[1]}`
-            await deleteImage(filePath)
-          }
-        } catch (deleteError) {
-          console.error('既存画像の削除エラー（無視）:', deleteError)
-        }
-      }
-    }
+    // サムネイルURL（クライアント側でアップロード済み）
     // body.thumbnailがundefinedの場合は、thumbnailUrlもundefinedのまま（既存のthumbnailを保持）
+    let thumbnailUrl: string | null | undefined = undefined
+    if (body.thumbnail !== undefined) {
+      thumbnailUrl = body.thumbnail && typeof body.thumbnail === 'string' 
+        ? body.thumbnail 
+        : null
+    }
 
     const updateData: any = {
       title: body.title,

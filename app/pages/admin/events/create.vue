@@ -126,17 +126,60 @@ const fetchCategories = async () => {
   }
 }
 
-const handleThumbnailUpload = (event: globalThis.Event) => {
+const handleThumbnailUpload = async (event: globalThis.Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (file) {
-    const reader = new FileReader()
-    reader.onload = e => {
-      const result = e.target?.result as string
-      thumbnailPreview.value = result
-      form.thumbnail = result
+    try {
+      // ファイルサイズをチェック（10MB制限）
+      const maxFileSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxFileSize) {
+        toastError(
+          `ファイルサイズが大きすぎます。最大${maxFileSize / 1024 / 1024}MBまでアップロード可能です。`
+        )
+        if (target) {
+          target.value = ''
+        }
+        return
+      }
+
+      // プレビュー用にBase64で読み込む
+      const reader = new FileReader()
+      reader.onload = e => {
+        const result = e.target?.result as string
+        thumbnailPreview.value = result
+      }
+      reader.readAsDataURL(file)
+
+      // Supabase Storageにアップロード
+      const formData = new FormData()
+      formData.append('thumbnail', file)
+
+      const response = await $fetch<{
+        success: boolean
+        data: { url: string }
+      }>('/api/admin/upload-thumbnail', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      if (response.success && response.data.url) {
+        form.thumbnail = response.data.url
+      } else {
+        throw new Error('画像のアップロードに失敗しました')
+      }
+    } catch (error) {
+      console.error('画像アップロードエラー:', error)
+      toastError('画像のアップロードに失敗しました')
+      // エラー時はプレビューとフォームの値をクリア
+      thumbnailPreview.value = null
+      form.thumbnail = null
+      // ファイル入力をリセット
+      if (target) {
+        target.value = ''
+      }
     }
-    reader.readAsDataURL(file)
   }
 }
 

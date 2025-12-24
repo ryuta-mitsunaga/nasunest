@@ -1,9 +1,4 @@
 import { Event, EventCategory } from '~~/server/database'
-import {
-  uploadImage,
-  base64ToBuffer,
-  getFileExtensionFromBase64,
-} from '~~/server/lib/supabase-repository'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
@@ -13,43 +8,11 @@ export default defineEventHandler(async event => {
 
     const body = await readBody(event)
 
-    // Base64文字列をSupabaseにアップロード
-    let thumbnailUrl = null
-    if (body.thumbnail && typeof body.thumbnail === 'string') {
-      // URLかBase64かを判定
-      const isUrl =
-        body.thumbnail.startsWith('http://') ||
-        body.thumbnail.startsWith('https://')
-
-      if (isUrl) {
-        // 既にURLの場合はそのまま使用（画像を変更しない場合）
-        thumbnailUrl = body.thumbnail
-      } else {
-        // Base64文字列の場合はSupabaseにアップロード
-        try {
-          // Base64文字列をBufferに変換
-          const buffer = base64ToBuffer(body.thumbnail)
-          const extension = getFileExtensionFromBase64(body.thumbnail)
-          const fileName = `thumbnail.${extension}`
-
-          // Supabaseにアップロード
-          const result = await uploadImage({
-            file: buffer,
-            fileName,
-            folder: 'events',
-            contentType: `image/${extension}`,
-          })
-
-          thumbnailUrl = result.url
-        } catch (uploadError: any) {
-          console.error('画像アップロードエラー:', uploadError)
-          throw createError({
-            statusCode: 500,
-            statusMessage: `画像のアップロードに失敗しました: ${uploadError.message}`,
-          })
-        }
-      }
-    }
+    // サムネイルURL（クライアント側でアップロード済み）
+    const thumbnailUrl =
+      body.thumbnail && typeof body.thumbnail === 'string'
+        ? body.thumbnail
+        : null
 
     const newEvent = await Event.create({
       admin_id: adminId,
