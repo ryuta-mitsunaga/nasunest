@@ -26,12 +26,12 @@
           </template>
 
           <template #id-cell="{ row }">
-            <NuxtLink
+                <NuxtLink
               :to="`/admin/forms/${formId}/answers/${row.original.id}`"
-              class="text-primary hover:underline font-medium"
-            >
+                  class="text-primary hover:underline font-medium"
+                >
               #{{ row.original.id }}
-            </NuxtLink>
+                </NuxtLink>
           </template>
 
           <template #createdAt-cell="{ row }">
@@ -77,27 +77,27 @@
               >
                 詳細
               </UButton>
-              <UButton
-                color="success"
-                variant="soft"
-                size="sm"
+                <UButton
+                  color="success"
+                  variant="soft"
+                  size="sm"
                 @click="handleApprove(row.original.id)"
                 :loading="processingAnswerId === row.original.id"
                 :disabled="row.original.is_cancel"
-              >
-                承認
-              </UButton>
-              <UButton
-                color="error"
-                variant="soft"
-                size="sm"
+                >
+                  承認
+                </UButton>
+                <UButton
+                  color="error"
+                  variant="soft"
+                  size="sm"
                 @click="handleReject(row.original.id)"
                 :loading="processingAnswerId === row.original.id"
                 :disabled="row.original.is_cancel"
-              >
-                却下
-              </UButton>
-            </div>
+                >
+                  却下
+                </UButton>
+              </div>
           </template>
         </UTable>
       </div>

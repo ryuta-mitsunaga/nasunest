@@ -327,7 +327,9 @@ onMounted(async () => {
           endpoints: {
             byFile: '/api/admin/upload-image',
           },
-          captionPlaceholder: '画像の説明',
+          features: {
+            caption: 'optional',
+          },
         },
       },
     },

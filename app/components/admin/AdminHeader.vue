@@ -45,7 +45,7 @@
             icon="i-heroicons-cog-6-tooth"
             :to="`/admin/settings`"
             class="hidden md:flex"
-          />
+            />
         </div>
       </div>
 
