@@ -1,5 +1,6 @@
-import { Event, EventCategory } from '~~/server/database'
+import { Event, EventCategory, Form } from '~~/server/database'
 import { Op } from 'sequelize'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async event => {
   try {
@@ -9,7 +10,7 @@ export default defineEventHandler(async event => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const eventData = await Event.findOne({
+    const eventData = await Event.findOne<Event & { form: Form }>({
       where: {
         id,
         is_displayed: true,
@@ -35,6 +36,12 @@ export default defineEventHandler(async event => {
           attributes: ['id', 'name'],
           through: { attributes: [] },
         },
+        {
+          model: Form,
+          as: 'form',
+          attributes: ['id', 'name', 'published_end'],
+          required: false,
+        },
       ],
     })
 
@@ -45,10 +52,50 @@ export default defineEventHandler(async event => {
       })
     }
 
+    // ステータスを計算
+    let status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed' =
+      'published'
+
+    // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+    const isEventEnded = eventData.end_date
+      ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+      : false
+
+    // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+    const isRecruitmentEnded = eventData.form?.published_end
+      ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
+      : false
+
+    // イベントが公開されているかどうかを判定
+    const isPublished = eventData.is_displayed
+
+    if (isEventEnded) {
+      status = 'closed'
+    } else if (isRecruitmentEnded) {
+      status = 'recruitment_closed'
+    } else if (!isPublished) {
+      status = 'unpublished'
+    }
+
+    if (isEventEnded) {
+      status = 'closed'
+    } else if (isRecruitmentEnded) {
+      status = 'recruitment_closed'
+    } else if (!isPublished) {
+      status = 'unpublished'
+    }
+
+    const eventDataWithStatus = {
+      ...eventData.toJSON(),
+      status,
+    }
+
+    console.log('👺', eventDataWithStatus)
+
     // thumbnailは既にURLなので変換不要
     return {
       success: true,
-      data: eventData.toJSON(),
+      data: eventDataWithStatus,
     }
   } catch (error: any) {
     if (error.statusCode) {

@@ -11,9 +11,7 @@
         style="background-color: #f4d35e; color: #2e5e3e"
       >
         <p>
-          <template v-if="!compact">
-            申し込みには<br />
-          </template>
+          <template v-if="!compact"> 申し込みには<br /> </template>
           <span class="font-bold">ログイン</span>が必須です。
         </p>
       </button>
@@ -93,4 +91,3 @@ const handleClick = () => {
   emit('click')
 }
 </script>
-

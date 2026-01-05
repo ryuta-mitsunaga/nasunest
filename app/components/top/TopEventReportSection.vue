@@ -15,7 +15,7 @@
 
     <div
       v-if="!loading && !error && eventReports.length > 0"
-      class="mt-8 text-center"
+      class="mt-4 text-center"
     >
       <NuxtLink
         to="/eventReports"
