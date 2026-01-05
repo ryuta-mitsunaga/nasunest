@@ -1,13 +1,12 @@
-import { Event, EventCategory } from '~~/server/database'
+import { Event, EventCategory, Form } from '~~/server/database'
 import { Op } from 'sequelize'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async event => {
-  const startTime = Date.now()
   try {
     // 公開用なので認証不要でイベントを取得（公開されているもののみ）
     // 公開期間を考慮
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = dayjs().startOf('day').toDate()
 
     // クエリパラメータからページネーション情報と検索条件を取得
     const query = getQuery(event)
@@ -22,8 +21,11 @@ export default defineEventHandler(async event => {
       : []
     const startDate = (query.startDate as string) || ''
     const endDate = (query.endDate as string) || ''
-
-    const queryStartTime = Date.now()
+    const includeRecruitmentClosed =
+      query.includeRecruitmentClosed === 'true' ||
+      query.includeRecruitmentClosed === true
+    const includeEventEnded =
+      query.includeEventEnded === 'true' || query.includeEventEnded === true
 
     // 検索条件を構築
     const whereConditions: any[] = [
@@ -60,8 +62,7 @@ export default defineEventHandler(async event => {
 
     // 開催日絞り込み
     if (startDate) {
-      const startDateObj = new Date(startDate)
-      startDateObj.setHours(0, 0, 0, 0)
+      const startDateObj = dayjs(startDate).startOf('day').toDate()
       // 指定した開始日以降に開始する、または指定した開始日以降に終了するイベント
       whereConditions.push({
         [Op.or]: [
@@ -72,8 +73,7 @@ export default defineEventHandler(async event => {
     }
 
     if (endDate) {
-      const endDateObj = new Date(endDate)
-      endDateObj.setHours(23, 59, 59, 999)
+      const endDateObj = dayjs(endDate).endOf('day').toDate()
       // 指定した終了日以前に開始する、または指定した終了日以前に終了するイベント
       whereConditions.push({
         [Op.or]: [
@@ -83,76 +83,118 @@ export default defineEventHandler(async event => {
       })
     }
 
-    // カテゴリフィルタリング用のinclude設定
-    const categoryInclude: any = {
-      model: EventCategory,
-      as: 'categories',
-      attributes: ['id', 'name'],
-      through: { attributes: [] },
-    }
-
-    // カテゴリフィルタがある場合は、required: trueでフィルタリング
-    if (categoryIds.length > 0) {
-      categoryInclude.where = {
-        id: { [Op.in]: categoryIds },
-      }
-      categoryInclude.required = true
-    }
-
-    const dbQueryStartTime = Date.now()
-
-    // カウントクエリ
-    const countStart = Date.now()
-    const count = await Event.count({
+    // フィルタリング後にページネーションを適用するため、より多くのデータを取得
+    // 最大で limit * 3 件取得（募集終了・イベント終了のイベントが多い場合を考慮）
+    const fetchLimit = limit * 3
+    const allEvents = await Event.findAll({
       where: {
         [Op.and]: whereConditions,
       },
-      distinct: true,
-      include: categoryIds.length > 0 ? [categoryInclude] : [],
-    })
-    const countTime = Date.now() - countStart
-    console.log(`[Events API] Count query time: ${countTime}ms`)
-
-    // データ取得クエリ（カテゴリも一緒に取得）
-    const dataStart = Date.now()
-    const events = await Event.findAll({
-      where: {
-        [Op.and]: whereConditions,
-      },
-      include: [categoryInclude],
+      include: [
+        {
+          model: EventCategory,
+          as: 'categories',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+          required: categoryIds.length > 0,
+          where:
+            categoryIds.length > 0
+              ? { id: { [Op.in]: categoryIds } }
+              : undefined,
+        },
+        {
+          model: Form,
+          as: 'form',
+          attributes: ['id', 'name', 'published_end'],
+          required: false,
+        },
+      ],
       attributes: {
         exclude: ['body'], // 大きなデータを除外
       },
       order: [['start_date', 'DESC']],
-      limit,
-      offset,
+      limit: fetchLimit,
+      offset: 0,
     })
-    const dataTime = Date.now() - dataStart
-    console.log(`[Events API] Data query time: ${dataTime}ms`)
 
-    const dbQueryEndTime = Date.now()
-    console.log(
-      `[Events API] DB Query time: ${dbQueryEndTime - dbQueryStartTime}ms (Count: ${countTime}ms, Data: ${dataTime}ms)`
-    )
+    // JavaScriptでフィルタリング（募集終了・イベント終了の除外）
+    const filteredEvents = allEvents.filter(event => {
+      const eventData = event.toJSON() as any
 
-    // thumbnailは既にURLなので変換不要
-    const eventsData = events.map(event => event.toJSON())
+      // イベントが終了しているかどうかを判定
+      const isEventEnded = eventData.end_date
+        ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+        : false
 
-    const totalPages = Math.ceil(count / limit)
+      // 募集が終了しているかどうかを判定
+      const isRecruitmentEnded = eventData.form?.published_end
+        ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
+        : false
+
+      // 募集終了のイベントを除外（includeRecruitmentClosedがfalseの場合）
+      if (!includeRecruitmentClosed && isRecruitmentEnded) {
+        return false
+      }
+
+      // イベント終了のイベントを除外（includeEventEndedがfalseの場合）
+      if (!includeEventEnded && isEventEnded) {
+        return false
+      }
+
+      return true
+    })
+
+    // フィルタリング後のデータをマッピング
+    const eventsData = filteredEvents.map(event => {
+      const eventData = event.toJSON() as any
+
+      // ステータスを計算
+      let status:
+        | 'published'
+        | 'unpublished'
+        | 'closed'
+        | 'recruitment_closed' = 'published'
+
+      // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+      const isEventEnded = eventData.end_date
+        ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+        : false
+
+      // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+      const isRecruitmentEnded = eventData.form?.published_end
+        ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
+        : false
+
+      // イベントが公開されているかどうかを判定
+      const isPublished = eventData.is_displayed
+
+      if (isEventEnded) {
+        status = 'closed'
+      } else if (isRecruitmentEnded) {
+        status = 'recruitment_closed'
+      } else if (!isPublished) {
+        status = 'unpublished'
+      }
+
+      return {
+        ...eventData,
+        status,
+      }
+    })
+
+    // ページネーションを適用
+    const paginatedEvents = eventsData.slice(offset, offset + limit)
+    const total = eventsData.length
+    const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
-
-    const endTime = Date.now()
-    console.log(
-      `[Events API] Total time: ${endTime - startTime}ms (Query setup: ${dbQueryStartTime - queryStartTime}ms, DB: ${dbQueryEndTime - dbQueryStartTime}ms)`
-    )
 
     return {
       success: true,
-      data: eventsData,
+      data: paginatedEvents,
       pagination: {
         page,
         limit,
-        total: count,
+        total,
         totalPages,
         hasMore,
       },

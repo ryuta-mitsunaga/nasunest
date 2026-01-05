@@ -62,6 +62,20 @@
           </UFormField>
         </div>
 
+        <!-- イベント表示オプション -->
+        <div class="space-y-2">
+          <UCheckbox
+            v-model="searchForm.includeEventEnded"
+            label="終了したイベントを含む"
+            @update:model-value="handleSearch"
+          />
+          <UCheckbox
+            v-model="searchForm.includeRecruitmentClosed"
+            label="募集が終了したイベントを含む"
+            @update:model-value="handleSearch"
+          />
+        </div>
+
         <!-- 検索条件リセット -->
         <div v-if="hasActiveFilters" class="flex justify-end">
           <UButton variant="soft" size="sm" @click="resetFilters">
@@ -104,6 +118,8 @@ interface Emits {
       categoryIds: number[]
       startDate?: string
       endDate?: string
+      includeEventEnded?: boolean
+      includeRecruitmentClosed?: boolean
     }
   ): void
 }
@@ -122,6 +138,8 @@ const searchForm = reactive({
   categoryIds: [] as number[],
   startDate: '',
   endDate: '',
+  includeEventEnded: false,
+  includeRecruitmentClosed: false,
 })
 
 const toggleOpen = () => {
@@ -148,7 +166,9 @@ const hasActiveFilters = computed(() => {
     searchForm.keyword.trim() !== '' ||
     searchForm.categoryIds.length > 0 ||
     searchForm.startDate !== '' ||
-    searchForm.endDate !== ''
+    searchForm.endDate !== '' ||
+    searchForm.includeEventEnded ||
+    searchForm.includeRecruitmentClosed
   )
 })
 
@@ -157,6 +177,8 @@ const resetFilters = () => {
   searchForm.categoryIds = []
   searchForm.startDate = ''
   searchForm.endDate = ''
+  searchForm.includeEventEnded = false
+  searchForm.includeRecruitmentClosed = false
   handleSearch()
 }
 
@@ -173,6 +195,9 @@ const handleSearch = () => {
       categoryIds: searchForm.categoryIds,
       startDate: searchForm.startDate || undefined,
       endDate: searchForm.endDate || undefined,
+      includeEventEnded: searchForm.includeEventEnded || undefined,
+      includeRecruitmentClosed:
+        searchForm.includeRecruitmentClosed || undefined,
     })
   }, 800)
 }
