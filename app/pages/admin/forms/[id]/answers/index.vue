@@ -5,7 +5,7 @@
         <UIcon name="i-heroicons-arrow-left" />
         フォーム詳細に戻る
       </UButton>
-      <h1 class="text-3xl font-bold">フォーム回答一覧（回答待ち）</h1>
+      <h1 class="text-xl font-bold">フォーム回答一覧（回答待ち）</h1>
     </div>
 
     <div v-if="loading" class="text-center py-8">
@@ -20,18 +20,24 @@
         <div v-if="answers.length === 0" class="text-center py-8 text-gray-400">
           回答待ちの申し込みはありません
         </div>
-        <UTable v-else :data="answers" :columns="columns" :meta="tableMeta" class="w-full">
+        <UTable
+          v-else
+          :data="answers"
+          :columns="columns"
+          :meta="tableMeta"
+          class="w-full"
+        >
           <template #no-cell="{ row }">
             {{ answers.indexOf(row.original) + 1 }}
           </template>
 
           <template #id-cell="{ row }">
-                <NuxtLink
+            <NuxtLink
               :to="`/admin/forms/${formId}/answers/${row.original.id}`"
-                  class="text-primary hover:underline font-medium"
-                >
+              class="text-primary hover:underline font-medium"
+            >
               #{{ row.original.id }}
-                </NuxtLink>
+            </NuxtLink>
           </template>
 
           <template #createdAt-cell="{ row }">
@@ -61,7 +67,9 @@
           <template #is_cancel-cell="{ row }">
             <UCheckbox
               :model-value="row.original.is_cancel"
-              @update:model-value="(v) => handleToggleCancel(row.original.id, !!v)"
+              @update:model-value="
+                v => handleToggleCancel(row.original.id, !!v)
+              "
               :disabled="processingAnswerId === row.original.id"
               label=""
             />
@@ -77,27 +85,27 @@
               >
                 詳細
               </UButton>
-                <UButton
-                  color="success"
-                  variant="soft"
-                  size="sm"
+              <UButton
+                color="success"
+                variant="soft"
+                size="sm"
                 @click="handleApprove(row.original.id)"
                 :loading="processingAnswerId === row.original.id"
                 :disabled="row.original.is_cancel"
-                >
-                  承認
-                </UButton>
-                <UButton
-                  color="error"
-                  variant="soft"
-                  size="sm"
+              >
+                承認
+              </UButton>
+              <UButton
+                color="error"
+                variant="soft"
+                size="sm"
                 @click="handleReject(row.original.id)"
                 :loading="processingAnswerId === row.original.id"
                 :disabled="row.original.is_cancel"
-                >
-                  却下
-                </UButton>
-              </div>
+              >
+                却下
+              </UButton>
+            </div>
           </template>
         </UTable>
       </div>
@@ -155,7 +163,7 @@ const tableMeta = computed(() => ({
 }))
 
 const columns = computed<TableColumn<FormAnswer>[]>(() => {
-  const withColWidth = <T>(col: TableColumn<T>) => ({
+  const withColWidth = <T,>(col: TableColumn<T>) => ({
     ...col,
     meta: {
       ...(col as any).meta,
@@ -171,10 +179,12 @@ const columns = computed<TableColumn<FormAnswer>[]>(() => {
     withColWidth({ accessorKey: 'no', header: 'No.' }),
     withColWidth({ accessorKey: 'id', header: '回答ID' }),
     withColWidth({ accessorKey: 'createdAt', header: '回答日時' }),
-    ...formFields.value.map(field => withColWidth({
-      accessorKey: field.id,
-      header: field.label || '（未設定）',
-    })),
+    ...formFields.value.map(field =>
+      withColWidth({
+        accessorKey: field.id,
+        header: field.label || '（未設定）',
+      })
+    ),
     withColWidth({ accessorKey: 'event_id', header: 'イベントID' }),
     withColWidth({ accessorKey: 'user_id', header: 'ユーザーID' }),
     withColWidth({
@@ -274,7 +284,9 @@ const handleToggleCancel = async (answerId: number, nextValue: boolean) => {
         is_cancel: nextValue,
       },
     })
-    toastSuccess(nextValue ? 'キャンセルにしました' : 'キャンセルを解除しました')
+    toastSuccess(
+      nextValue ? 'キャンセルにしました' : 'キャンセルを解除しました'
+    )
     await fetchAnswers()
   } catch (error) {
     console.error('キャンセル更新エラー:', error)

@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-6">
     <div class="mb-6">
-      <h1 class="text-3xl font-bold">設定</h1>
+      <h1 class="text-xl font-bold">設定</h1>
       <p class="text-gray-600 mt-2">管理画面の設定を行います。</p>
     </div>
 

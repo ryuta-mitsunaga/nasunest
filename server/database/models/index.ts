@@ -1052,6 +1052,95 @@ User.init(
   }
 )
 
+// EventReportモデル
+export interface EventReportAttributes {
+  id: number
+  event_id: number
+  admin_id: number
+  title: string
+  thumbnail: string | null
+  body: string | null
+  comment_token: string | null
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EventReportCreationAttributes
+  extends Optional<
+    EventReportAttributes,
+    'id' | 'thumbnail' | 'body' | 'comment_token' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EventReport
+  extends Model<EventReportAttributes, EventReportCreationAttributes>
+  implements EventReportAttributes
+{
+  declare id: number
+  declare event_id: number
+  declare admin_id: number
+  declare title: string
+  declare thumbnail: string | null
+  declare body: string | null
+  declare comment_token: string | null
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
+EventReport.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    event_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'events',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    admin_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    thumbnail: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Supabase StorageのURL',
+    },
+    body: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Editor.jsで作成した本文（JSON形式）',
+    },
+    comment_token: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'コメントフォーム用のトークン',
+    },
+  },
+  {
+    sequelize,
+    tableName: 'event_reports',
+    timestamps: true,
+  }
+)
+
 // FormAnswerとEventの関連
 FormAnswer.belongsTo(Event, {
   foreignKey: 'event_id',
@@ -1084,6 +1173,126 @@ FormAnswer.belongsTo(Form, {
   as: 'form',
 })
 
+// EventReportCommentモデル
+export interface EventReportCommentAttributes {
+  id: number
+  event_id: number
+  email: string
+  name: string
+  age: string | null
+  sex: string | null
+  area: string
+  comment: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EventReportCommentCreationAttributes
+  extends Optional<
+    EventReportCommentAttributes,
+    'id' | 'age' | 'sex' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EventReportComment
+  extends Model<
+    EventReportCommentAttributes,
+    EventReportCommentCreationAttributes
+  >
+  implements EventReportCommentAttributes
+{
+  declare id: number
+  declare event_id: number
+  declare email: string
+  declare name: string
+  declare age: string | null
+  declare sex: string | null
+  declare area: string
+  declare comment: string
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
+EventReportComment.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    event_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'events',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    age: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    sex: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    area: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    comment: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'event_report_comments',
+    timestamps: true,
+  }
+)
+
+// EventReportとEventの関連
+EventReport.belongsTo(Event, {
+  foreignKey: 'event_id',
+  as: 'event',
+})
+
+Event.hasMany(EventReport, {
+  foreignKey: 'event_id',
+  as: 'reports',
+})
+
+EventReport.belongsTo(Admin, {
+  foreignKey: 'admin_id',
+  as: 'admin',
+})
+
+Admin.hasMany(EventReport, {
+  foreignKey: 'admin_id',
+  as: 'eventReports',
+})
+
+// EventReportCommentとEventの関連
+EventReportComment.belongsTo(Event, {
+  foreignKey: 'event_id',
+  as: 'event',
+})
+
+Event.hasMany(EventReportComment, {
+  foreignKey: 'event_id',
+  as: 'comments',
+})
+
 // すべてのモデルをエクスポート
 export const models = {
   Member,
@@ -1098,4 +1307,6 @@ export const models = {
   EventCategory,
   EventEventCategory,
   User,
+  EventReport,
+  EventReportComment,
 }

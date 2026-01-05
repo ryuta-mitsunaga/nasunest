@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-6">
     <div class="mb-6">
-      <h1 class="text-3xl font-bold">管理画面</h1>
+      <h1 class="text-xl font-bold">管理画面</h1>
       <p class="text-gray-600 mt-2">各種管理機能にアクセスできます</p>
     </div>
 
@@ -104,6 +104,15 @@ const dashboardCards = [
     iconColor: 'red',
     to: '/admin/admins',
     permission: 'admin_management',
+  },
+  {
+    title: 'イベントレポート',
+    description:
+      'イベントのレポートを管理します。イベントレポートの作成、編集、削除が可能です。',
+    icon: 'i-heroicons-document-text',
+    iconColor: 'indigo',
+    to: '/admin/eventReports',
+    permission: 'event_management',
   },
 ]
 

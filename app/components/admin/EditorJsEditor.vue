@@ -2,7 +2,7 @@
   <div>
     <div v-if="!readOnly" class="mb-4 space-y-4">
       <!-- イベント内容入力欄 -->
-      <div>
+      <div v-if="useAi">
         <div class="flex items-center justify-between mb-2">
           <UiLabelWithHelp
             label="イベント内容（AIによる自動生成）"
@@ -72,12 +72,14 @@ interface Props {
   modelValue?: any
   data?: any // EditorJsViewerとの互換性のため
   readOnly?: boolean
+  useAi?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
   data: null,
   readOnly: false,
+  useAi: true,
 })
 
 const emit = defineEmits<{
