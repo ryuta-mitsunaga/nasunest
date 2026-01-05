@@ -140,7 +140,7 @@
 
         <!-- フォームリンク -->
         <div
-          v-if="event.form_id || (event as any).form_link"
+          v-if="showCtaButton && (event.form_id || (event as any).form_link)"
           ref="ctaButtonContainer"
           class="pt-4"
         >
@@ -154,33 +154,37 @@
         </div>
       </div>
     </div>
-    <!-- 固定CTAボタン（画面下部） -->
-    <Transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="translate-y-full opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition-all duration-300 ease-in"
-      leave-from-class="translate-y-0 opacity-100"
-      leave-to-class="translate-y-full opacity-0"
-    >
-      <div
-        v-if="showFixedCta && (event?.form_id || (event as any)?.form_link)"
-        class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
-        style="border-color: #2e5e3e"
+
+    <template v-if="showCtaButton">
+      <!-- 固定CTAボタン（画面下部） -->
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="translate-y-full opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition-all duration-300 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-full opacity-0"
       >
-        <div class="max-w-7xl mx-auto">
-          <EventsEventCtaButton
-            :approval-type="event.approval_type"
-            :is-authenticated="isAuthenticated"
-            :button-text="event.cta_button_text"
-            :redirect-path="route.fullPath"
-            :full-width="true"
-            :compact="true"
-            @click="handleCtaClick"
-          />
+        <div
+          v-if="showFixedCta && (event?.form_id || (event as any)?.form_link)"
+          class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
+          style="border-color: #2e5e3e"
+        >
+          <div class="max-w-7xl mx-auto">
+            <EventsEventCtaButton
+              :approval-type="event.approval_type"
+              :is-authenticated="isAuthenticated"
+              :button-text="event.cta_button_text"
+              :redirect-path="route.fullPath"
+              :full-width="true"
+              :compact="true"
+              :is-recruitment-closed="isRecruitmentClosed"
+              @click="handleCtaClick"
+            />
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </template>
   </div>
 </template>
 
@@ -204,6 +208,7 @@ interface Event {
     id: number
     name: string
   }>
+  status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
 }
 
 const route = useRoute()
@@ -329,4 +334,11 @@ const formatDate = (dateString: string) => {
     day: 'numeric',
   })
 }
+
+const showCtaButton = computed(() => {
+  return (
+    event.value?.status !== 'recruitment_closed' &&
+    event.value?.status !== 'closed'
+  )
+})
 </script>

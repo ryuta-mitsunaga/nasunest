@@ -84,6 +84,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: any]
+  uploading: [isUploading: boolean]
 }>()
 
 const editorContainer = ref<HTMLDivElement | null>(null)
@@ -326,11 +327,37 @@ onMounted(async () => {
       image: {
         class: Image as any,
         config: {
-          endpoints: {
-            byFile: '/api/admin/upload-image',
-          },
           features: {
             caption: 'optional',
+          },
+          uploader: {
+            uploadByFile: async (file: File) => {
+              emit('uploading', true)
+              try {
+                const formData = new FormData()
+                formData.append('image', file)
+
+                const response = await $fetch<{
+                  success: number
+                  file: { url: string }
+                }>('/api/admin/upload-image', {
+                  method: 'POST',
+                  credentials: 'include',
+                  body: formData,
+                })
+
+                if (response.success === 1 && response.file?.url) {
+                  return response
+                } else {
+                  throw new Error('画像のアップロードに失敗しました')
+                }
+              } catch (error: any) {
+                console.error('画像アップロードエラー:', error)
+                throw error
+              } finally {
+                emit('uploading', false)
+              }
+            },
           },
         },
       },

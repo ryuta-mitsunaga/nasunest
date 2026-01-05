@@ -55,7 +55,7 @@
         <p>イベントはありません</p>
       </div>
 
-      <div v-if="events.length > 0" class="mt-8 text-center">
+      <div v-if="events.length > 0" class="mt-4 text-center">
         <NuxtLink
           to="/events"
           class="inline-flex items-center gap-2 text-base md:text-lg font-semibold hover:opacity-70 transition-opacity underline"

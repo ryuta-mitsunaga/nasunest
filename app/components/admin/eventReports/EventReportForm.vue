@@ -18,7 +18,11 @@
     </UFormField>
 
     <UFormField label="内容" name="body">
-      <AdminEditorJsEditor v-model="form.body" :use-ai="false" />
+      <AdminEditorJsEditor
+        v-model="form.body"
+        :use-ai="false"
+        @uploading="$emit('uploading', $event)"
+      />
     </UFormField>
 
     <UFormField label="サムネイル" name="thumbnail">
@@ -82,6 +86,7 @@ const emit = defineEmits<{
   submit: []
   'thumbnail-upload': [event: globalThis.Event]
   'clear-thumbnail': []
+  uploading: [isUploading: boolean]
 }>()
 
 const formState = computed(() => ({

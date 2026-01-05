@@ -89,7 +89,7 @@
     </UFormField>
 
     <UFormField label="本文" name="body">
-      <AdminEditorJsEditor v-model="form.body" />
+      <AdminEditorJsEditor v-model="form.body" @uploading="$emit('uploading', $event)" />
     </UFormField>
 
     <UFormField label="場所名" name="location_name">
@@ -182,6 +182,7 @@ const emit = defineEmits<{
   'add-category': [name: string]
   'clear-thumbnail': []
   'thumbnail-upload': [event: globalThis.Event]
+  uploading: [isUploading: boolean]
 }>()
 
 const formState = computed(() => props.form)

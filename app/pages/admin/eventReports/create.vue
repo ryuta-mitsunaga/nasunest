@@ -16,10 +16,17 @@
         @submit="handleSubmit"
         @thumbnail-upload="handleThumbnailUpload"
         @clear-thumbnail="clearThumbnail"
+        @uploading="uploadingImage = $event"
       >
         <div class="flex gap-2 justify-end pt-4">
           <UButton variant="soft" to="/admin/eventReports">キャンセル</UButton>
-          <UButton type="submit" :loading="submitting">作成</UButton>
+          <UButton
+            type="submit"
+            :loading="submitting"
+            :disabled="uploadingThumbnail || uploadingImage"
+          >
+            作成
+          </UButton>
         </div>
       </AdminEventReportsEventReportForm>
     </UCard>
@@ -52,6 +59,8 @@ const form = reactive<{
 })
 
 const submitting = ref(false)
+const uploadingThumbnail = ref(false)
+const uploadingImage = ref(false)
 const events = ref<Event[]>([])
 const thumbnailPreview = ref<string | undefined>(undefined)
 
@@ -73,6 +82,7 @@ const handleThumbnailUpload = async (event: globalThis.Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (file) {
+    uploadingThumbnail.value = true
     try {
       // ファイルサイズをチェック（10MB制限）
       const maxFileSize = 10 * 1024 * 1024 // 10MB
@@ -122,6 +132,8 @@ const handleThumbnailUpload = async (event: globalThis.Event) => {
       if (target) {
         target.value = ''
       }
+    } finally {
+      uploadingThumbnail.value = false
     }
   }
 }
