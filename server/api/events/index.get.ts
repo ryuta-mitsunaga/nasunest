@@ -8,41 +8,12 @@ export default defineEventHandler(async event => {
     // 認証チェック
     const adminId = requireAdminId(event)
 
-    // クエリパラメータを取得
-    const query = getQuery(event)
-    const includeRecruitmentClosed =
-      query.includeRecruitmentClosed === 'true' ||
-      query.includeRecruitmentClosed === true
-    const includeEventEnded =
-      query.includeEventEnded === 'true' || query.includeEventEnded === true
-
     // 現在日付を取得（dayjsでタイムゾーンに依存しない日付文字列を取得）
     const todayStr = dayjs().format('YYYY-MM-DD')
 
     // where条件を構築
     const whereConditions: any = {
       admin_id: adminId,
-    }
-
-    // 募集終了のイベントを除外する条件（includeRecruitmentClosedがfalseの場合）
-    if (!includeRecruitmentClosed) {
-      const recruitmentCondition = literal(
-        `("form"."published_end" IS NULL OR "form"."published_end" >= :today)`
-      )
-      whereConditions[Op.and] = whereConditions[Op.and] || []
-      whereConditions[Op.and].push(recruitmentCondition)
-    }
-
-    // イベント終了のイベントを除外する条件（includeEventEndedがfalseの場合）
-    if (!includeEventEnded) {
-      const eventEndCondition = {
-        [Op.or]: [
-          { end_date: null },
-          { end_date: { [Op.gte]: dayjs().startOf('day').toDate() } },
-        ],
-      }
-      whereConditions[Op.and] = whereConditions[Op.and] || []
-      whereConditions[Op.and].push(eventEndCondition)
     }
 
     const events = await Event.findAll({
@@ -98,14 +69,12 @@ export default defineEventHandler(async event => {
 
         // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
         const isEventEnded = eventData.end_date
-          ? dayjs(eventData.end_date).isBefore(dayjs(), 'day') ||
-            dayjs(eventData.end_date).isSame(dayjs(), 'day')
+          ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
           : false
 
         // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
         const isRecruitmentEnded = eventData.form?.published_end
-          ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day') ||
-            dayjs(eventData.form.published_end).isSame(dayjs(), 'day')
+          ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
           : false
 
         // イベントが公開されているかどうかを判定
