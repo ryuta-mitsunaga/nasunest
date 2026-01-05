@@ -20,7 +20,7 @@
 
         <div
           v-if="statusText"
-          class="absolute w-full h-full bg-black/50 text-white flex items-center justify-center font-bold text-lg"
+          class="absolute w-full h-full bg-black/60 text-white flex items-center justify-center font-bold text-lg"
         >
           {{ statusText }}
         </div>

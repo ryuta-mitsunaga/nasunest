@@ -119,20 +119,23 @@ export default defineEventHandler(async event => {
 
     // JavaScriptでフィルタリング（募集終了・イベント終了の除外）
     const filteredEvents = allEvents.filter(event => {
+      // 全て表示する場合
+      if (includeEventEnded && includeRecruitmentClosed) return true
+
       const eventData = event.toJSON() as any
 
-      // イベントが終了しているかどうかを判定
-      const isEventEnded = eventData.end_date
-        ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
-        : false
+      // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+      let isEventEnded = false
+      if (eventData.end_date) {
+        isEventEnded = dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+      } else {
+        isEventEnded = dayjs(eventData.start_date).isAfter(dayjs(), 'day')
+      }
 
       // 募集が終了しているかどうかを判定
       const isRecruitmentEnded = eventData.form?.published_end
         ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
         : false
-
-      // 全て表示する場合
-      if (includeEventEnded && includeRecruitmentClosed) true
 
       // 募集終了のイベントを除外
       if (includeRecruitmentClosed && isRecruitmentEnded) return true

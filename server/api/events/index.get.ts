@@ -68,9 +68,12 @@ export default defineEventHandler(async event => {
           | 'recruitment_closed' = 'published'
 
         // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
-        const isEventEnded = eventData.end_date
-          ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
-          : false
+        let isEventEnded = false
+        if (eventData.end_date) {
+          isEventEnded = dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+        } else {
+          isEventEnded = dayjs(eventData.start_date).isAfter(dayjs(), 'day')
+        }
 
         // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
         const isRecruitmentEnded = eventData.form?.published_end
