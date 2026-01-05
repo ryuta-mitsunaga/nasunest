@@ -9,14 +9,21 @@
       <!-- サムネイル画像 -->
       <div
         v-if="event.thumbnail"
-        class="relative w-full overflow-hidden"
+        class="relative w-full overflow-hidden relative"
         style="aspect-ratio: 1.618 / 1"
       >
         <img
           :src="event.thumbnail"
           :alt="event.title"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover absolute"
         />
+
+        <div
+          v-if="statusText"
+          class="absolute w-full h-full bg-black/50 text-white flex items-center justify-center font-bold text-lg"
+        >
+          {{ statusText }}
+        </div>
       </div>
 
       <!-- サムネイルがない場合 -->
@@ -61,6 +68,7 @@ export interface Event {
   location_url: string | null
   thumbnail: string | null
   cta_button_text: string | null
+  status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
   categories?: Array<{
     id: number
     name: string
@@ -71,7 +79,7 @@ interface Props {
   event: Event
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
@@ -81,6 +89,24 @@ const formatDate = (dateString: string) => {
     day: 'numeric',
   })
 }
+
+const isClosed = computed(() => {
+  return props.event.status === 'closed'
+})
+
+const isRecruitmentClosed = computed(() => {
+  return props.event.status === 'recruitment_closed'
+})
+
+const statusText = computed(() => {
+  if (isClosed.value) {
+    return 'イベント終了'
+  }
+  if (isRecruitmentClosed.value) {
+    return '募集終了'
+  }
+  return ''
+})
 </script>
 
 <style scoped>

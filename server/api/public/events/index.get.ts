@@ -131,17 +131,17 @@ export default defineEventHandler(async event => {
         ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
         : false
 
-      // 募集終了のイベントを除外（includeRecruitmentClosedがfalseの場合）
-      if (!includeRecruitmentClosed && isRecruitmentEnded) {
-        return false
-      }
+      // 全て表示する場合
+      if (includeEventEnded && includeRecruitmentClosed) true
 
-      // イベント終了のイベントを除外（includeEventEndedがfalseの場合）
-      if (!includeEventEnded && isEventEnded) {
-        return false
-      }
+      // 募集終了のイベントを除外
+      if (includeRecruitmentClosed && isRecruitmentEnded) return true
 
-      return true
+      // イベント終了のイベントを除外
+      if (includeEventEnded && isEventEnded) return true
+
+      // イベント終了または募集終了のイベントを除外
+      return !(isEventEnded || isRecruitmentEnded)
     })
 
     // フィルタリング後のデータをマッピング

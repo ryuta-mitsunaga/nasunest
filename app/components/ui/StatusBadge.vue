@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 interface Props {
-  status: 'published' | 'unpublished' | 'closed'
+  status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
 }
 
 const props = defineProps<Props>()
@@ -24,6 +24,8 @@ const statusText = computed(() => {
       return '非公開'
     case 'closed':
       return '募集終了'
+    case 'recruitment_closed':
+      return 'イベント終了'
     default:
       return '不明'
   }
@@ -37,9 +39,10 @@ const statusClass = computed(() => {
       return 'bg-gray-100 text-gray-800'
     case 'closed':
       return 'bg-red-100 text-red-800'
+    case 'recruitment_closed':
+      return 'bg-yellow-100 text-yellow-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
 })
 </script>
-
