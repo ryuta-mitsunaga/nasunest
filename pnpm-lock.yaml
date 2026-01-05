@@ -38,6 +38,9 @@ dependencies:
   bcryptjs:
     specifier: ^3.0.3
     version: 3.0.3
+  dayjs:
+    specifier: ^1.11.19
+    version: 1.11.19
   floating-vue:
     specifier: ^5.2.2
     version: 5.2.2(vue@3.5.25)
@@ -3810,6 +3813,10 @@ packages:
   /data-uri-to-buffer@4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
     engines: {node: '>= 12'}
+    dev: false
+
+  /dayjs@1.11.19:
+    resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
     dev: false
 
   /db0@0.3.4:
