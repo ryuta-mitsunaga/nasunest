@@ -5,7 +5,7 @@
         <UIcon name="i-heroicons-arrow-left" />
         一覧に戻る
       </UButton>
-      <h1 class="text-3xl font-bold">新規イベント作成</h1>
+      <h1 class="text-xl font-bold">新規イベント作成</h1>
     </div>
 
     <UCard>

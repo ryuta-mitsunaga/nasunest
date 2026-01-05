@@ -1,8 +1,10 @@
 <template>
   <div class="container mx-auto p-6">
     <div class="mb-6">
-      <h1 class="text-3xl font-bold">管理者招待</h1>
-      <p class="text-gray-600 mt-2">新しい管理者を招待するためのURLを発行します</p>
+      <h1 class="text-xl font-bold">管理者招待</h1>
+      <p class="text-gray-600 mt-2">
+        新しい管理者を招待するためのURLを発行します
+      </p>
     </div>
 
     <UCard>
@@ -11,12 +13,7 @@
       </template>
 
       <div class="space-y-4">
-        <UAlert
-          v-if="error"
-          color="error"
-          variant="soft"
-          :title="error"
-        />
+        <UAlert v-if="error" color="error" variant="soft" :title="error" />
 
         <UAlert
           v-if="successMessage"
@@ -28,16 +25,8 @@
         <div v-if="invitationUrl" class="space-y-4">
           <UFormField label="招待URL">
             <div class="flex gap-2">
-              <UInput
-                :model-value="invitationUrl"
-                readonly
-                class="flex-1"
-              />
-              <UButton
-                color="primary"
-                @click="copyUrl"
-                :disabled="copying"
-              >
+              <UInput :model-value="invitationUrl" readonly class="flex-1" />
+              <UButton color="primary" @click="copyUrl" :disabled="copying">
                 {{ copying ? 'コピー中...' : 'コピー' }}
               </UButton>
             </div>
@@ -102,7 +91,8 @@ const generateInvitation = async () => {
       toast.success('招待URLを発行しました')
     }
   } catch (err: any) {
-    error.value = err.data?.message || err.message || '招待URLの発行に失敗しました'
+    error.value =
+      err.data?.message || err.message || '招待URLの発行に失敗しました'
     toast.error(error.value)
   } finally {
     loading.value = false
@@ -123,4 +113,3 @@ const copyUrl = async () => {
   }
 }
 </script>
-

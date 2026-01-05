@@ -5,11 +5,17 @@
     :loading="eventsLoading"
     :error="eventsError"
   />
+  <TopEventReportSection
+    :event-reports="eventReports"
+    :loading="eventReportsLoading"
+    :error="eventReportsError"
+  />
   <TopNasuNestSection />
 </template>
 
 <script setup lang="ts">
 import type { Event } from '~/components/events/EventCard.vue'
+import type { EventReport } from '~/components/events/EventReportCard.vue'
 
 definePageMeta({
   layout: 'top',
@@ -123,4 +129,25 @@ if (fetchError.value) {
 }
 
 eventsLoading.value = false
+
+// イベントレポートデータの取得
+const eventReportsLoading = ref(true)
+const eventReportsError = ref('')
+const eventReports = ref<EventReport[]>([])
+
+const { data: eventReportsData, error: eventReportsFetchError } =
+  await useFetch<{
+    success: boolean
+    data: EventReport[]
+  }>('/api/public/event-reports?limit=3', {
+    default: () => ({ success: true, data: [] }),
+  })
+
+if (eventReportsFetchError.value) {
+  eventReportsError.value = 'イベントレポートの取得に失敗しました'
+} else if (eventReportsData.value?.success && eventReportsData.value.data) {
+  eventReports.value = eventReportsData.value.data
+}
+
+eventReportsLoading.value = false
 </script>

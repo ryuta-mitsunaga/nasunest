@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-6">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">フォーム管理</h1>
+      <h1 class="text-xl font-bold">フォーム管理</h1>
       <UButton to="/admin/forms/create">新規作成</UButton>
     </div>
 

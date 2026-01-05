@@ -45,7 +45,7 @@
             icon="i-heroicons-cog-6-tooth"
             :to="`/admin/settings`"
             class="hidden md:flex"
-            />
+          />
         </div>
       </div>
 
@@ -148,6 +148,12 @@ const allMenus = [
     permission: 'event_management',
   },
   {
+    label: 'イベントレポート',
+    to: '/admin/eventReports',
+    icon: 'i-heroicons-document-text',
+    permission: 'event_management',
+  },
+  {
     label: '管理者招待',
     to: '/admin/invitations',
     icon: 'i-heroicons-user-plus',
@@ -177,7 +183,6 @@ const isActive = (path: string) => {
   }
   return route.path.startsWith(path)
 }
-
 </script>
 
 <style scoped>

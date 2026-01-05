@@ -6,7 +6,7 @@
         一覧に戻る
       </UButton>
       <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold">フォーム詳細</h1>
+        <h1 class="text-xl font-bold">フォーム詳細</h1>
         <UButton
           color="primary"
           variant="soft"

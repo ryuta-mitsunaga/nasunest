@@ -9,7 +9,7 @@
         <UIcon name="i-heroicons-arrow-left" />
         回答一覧に戻る
       </UButton>
-      <h1 class="text-3xl font-bold">フォーム回答詳細</h1>
+      <h1 class="text-xl font-bold">フォーム回答詳細</h1>
     </div>
 
     <div v-if="loading" class="text-center py-8">
@@ -32,7 +32,9 @@
             <p class="text-lg">{{ formatDate(answer.createdAt) }}</p>
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-600">承認ステータス</label>
+            <label class="text-sm font-medium text-gray-600"
+              >承認ステータス</label
+            >
             <div class="mt-1">
               <UBadge
                 :color="
@@ -271,4 +273,3 @@ onMounted(() => {
   fetchData()
 })
 </script>
-
