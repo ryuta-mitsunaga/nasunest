@@ -108,17 +108,25 @@ export default defineEventHandler(async event => {
     // Content-Typeを設定
     setHeader(event, 'Content-Type', 'text/csv; charset=utf-8')
 
-    // ファイル名を生成（ASCII文字のみを使用）
-    const fileName = `${escapeFileName(form.name)}_answers_${formatDateForFileName(new Date())}.csv`
+    // ファイル名を生成（ASCIIのみ・危険な文字除去）
+    const baseName =
+      escapeFileName(form.name || 'form')
+        // 非ASCII文字を削除
+        .replace(/[^\x20-\x7E]/g, '')
+        // 先頭・末尾のドットやスペースを削除
+        .replace(/^[.\s]+|[.\s]+$/g, '') || 'form'
+
+    const asciiFileName = `${baseName}_answers_${formatDateForFileName(new Date())}.csv`
 
     // Content-Dispositionヘッダーを設定（RFC 5987に準拠）
-    const encodedFileName = encodeURIComponent(
-      `${escapeFileName(form.name)}_回答一覧_${formatDateForFileName(new Date())}.csv`
-    )
+    const utf8FileName = `${escapeFileName(form.name || 'フォーム')}_回答一覧_${formatDateForFileName(
+      new Date()
+    )}.csv`
+    const encodedFileName = encodeURIComponent(utf8FileName)
     setHeader(
       event,
       'Content-Disposition',
-      `attachment; filename="${fileName}"; filename*=UTF-8''${encodedFileName}`
+      `attachment; filename="${asciiFileName}"; filename*=UTF-8''${encodedFileName}`
     )
 
     return csvWithBom
