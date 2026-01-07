@@ -1,10 +1,21 @@
-import { PickupEvent, Event } from '~~/server/database'
+import { PickupEvent, Event, Admin } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async (event) => {
   try {
     // 認証チェック
-    requireAdminId(event)
+    const adminId = requireAdminId(event)
+
+    // マスターユーザーかどうかを確認
+    const admin = await Admin.findByPk(adminId)
+    const isMaster = admin?.isMaster || false
+
+    if (!isMaster) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'ピックアップイベントの設定はマスターユーザーのみ可能です',
+      })
+    }
 
     const body = await readBody(event)
 

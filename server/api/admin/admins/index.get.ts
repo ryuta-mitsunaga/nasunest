@@ -4,7 +4,38 @@ import { requireAdminId } from '~~/server/lib/admin-auth'
 export default defineEventHandler(async (event) => {
   try {
     // 認証チェック
-    requireAdminId(event)
+    const adminId = requireAdminId(event)
+
+    // マスターユーザーまたはadmin_management権限があるかチェック
+    const currentAdmin = await Admin.findByPk(adminId, {
+      include: [
+        {
+          model: AdminPermission,
+          as: 'permissions',
+          attributes: ['code'],
+          through: { attributes: [] },
+        },
+      ],
+    })
+
+    if (!currentAdmin) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: '管理者が見つかりません',
+      })
+    }
+
+    const adminData = currentAdmin.toJSON() as any
+    const hasAdminManagementPermission = adminData.permissions?.some(
+      (p: any) => p.code === 'admin_management'
+    )
+
+    if (!adminData.isMaster && !hasAdminManagementPermission) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: '管理者管理の権限がありません',
+      })
+    }
 
     const admins = await Admin.findAll({
       include: [

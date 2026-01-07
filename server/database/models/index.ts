@@ -108,13 +108,13 @@ Member.init(
     timestamps: true,
   }
 )
-
 // Adminモデル
 export interface AdminAttributes {
   id: number
   login_id: string
   password: string
   line_user_id: string | null
+  isMaster: boolean
   createdAt?: Date
   updatedAt?: Date
 }
@@ -130,6 +130,7 @@ export class Admin
   declare login_id: string
   declare password: string
   declare line_user_id: string | null
+  declare isMaster: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -154,6 +155,12 @@ Admin.init(
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'LINEユーザーID（LIFF連携用）',
+    },
+    isMaster: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'マスターユーザーフラグ（trueの場合、管理者管理が可能）',
     },
   },
   {

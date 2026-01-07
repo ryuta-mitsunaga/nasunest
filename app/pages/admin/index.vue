@@ -29,6 +29,7 @@ interface Permission {
 interface AdminData {
   id: number
   login_id: string
+  isMaster: boolean
   permissions: Permission[]
 }
 
@@ -55,6 +56,10 @@ const permissionCodes = computed(() => {
 
 // 権限チェック関数
 const hasPermission = (permissionCode: string) => {
+  // マスターユーザーの場合は常にtrue
+  if (adminData.value?.data?.isMaster) {
+    return true
+  }
   return permissionCodes.value.includes(permissionCode)
 }
 

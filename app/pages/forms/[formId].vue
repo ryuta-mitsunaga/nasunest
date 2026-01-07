@@ -165,13 +165,6 @@ interface Form {
   }
 }
 
-if (process.server) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: 'ページが見つかりません',
-  })
-}
-
 const route = useRoute()
 const formId = computed(() => {
   const id = route.params.formId

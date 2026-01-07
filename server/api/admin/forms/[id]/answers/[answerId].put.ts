@@ -1,4 +1,4 @@
-import { Form, FormAnswer } from '~~/server/database'
+import { Form, FormAnswer, Admin } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
@@ -6,16 +6,22 @@ export default defineEventHandler(async event => {
     // 認証チェック
     const adminId = requireAdminId(event)
 
+    // マスターユーザーかどうかを確認
+    const admin = await Admin.findByPk(adminId)
+    const isMaster = admin?.isMaster || false
+
     const formId = getRouterParam(event, 'id')
     const answerId = getRouterParam(event, 'answerId')
     const body = await readBody(event)
 
-    // フォームが存在し、管理者のものか確認
+    // フォームが存在し、管理者のものか確認（マスターユーザーの場合はadmin_idチェックをスキップ）
+    const whereCondition: any = { id: formId }
+    if (!isMaster) {
+      whereCondition.admin_id = adminId
+    }
+
     const form = await Form.findOne({
-      where: {
-        id: formId,
-        admin_id: adminId,
-      },
+      where: whereCondition,
     })
 
     if (!form) {

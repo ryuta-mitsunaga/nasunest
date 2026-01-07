@@ -5,8 +5,9 @@
       <UButton to="/admin/events/create">新規作成</UButton>
     </div>
 
-    <!-- ピックアップイベントエリア -->
+    <!-- ピックアップイベントエリア（マスターユーザーのみ） -->
     <AdminPickupEventArea
+      v-if="isMaster"
       :events="events"
       :pickup-events="pickupEvents"
       :loading="pickupLoading"
@@ -222,6 +223,19 @@ const formatDate = (dateString: string | null) => {
 const { success: toastSuccess, error: toastError } = useCustomToast()
 const { confirm } = useConfirm()
 
+// 管理者情報を取得してisMasterを確認
+const { data: adminData } = await useFetch<{
+  success: boolean
+  data: { id: number; login_id: string; isMaster: boolean; permissions: any[] }
+}>('/api/admin/me', {
+  default: () => ({
+    success: false,
+    data: { id: 0, login_id: '', isMaster: false, permissions: [] },
+  }),
+})
+
+const isMaster = computed(() => adminData.value?.data?.isMaster || false)
+
 const hasPendingAnswers = computed(() => {
   return events.value.some(
     event =>
@@ -269,7 +283,9 @@ const fetchPickupEvents = async () => {
 
 onMounted(() => {
   fetchEvents()
-  fetchPickupEvents()
+  if (isMaster.value) {
+    fetchPickupEvents()
+  }
 })
 </script>
 

@@ -96,6 +96,7 @@ interface Permission {
 interface AdminData {
   id: number
   login_id: string
+  isMaster: boolean
   permissions: Permission[]
 }
 
@@ -169,6 +170,10 @@ const allMenus = [
 
 // 権限チェック済みのメニュー
 const menus = computed(() => {
+  // マスターユーザーの場合は全てのメニューを表示
+  if (adminData.value?.data?.isMaster) {
+    return allMenus
+  }
   return allMenus.filter(menu => {
     // 権限が設定されていない場合は常に表示
     if (!menu.permission) return true

@@ -19,6 +19,7 @@
         @clear-thumbnail="clearThumbnail"
         @thumbnail-upload="handleThumbnailUpload"
         @uploading="uploadingImage = $event"
+        @get-form-options="fetchForms"
       >
         <div class="flex gap-2 justify-end pt-4">
           <UButton variant="soft" to="/admin/events">キャンセル</UButton>
@@ -69,7 +70,7 @@ const form = reactive({
   published_start: '',
   published_end: '',
   capacity: null as number | null,
-  approval_type: 0 as number | null,
+  approval_type: 2,
   category_ids: [] as number[],
 })
 
@@ -201,8 +202,8 @@ const clearThumbnail = () => {
 }
 
 const handleSubmit = async () => {
-  if (!form.title.trim() || !form.start_date || !form.description.trim()) {
-    toastError('タイトル、開始日、説明は必須項目です')
+  if (!form.title.trim() || !form.start_date) {
+    toastError('タイトルと開始日は必須項目です')
     return
   }
 
@@ -243,8 +244,32 @@ const handleSubmit = async () => {
   }
 }
 
+// フォーム作成画面からのメッセージを受け取る
 onMounted(() => {
   fetchForms()
   fetchCategories()
+
+  // フォーム作成完了時のメッセージリスナー
+  if (typeof window !== 'undefined') {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return
+
+      if (event.data?.type === 'formCreated') {
+        // フォームリストを更新
+        fetchForms()
+        // 作成されたフォームを自動選択
+        if (event.data.formId) {
+          form.form_id = event.data.formId
+        }
+        toastSuccess('フォームを作成しました')
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('message', handleMessage)
+    })
+  }
 })
 </script>
