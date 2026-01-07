@@ -190,7 +190,20 @@
       <!-- 回答一覧 -->
       <UCard>
         <template #header>
-          <h2 class="text-xl font-semibold">回答一覧</h2>
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold">回答一覧</h2>
+            <div class="flex items-center gap-4">
+              <UCheckbox v-model="includeCancelled" label="キャンセルを含む" />
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-heroicons-arrow-down-tray"
+                @click="handleExportCsv"
+              >
+                CSV出力
+              </UButton>
+            </div>
+          </div>
         </template>
         <div class="p-6">
           <AdminFormsBulkEmailSender
@@ -272,6 +285,15 @@
                 >
                   詳細
                 </UButton>
+                <UButton
+                  color="error"
+                  size="sm"
+                  variant="soft"
+                  @click="handleDelete(row.original.id)"
+                  :loading="processingCancelAnswerId === row.original.id"
+                >
+                  削除
+                </UButton>
               </div>
             </template>
           </UTable>
@@ -332,6 +354,7 @@ const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const answers = ref<FormAnswer[]>([])
 const processingCancelAnswerId = ref<number | null>(null)
+const includeCancelled = ref(false)
 const { success: toastSuccess, error: toastError } = useCustomToast()
 
 // 選択状態管理
@@ -467,6 +490,85 @@ const handleToggleCancel = async (answerId: number, nextValue: boolean) => {
   } finally {
     processingCancelAnswerId.value = null
   }
+}
+
+const { confirm } = useConfirm()
+
+const handleDelete = async (answerId: number) => {
+  const confirmed = await confirm({
+    message: '本当にこの回答を削除しますか？',
+    type: 'danger',
+    confirmText: '削除',
+    cancelText: 'キャンセル',
+  })
+  if (!confirmed) return
+
+  processingCancelAnswerId.value = answerId
+  try {
+    await $fetch(`/api/admin/forms/${formId.value}/answers/${answerId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    toastSuccess('回答を削除しました')
+    await fetchFormData()
+  } catch (error) {
+    console.error('削除エラー:', error)
+    toastError('削除に失敗しました')
+  } finally {
+    processingCancelAnswerId.value = null
+  }
+}
+
+// CSV出力処理
+const handleExportCsv = async () => {
+  try {
+    const url = `/api/admin/forms/${formId.value}/answers/export-csv?includeCancelled=${includeCancelled.value}`
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.statusMessage || 'CSV出力に失敗しました')
+    }
+
+    // レスポンスからファイル名を取得（Content-Dispositionヘッダーから）
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let fileName = `${formName.value || 'フォーム'}_回答一覧_${formatDateForFileName(new Date())}.csv`
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="(.+)"/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = decodeURIComponent(fileNameMatch[1])
+      }
+    }
+
+    // Blobとして取得
+    const blob = await response.blob()
+    const urlObj = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = urlObj
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(urlObj)
+
+    toastSuccess('CSVファイルをダウンロードしました')
+  } catch (error: any) {
+    console.error('CSV出力エラー:', error)
+    toastError(error.message || 'CSV出力に失敗しました')
+  }
+}
+
+// ファイル名用の日時フォーマット
+const formatDateForFileName = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}${month}${day}_${hours}${minutes}`
 }
 
 const getFieldTypeLabel = (type: string) => {

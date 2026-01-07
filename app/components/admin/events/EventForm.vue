@@ -4,15 +4,30 @@
       <UInput v-model="form.title" placeholder="イベントタイトル" />
     </UFormField>
 
-    <UFormField label="フォーム" name="form_id">
+    <UFormField class="max-w-md" label="フォーム" name="form_id">
       <div class="space-y-3">
         <USwitch v-model="useExternalForm" label="外部フォームを使う" />
-        <USelect
-          v-if="!useExternalForm"
-          v-model="form.form_id"
-          :items="formOptions"
-          placeholder="フォームを選択（任意）"
-        />
+        <template v-if="!useExternalForm">
+          <div class="flex items-center gap-2">
+            <USelect
+              v-model="form.form_id"
+              v-model:open="isFormSelectOpen"
+              :items="formOptions"
+              placeholder="フォームを選択（任意）"
+              class="flex-1"
+            />
+            <UButton
+              :to="'/admin/forms/create?returnTo=event'"
+              target="_blank"
+              variant="soft"
+              color="primary"
+              size="sm"
+              icon="i-heroicons-plus-circle"
+            >
+              フォーム作成
+            </UButton>
+          </div>
+        </template>
 
         <div v-else class="space-y-1">
           <UInput
@@ -21,14 +36,19 @@
             type="url"
           />
           <p class="text-xs text-gray-500">
-            ONのときはイベント詳細の「参加申し込み」ボタンが外部リンクを開きます。
+            イベント詳細の「参加申し込み」ボタンが外部リンクを開きます。
           </p>
         </div>
       </div>
     </UFormField>
 
-    <UFormField label="カテゴリ" name="category_ids">
+    <UFormField name="category_ids">
+      <LabelWithHelp
+        label="カテゴリ"
+        help-text="カテゴリを選択すると、イベントに関連するカテゴリを設定できます。存在しないカテゴリはテキスト入力で追加できます。"
+      ></LabelWithHelp>
       <AdminCategorySelector
+        class="mt-1"
         :categories="categories"
         :selected-category-ids="form.category_ids"
         @update:selected-category-ids="form.category_ids = $event"
@@ -52,9 +72,14 @@
       />
     </UFormField>
 
-    <UFormField label="参加承認の方式" name="approval_type">
+    <UFormField name="approval_type">
+      <LabelWithHelp
+        label="参加承認の方式"
+        help-text="自動承認の場合は、参加申し込みが自動的に承認されます（ユーザーのログイン必須）。手動承認の場合は、管理者が手動で参加申し込みを承認する必要があります（ユーザーのログイン必須）。承認なしの場合は、ユーザーのログイン状態に関わらず参加申し込みが可能です。"
+      ></LabelWithHelp>
       <URadioGroup
-        :model-value="form.approval_type ?? 0"
+        class="mt-1"
+        :model-value="form.approval_type"
         :items="approvalTypeOptions"
         @update:model-value="form.approval_type = $event"
       />
@@ -80,16 +105,11 @@
       <UInput v-model="form.published_end" type="date" />
     </UFormField>
 
-    <UFormField label="説明" name="description" required>
-      <UTextarea
-        v-model="form.description"
-        placeholder="イベントの説明"
-        :rows="5"
+    <UFormField name="body">
+      <AdminEditorJsEditor
+        v-model="form.body"
+        @uploading="$emit('uploading', $event)"
       />
-    </UFormField>
-
-    <UFormField label="本文" name="body">
-      <AdminEditorJsEditor v-model="form.body" @uploading="$emit('uploading', $event)" />
     </UFormField>
 
     <UFormField label="場所名" name="location_name">
@@ -139,6 +159,8 @@
 </template>
 
 <script setup lang="ts">
+import LabelWithHelp from '~/components/ui/LabelWithHelp.vue'
+
 interface Form {
   id: number
   name: string
@@ -166,7 +188,7 @@ interface EventFormData {
   published_start: string
   published_end: string
   capacity: number | null
-  approval_type: number | null
+  approval_type: number
   category_ids: number[]
 }
 
@@ -183,11 +205,20 @@ const emit = defineEmits<{
   'clear-thumbnail': []
   'thumbnail-upload': [event: globalThis.Event]
   uploading: [isUploading: boolean]
+  'get-form-options': []
 }>()
 
 const formState = computed(() => props.form)
 
 const useExternalForm = ref(!!props.form.form_link?.trim())
+
+const isFormSelectOpen = ref(false)
+
+watch(isFormSelectOpen, val => {
+  if (!val) return
+
+  emit('get-form-options')
+})
 
 const displayOptions = [
   { label: '表示', value: true },

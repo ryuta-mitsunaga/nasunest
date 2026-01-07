@@ -45,9 +45,11 @@ export default defineEventHandler(async event => {
       })
     }
 
+    await answer.destroy()
+
     return {
       success: true,
-      data: answer.toJSON(),
+      message: '回答を削除しました',
     }
   } catch (error: any) {
     if (error.statusCode) {
@@ -55,7 +57,8 @@ export default defineEventHandler(async event => {
     }
     throw createError({
       statusCode: 500,
-      statusMessage: '回答の取得に失敗しました',
+      statusMessage: '回答の削除に失敗しました',
     })
   }
 })
+

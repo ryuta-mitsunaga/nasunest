@@ -35,14 +35,16 @@
         </p>
       </div>
     </div>
-    <div
-      ref="editorContainer"
-      :class="[
-        readOnly
-          ? 'editorjs-viewer'
-          : 'border rounded-lg p-4 min-h-[400px] bg-white',
-      ]"
-    ></div>
+    <UFormField label="本文" name="eventContent">
+      <div
+        ref="editorContainer"
+        :class="[
+          readOnly
+            ? 'editorjs-viewer'
+            : 'border rounded-lg p-4 min-h-[400px] bg-white',
+        ]"
+      ></div>
+    </UFormField>
 
     <!-- プレビューモーダル -->
     <UiPreviewModal

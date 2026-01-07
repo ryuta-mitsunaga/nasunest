@@ -256,7 +256,7 @@
       </div>
 
       <div class="flex gap-2 justify-end pt-4">
-        <UButton variant="soft" to="/admin/forms">キャンセル</UButton>
+        <UButton @click="$emit('cancel')" variant="soft">キャンセル</UButton>
         <UButton @click="handleSubmit" :loading="submitting">
           {{ submitLabel }}
         </UButton>
@@ -302,6 +302,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
+  cancel: []
   submit: [
     data: {
       name: string

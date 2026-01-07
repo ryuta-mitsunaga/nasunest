@@ -1,4 +1,4 @@
-import { Admin, AdminInvitation } from '~~/server/database'
+import { Admin, AdminInvitation, AdminPermission } from '~~/server/database'
 import bcrypt from 'bcryptjs'
 
 export default defineEventHandler(async event => {
@@ -57,7 +57,19 @@ export default defineEventHandler(async event => {
     const admin = await Admin.create({
       login_id,
       password: hashedPassword,
+      isMaster: false,
     })
+
+    // 初期権限を付与（form_management, event_management, invitation_management）
+    const initialPermissions = await AdminPermission.findAll({
+      where: {
+        code: ['form_management', 'event_management', 'invitation_management'],
+      },
+    })
+
+    if (initialPermissions.length > 0) {
+      await (admin as any).setPermissions(initialPermissions)
+    }
 
     // 使用済みの招待トークンを削除
     await AdminInvitation.destroy({

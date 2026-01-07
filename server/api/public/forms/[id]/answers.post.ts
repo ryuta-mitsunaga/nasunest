@@ -46,6 +46,7 @@ export default defineEventHandler(async event => {
 
     // event_idが指定されている場合、バリデーション
     let eventId: number | null = null
+    let approvalType: number | null = null
     if (body.event_id) {
       const eventIdNum = parseInt(body.event_id, 10)
       const event = await Event.findOne({
@@ -64,6 +65,7 @@ export default defineEventHandler(async event => {
       }
 
       eventId = eventIdNum
+      approvalType = event.approval_type
     }
 
     // 回答データを保存
@@ -73,6 +75,7 @@ export default defineEventHandler(async event => {
       date: new Date(),
       content: body.content || {},
       user_id: userId,
+      status: approvalType === 1 ? 0 : 1, // 手動承認の場合は回答待ち、以外の場合は承認済み
     })
 
     // LINE通知（フォーム作成者=管理者に通知）

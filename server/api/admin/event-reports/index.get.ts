@@ -1,4 +1,4 @@
-import { EventReport, Event } from '~~/server/database'
+import { EventReport, Event, Admin } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
 export default defineEventHandler(async event => {
@@ -6,10 +6,14 @@ export default defineEventHandler(async event => {
     // 認証チェック
     const adminId = requireAdminId(event)
 
+    // マスターユーザーかどうかを確認
+    const admin = await Admin.findByPk(adminId)
+    const isMaster = admin?.isMaster || false
+
+    const whereCondition: any = isMaster ? {} : { admin_id: adminId }
+
     const eventReports = await EventReport.findAll({
-      where: {
-        admin_id: adminId,
-      },
+      where: whereCondition,
       include: [
         {
           model: Event,

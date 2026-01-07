@@ -22,6 +22,7 @@
       submit-label="更新"
       :submitting="submitting"
       @submit="handleSubmit"
+      @cancel="cancelForm"
     />
   </div>
 </template>
@@ -120,6 +121,10 @@ const handleSubmit = async (data: {
   } finally {
     submitting.value = false
   }
+}
+
+const cancelForm = () => {
+  navigateTo('/admin/forms')
 }
 
 onMounted(() => {

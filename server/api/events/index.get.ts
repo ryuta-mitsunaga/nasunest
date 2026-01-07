@@ -1,4 +1,4 @@
-import { Event, Form, FormAnswer } from '~~/server/database'
+import { Event, Form, FormAnswer, Admin } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 import { Op, literal, fn, col } from 'sequelize'
 import dayjs from 'dayjs'
@@ -8,13 +8,15 @@ export default defineEventHandler(async event => {
     // 認証チェック
     const adminId = requireAdminId(event)
 
+    // マスターユーザーかどうかを確認
+    const admin = await Admin.findByPk(adminId)
+    const isMaster = admin?.isMaster || false
+
     // 現在日付を取得（dayjsでタイムゾーンに依存しない日付文字列を取得）
     const todayStr = dayjs().format('YYYY-MM-DD')
 
-    // where条件を構築
-    const whereConditions: any = {
-      admin_id: adminId,
-    }
+    // where条件を構築（マスターユーザーの場合はadmin_idでのフィルタリングをスキップ）
+    const whereConditions: any = isMaster ? {} : { admin_id: adminId }
 
     const events = await Event.findAll({
       where: whereConditions,

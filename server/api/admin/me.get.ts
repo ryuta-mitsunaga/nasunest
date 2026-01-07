@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
         id: adminData.id,
         login_id: adminData.login_id,
         line_user_id: adminData.line_user_id || null,
+        isMaster: adminData.isMaster || false,
         permissions: adminData.permissions || [],
       },
     }
