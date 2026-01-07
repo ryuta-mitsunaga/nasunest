@@ -2,7 +2,7 @@
   <div class="space-y-3">
     <!-- 未ログインかつ手動承認（ログイン必須）または自動承認の場合 -->
     <template
-      v-if="(approvalType === 1 || approvalType === 2) && !isAuthenticated"
+      v-if="(approvalType === 0 || approvalType === 1) && !isAuthenticated"
     >
       <button
         disabled
