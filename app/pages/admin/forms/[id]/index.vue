@@ -299,6 +299,67 @@
           </UTable>
         </div>
       </UCard>
+
+      <!-- メール送信ログ -->
+      <UCard>
+        <template #header>
+          <h2 class="text-xl font-semibold">メール送信ログ</h2>
+        </template>
+        <div class="p-6">
+          <div v-if="loadingLogs" class="text-center py-4">
+            <UIcon name="i-heroicons-arrow-path" class="animate-spin text-xl" />
+          </div>
+          <div
+            v-else-if="emailLogs.length === 0"
+            class="text-center py-8 text-gray-400"
+          >
+            メール送信ログがありません
+          </div>
+          <UTable
+            v-else
+            :data="emailLogs"
+            :columns="emailLogColumns"
+            class="w-full"
+          >
+            <template #status-cell="{ row }">
+              <UStatusBadge
+                :status="
+                  row.original.status === 'success' ? 'success' : 'error'
+                "
+              >
+                {{ row.original.status === 'success' ? '成功' : '失敗' }}
+              </UStatusBadge>
+            </template>
+            <template #is_test-cell="{ row }">
+              <UCheckbox
+                :model-value="row.original.is_test"
+                disabled
+                label=""
+              />
+            </template>
+            <template #createdAt-cell="{ row }">
+              <span class="text-xs text-gray-500">
+                {{ formatDate(row.original.createdAt) }}
+              </span>
+            </template>
+            <template #admin-cell="{ row }">
+              <span class="text-sm">
+                {{ row.original.admin?.login_id || '-' }}
+              </span>
+            </template>
+            <template #error_message-cell="{ row }">
+              <span
+                v-if="row.original.error_message"
+                class="text-xs text-red-600"
+                :title="row.original.error_message"
+              >
+                {{ row.original.error_message }}
+              </span>
+              <span v-else class="text-xs text-gray-400">-</span>
+            </template>
+          </UTable>
+        </div>
+      </UCard>
     </div>
 
     <!-- メール送信モーダル -->
@@ -366,6 +427,38 @@ const emailModalRef = ref<{
   setSending: (value: boolean) => void
   reset: () => void
 } | null>(null)
+
+// メール送信ログ関連
+const emailLogs = ref<any[]>([])
+const loadingLogs = ref(false)
+
+const fetchEmailLogs = async () => {
+  loadingLogs.value = true
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data: any[]
+    }>(`/api/admin/forms/${formId.value}/email-logs`, {
+      credentials: 'include',
+    })
+    emailLogs.value = response.data || []
+  } catch (error) {
+    console.error('メール送信ログ取得エラー:', error)
+  } finally {
+    loadingLogs.value = false
+  }
+}
+
+// メール送信ログのカラム定義
+const emailLogColumns = computed(() => [
+  { accessorKey: 'createdAt', header: '送信日時' },
+  { accessorKey: 'recipient_email', header: '送信先' },
+  { accessorKey: 'subject', header: '件名' },
+  { accessorKey: 'status', header: 'ステータス' },
+  { accessorKey: 'is_test', header: 'テスト配信' },
+  { accessorKey: 'admin', header: '送信者' },
+  { accessorKey: 'error_message', header: 'エラー' },
+])
 const tableMeta = computed(() => ({
   class: {
     tr: (row: TableRow<FormAnswer>) =>
@@ -799,6 +892,7 @@ const handleEmailSend = async (data: {
   to: string[]
   subject: string
   html: string
+  isTest?: boolean
 }) => {
   if (emailModalRef.value) {
     emailModalRef.value.setSending(true)
@@ -815,6 +909,8 @@ const handleEmailSend = async (data: {
           subject: data.subject,
           html: data.html,
           from: undefined, // 送信者はサーバー側のデフォルトを使用
+          form_id: parseInt(formId.value, 10),
+          is_test: data.isTest || false,
         },
       })
     )
@@ -825,11 +921,15 @@ const handleEmailSend = async (data: {
       emailModalRef.value.reset()
     }
     isEmailModalOpen.value = false
+    // ログを再取得
+    await fetchEmailLogs()
   } catch (error: any) {
     console.error('メール送信エラー:', error)
     toastError(
       error.data?.statusMessage || error.message || 'メールの送信に失敗しました'
     )
+    // エラー時もログを再取得（失敗ログが記録されているため）
+    await fetchEmailLogs()
   } finally {
     if (emailModalRef.value) {
       emailModalRef.value.setSending(false)
@@ -839,5 +939,6 @@ const handleEmailSend = async (data: {
 
 onMounted(() => {
   fetchFormData()
+  fetchEmailLogs()
 })
 </script>

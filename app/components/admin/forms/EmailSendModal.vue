@@ -6,7 +6,28 @@
 
     <template #body>
       <div class="space-y-4">
-        <div>
+        <UFormField label="テスト配信">
+          <UCheckbox
+            v-model="isTestSend"
+            label="テスト配信にする（指定メールアドレスのみに送信）"
+          />
+        </UFormField>
+
+        <div v-if="isTestSend">
+          <UFormField label="テスト送信先メールアドレス" required>
+            <UInput
+              v-model="testRecipientEmail"
+              type="email"
+              placeholder="test@example.com"
+              class="w-full"
+            />
+          </UFormField>
+          <p class="text-xs text-gray-500 mt-1">
+            テスト配信が有効な場合、このアドレスにのみ送信されます。
+          </p>
+        </div>
+
+        <div v-else>
           <label class="block text-sm font-medium text-gray-700 mb-1">
             送信先メールアドレス
             <span class="text-xs text-gray-500 ml-2"
@@ -53,7 +74,7 @@
             color="primary"
             @click="handleSend"
             :loading="sending"
-            :disabled="!form.subject || !form.html"
+            :disabled="!canSend"
           >
             送信
           </UButton>
@@ -78,7 +99,9 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  send: [data: { to: string[]; subject: string; html: string }]
+  send: [
+    data: { to: string[]; subject: string; html: string; isTest?: boolean },
+  ]
 }>()
 
 const isOpen = computed({
@@ -88,10 +111,18 @@ const isOpen = computed({
 
 const sending = ref(false)
 const selectedTemplateId = ref<string | undefined>(undefined)
+const isTestSend = ref(false)
+const testRecipientEmail = ref('')
 
 const form = reactive({
   subject: '',
   html: '',
+})
+
+const canSend = computed(() => {
+  if (!form.subject || !form.html) return false
+  if (isTestSend.value) return !!testRecipientEmail.value
+  return props.recipientEmails.length > 0
 })
 
 // テンプレート選択肢
@@ -124,17 +155,23 @@ const handleCancel = () => {
   isOpen.value = false
   form.subject = ''
   form.html = ''
+  isTestSend.value = false
+  testRecipientEmail.value = ''
 }
 
 const handleSend = () => {
-  if (props.recipientEmails.length === 0 || !form.subject || !form.html) {
-    return
-  }
+  if (!canSend.value) return
   sending.value = true
+
+  const to = isTestSend.value
+    ? [testRecipientEmail.value]
+    : props.recipientEmails
+
   emit('send', {
-    to: props.recipientEmails,
+    to,
     subject: form.subject,
     html: form.html,
+    isTest: isTestSend.value,
   })
   // 送信後は親コンポーネントでモーダルを閉じる
 }
@@ -145,6 +182,8 @@ watch(isOpen, newValue => {
     form.subject = ''
     form.html = ''
     selectedTemplateId.value = undefined
+    isTestSend.value = false
+    testRecipientEmail.value = ''
   }
 })
 

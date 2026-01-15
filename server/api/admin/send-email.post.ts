@@ -1,10 +1,11 @@
 import { sendEmail } from '~~/server/lib/gmail'
 import { requireAdminId } from '~~/server/lib/admin-auth'
+import { EmailSendLog } from '~~/server/database/models'
 
 export default defineEventHandler(async event => {
   try {
     // 認証チェック
-    requireAdminId(event)
+    const adminId = requireAdminId(event)
 
     const body = await readBody(event)
 
@@ -30,18 +31,57 @@ export default defineEventHandler(async event => {
       })
     }
 
-    // メール送信
-    await sendEmail({
-      to: body.to,
-      subject: body.subject,
-      text: body.text,
-      html: body.html,
-      from: body.from,
-    })
+    // form_idの検証
+    if (!body.form_id || typeof body.form_id !== 'number') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'フォームID（form_id）が必要です',
+      })
+    }
 
-    return {
-      success: true,
-      message: 'メールを送信しました',
+    const isTest = body.is_test === true
+
+    // メール送信
+    try {
+      await sendEmail({
+        to: body.to,
+        subject: body.subject,
+        text: body.text,
+        html: body.html,
+        from: body.from,
+      })
+
+      // 成功ログを記録
+      await EmailSendLog.create({
+        form_id: body.form_id,
+        admin_id: adminId,
+        recipient_email: body.to,
+        subject: body.subject,
+        html: body.html || null,
+        text: body.text || null,
+        status: 'success',
+        is_test: isTest,
+      })
+
+      return {
+        success: true,
+        message: 'メールを送信しました',
+      }
+    } catch (emailError: any) {
+      // 失敗ログを記録
+      await EmailSendLog.create({
+        form_id: body.form_id,
+        admin_id: adminId,
+        recipient_email: body.to,
+        subject: body.subject,
+        html: body.html || null,
+        text: body.text || null,
+        status: 'failed',
+        error_message: emailError.message || String(emailError),
+        is_test: isTest,
+      })
+
+      throw emailError
     }
   } catch (error: any) {
     console.error('メール送信APIエラー:', error)
