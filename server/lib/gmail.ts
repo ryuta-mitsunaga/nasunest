@@ -4,7 +4,7 @@ import { OAuth2Client } from 'google-auth-library'
 /**
  * Gmail APIクライアントを取得
  */
-export function getGmailClient(): OAuth2Client {
+export async function getGmailClient(): Promise<OAuth2Client> {
   const clientId = process.env.GMAIL_CLIENT_ID
   const clientSecret = process.env.GMAIL_CLIENT_SECRET
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN
@@ -19,6 +19,15 @@ export function getGmailClient(): OAuth2Client {
   oauth2Client.setCredentials({
     refresh_token: refreshToken,
   })
+
+  // アクセストークンを明示的に取得して更新（スコープを確実に適用）
+  try {
+    await oauth2Client.getAccessToken()
+  } catch (error: any) {
+    throw new Error(
+      `Gmail認証に失敗しました。リフレッシュトークンが無効またはスコープが不足している可能性があります: ${error.message}`
+    )
+  }
 
   return oauth2Client
 }
@@ -44,7 +53,7 @@ export async function sendEmail(options: {
     )
   }
 
-  const oauth2Client = getGmailClient()
+  const oauth2Client = await getGmailClient()
   const gmail = google.gmail({ version: 'v1', auth: oauth2Client })
 
   // メール本文を作成

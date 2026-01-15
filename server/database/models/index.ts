@@ -1300,6 +1300,129 @@ Event.hasMany(EventReportComment, {
   as: 'comments',
 })
 
+// EmailSendLogモデル
+export interface EmailSendLogAttributes {
+  id: number
+  form_id: number
+  admin_id: number
+  recipient_email: string
+  subject: string
+  html: string | null
+  text: string | null
+  status: 'success' | 'failed'
+  error_message: string | null
+  is_test: boolean
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EmailSendLogCreationAttributes
+  extends Optional<
+    EmailSendLogAttributes,
+    'id' | 'html' | 'text' | 'error_message' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EmailSendLog
+  extends Model<EmailSendLogAttributes, EmailSendLogCreationAttributes>
+  implements EmailSendLogAttributes
+{
+  declare id: number
+  declare form_id: number
+  declare admin_id: number
+  declare recipient_email: string
+  declare subject: string
+  declare html: string | null
+  declare text: string | null
+  declare status: 'success' | 'failed'
+  declare error_message: string | null
+  declare is_test: boolean
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
+EmailSendLog.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    form_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'forms',
+        key: 'id',
+      },
+    },
+    admin_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+    },
+    recipient_email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    subject: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    html: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    text: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.ENUM('success', 'failed'),
+      allowNull: false,
+      defaultValue: 'success',
+    },
+    error_message: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    is_test: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'email_send_logs',
+    timestamps: true,
+  }
+)
+
+// EmailSendLogとFormの関連
+EmailSendLog.belongsTo(Form, {
+  foreignKey: 'form_id',
+  as: 'form',
+})
+
+Form.hasMany(EmailSendLog, {
+  foreignKey: 'form_id',
+  as: 'emailSendLogs',
+})
+
+// EmailSendLogとAdminの関連
+EmailSendLog.belongsTo(Admin, {
+  foreignKey: 'admin_id',
+  as: 'admin',
+})
+
+Admin.hasMany(EmailSendLog, {
+  foreignKey: 'admin_id',
+  as: 'emailSendLogs',
+})
+
 // すべてのモデルをエクスポート
 export const models = {
   Member,
@@ -1316,4 +1439,5 @@ export const models = {
   User,
   EventReport,
   EventReportComment,
+  EmailSendLog,
 }
