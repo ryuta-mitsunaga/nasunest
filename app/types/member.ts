@@ -18,6 +18,7 @@ export interface Member {
   x_url: string | null
   instagram_url: string | null
   facebook_url: string | null
+  homepage_url: string | null
   createdAt?: string
   updatedAt?: string
 }

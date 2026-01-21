@@ -69,6 +69,13 @@
       />
     </UFormField>
 
+    <UFormField label="ホームページ" name="homepage_url">
+      <UInput
+        v-model="form.homepage_url"
+        placeholder="https://example.com/..."
+      />
+    </UFormField>
+
     <slot />
   </UForm>
 </template>
@@ -85,6 +92,7 @@ export interface MemberFormData {
   x_url: string
   instagram_url: string
   facebook_url: string
+  homepage_url: string
 }
 
 const props = defineProps<{
