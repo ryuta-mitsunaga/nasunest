@@ -63,6 +63,7 @@ const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const formPublishedStart = ref<string | null>(null)
 const formPublishedEnd = ref<string | null>(null)
+const { showFetchErrorPage } = useAdminErrorPage()
 
 const fetchForm = async () => {
   loading.value = true
@@ -81,8 +82,9 @@ const fetchForm = async () => {
     formPublishedEnd.value = form.published_end
   } catch (error) {
     console.error('フォーム取得エラー:', error)
-    toastError('フォームの取得に失敗しました')
-    await navigateTo('/admin/forms')
+    // 初期表示の取得失敗はエラー画面にする
+    showFetchErrorPage(error, 'フォームの取得に失敗しました')
+    return
   } finally {
     loading.value = false
   }

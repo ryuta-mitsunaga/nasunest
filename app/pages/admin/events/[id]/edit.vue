@@ -46,6 +46,7 @@ definePageMeta({
 })
 
 const { success: toastSuccess, error: toastError } = useCustomToast()
+const { showFetchErrorPage } = useAdminErrorPage()
 
 interface Event {
   id: number
@@ -180,8 +181,9 @@ const fetchEvent = async () => {
     thumbnailPreview.value = eventData.thumbnail || null
   } catch (error) {
     console.error('イベント取得エラー:', error)
-    toastError('イベントの取得に失敗しました')
-    await navigateTo('/admin/events')
+    // 初期表示の取得失敗はエラー画面にする
+    showFetchErrorPage(error, 'イベントの取得に失敗しました')
+    return
   } finally {
     loading.value = false
   }
