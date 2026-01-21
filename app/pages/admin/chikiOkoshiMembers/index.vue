@@ -95,6 +95,7 @@
                 :x-url="memberForm.x_url"
                 :instagram-url="memberForm.instagram_url"
                 :facebook-url="memberForm.facebook_url"
+                :homepage-url="memberForm.homepage_url"
               />
             </div>
           </div>
@@ -133,6 +134,7 @@ const memberForm = reactive({
   x_url: '',
   instagram_url: '',
   facebook_url: '',
+  homepage_url: '',
 })
 
 const columns: TableColumn<Member>[] = [
@@ -173,6 +175,7 @@ const openCreateModal = () => {
     x_url: '',
     instagram_url: '',
     facebook_url: '',
+    homepage_url: '',
   })
   isModalOpen.value = true
 }
@@ -189,6 +192,7 @@ const openEditModal = (member: any) => {
   memberForm.x_url = member.x_url || ''
   memberForm.instagram_url = member.instagram_url || ''
   memberForm.facebook_url = member.facebook_url || ''
+  memberForm.homepage_url = member.homepage_url || ''
   iconPreview.value = member.icon || null
 
   isModalOpen.value = true

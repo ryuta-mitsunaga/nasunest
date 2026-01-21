@@ -14,6 +14,7 @@ export interface MemberAttributes {
   x_url: string | null
   instagram_url: string | null
   facebook_url: string | null
+  homepage_url: string | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -27,6 +28,7 @@ export interface MemberCreationAttributes
     | 'x_url'
     | 'instagram_url'
     | 'facebook_url'
+    | 'homepage_url'
     | 'createdAt'
     | 'updatedAt'
   > {}
@@ -46,6 +48,7 @@ export class Member
   declare x_url: string | null
   declare instagram_url: string | null
   declare facebook_url: string | null
+  declare homepage_url: string | null
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -100,6 +103,11 @@ Member.init(
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'FacebookのURL',
+    },
+    homepage_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'ホームページのURL',
     },
   },
   {

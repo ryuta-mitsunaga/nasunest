@@ -62,6 +62,7 @@ export default defineEventHandler(async event => {
       x_url: body.x_url || null,
       instagram_url: body.instagram_url || null,
       facebook_url: body.facebook_url || null,
+      homepage_url: body.homepage_url || null,
     })
 
     // レスポンス用にiconをURLまたはBase64文字列に変換

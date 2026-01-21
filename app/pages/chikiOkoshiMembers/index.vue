@@ -57,6 +57,7 @@
         :x-url="member.x_url"
         :instagram-url="member.instagram_url"
         :facebook-url="member.facebook_url"
+        :homepage-url="member.homepage_url"
       />
     </div>
 

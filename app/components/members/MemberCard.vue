@@ -41,6 +41,17 @@
           <!-- SNSリンク -->
           <div v-if="hasSnsLinks" class="flex gap-3 mt-3">
             <a
+              v-if="homepageUrl"
+              :href="homepageUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-gray-600 hover:text-[#2E5E3E] transition-colors"
+              aria-label="ホームページ"
+              title="ホームページ"
+            >
+              <UIcon name="i-heroicons-link" class="w-5 h-5" />
+            </a>
+            <a
               v-if="xUrl"
               :href="xUrl"
               target="_blank"
@@ -96,6 +107,7 @@ interface Props {
   xUrl?: string | null
   instagramUrl?: string | null
   facebookUrl?: string | null
+  homepageUrl?: string | null
 }
 
 const props = defineProps<Props>()
@@ -105,7 +117,7 @@ const displayName = computed(() => {
 })
 
 const hasSnsLinks = computed(() => {
-  return !!(props.xUrl || props.instagramUrl || props.facebookUrl)
+  return !!(props.xUrl || props.instagramUrl || props.facebookUrl || props.homepageUrl)
 })
 </script>
 
