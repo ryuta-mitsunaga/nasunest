@@ -167,6 +167,7 @@ const processing = ref(false)
 const formFields = ref<FormField[]>([])
 const answer = ref<FormAnswer | null>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
+const { showFetchErrorPage } = useAdminErrorPage()
 
 const fetchData = async () => {
   loading.value = true
@@ -191,8 +192,9 @@ const fetchData = async () => {
     answer.value = answerResponse.data
   } catch (error) {
     console.error('データ取得エラー:', error)
-    toastError('データの取得に失敗しました')
-    await navigateTo(`/admin/forms/${formId.value}/answers`)
+    // 初期表示の取得失敗はエラー画面にする
+    showFetchErrorPage(error, 'データの取得に失敗しました')
+    return
   } finally {
     loading.value = false
   }

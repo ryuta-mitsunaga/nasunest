@@ -155,6 +155,7 @@ const answers = ref<FormAnswer[]>([])
 const formFields = ref<FormField[]>([])
 const processingAnswerId = ref<number | null>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
+const { showFetchErrorPage } = useAdminErrorPage()
 const tableMeta = computed(() => ({
   class: {
     tr: (row: TableRow<FormAnswer>) =>
@@ -212,7 +213,9 @@ const fetchFormFields = async () => {
     )
   } catch (e) {
     console.error('フォーム項目取得エラー:', e)
-    formFields.value = []
+    // 初期表示の取得失敗はエラー画面にする
+    showFetchErrorPage(e, 'フォーム項目の取得に失敗しました')
+    return
   }
 }
 
@@ -228,7 +231,9 @@ const fetchAnswers = async () => {
     answers.value = response.data || []
   } catch (error) {
     console.error('回答取得エラー:', error)
-    toastError('回答の取得に失敗しました')
+    // 初期表示の取得失敗はエラー画面にする
+    showFetchErrorPage(error, '回答の取得に失敗しました')
+    return
   } finally {
     loading.value = false
   }

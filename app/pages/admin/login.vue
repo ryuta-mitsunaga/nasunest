@@ -63,7 +63,10 @@ const onSubmit = async () => {
     })
 
     if ((response as any).success) {
-      await navigateTo('/admin')
+      // クエリパラメータからリダイレクト先を取得
+      const route = useRoute()
+      const redirectTo = (route.query.redirect as string) || '/admin'
+      await navigateTo(redirectTo)
     }
   } catch (err: any) {
     error.value = err.data?.message || err.message || 'ログインに失敗しました'

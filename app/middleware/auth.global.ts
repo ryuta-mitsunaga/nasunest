@@ -18,16 +18,20 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (event) {
       const encryptedAdminId = getCookie(event, 'adminId')
       if (!encryptedAdminId) {
-        return navigateTo('/admin/login')
+        // リダイレクト先をクエリパラメータで渡す
+        const redirectTo = `/admin/login?redirect=${encodeURIComponent(to.fullPath)}`
+        return navigateTo(redirectTo)
       }
       // クッキーが存在する場合でも、有効性を確認
       try {
         const adminId = decryptId(encryptedAdminId)
         if (!adminId) {
-          return navigateTo('/admin/login')
+          const redirectTo = `/admin/login?redirect=${encodeURIComponent(to.fullPath)}`
+          return navigateTo(redirectTo)
         }
       } catch (error) {
-        return navigateTo('/admin/login')
+        const redirectTo = `/admin/login?redirect=${encodeURIComponent(to.fullPath)}`
+        return navigateTo(redirectTo)
       }
     }
     return
@@ -37,10 +41,14 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   try {
     const response = await $fetch('/api/admin/me')
     if (!response.success) {
-      return navigateTo('/admin/login')
+      // リダイレクト先をクエリパラメータで渡す
+      const redirectTo = `/admin/login?redirect=${encodeURIComponent(to.fullPath)}`
+      return navigateTo(redirectTo)
     }
   } catch (error) {
-    return navigateTo('/admin/login')
+    // リダイレクト先をクエリパラメータで渡す
+    const redirectTo = `/admin/login?redirect=${encodeURIComponent(to.fullPath)}`
+    return navigateTo(redirectTo)
   }
 })
 

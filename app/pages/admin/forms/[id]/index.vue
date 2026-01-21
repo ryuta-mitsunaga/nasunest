@@ -191,7 +191,17 @@
       <UCard>
         <template #header>
           <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold">回答一覧</h2>
+            <div class="flex items-center gap-3">
+              <h2 class="text-xl font-semibold">回答一覧</h2>
+              <UButton
+                variant="soft"
+                icon="i-heroicons-link"
+                @click="handleShareResults"
+                :loading="copyingResults"
+              >
+                共有
+              </UButton>
+            </div>
             <div class="flex items-center gap-4">
               <UCheckbox v-model="includeCancelled" label="キャンセルを含む" />
               <UButton
@@ -417,6 +427,7 @@ const answers = ref<FormAnswer[]>([])
 const processingCancelAnswerId = ref<number | null>(null)
 const includeCancelled = ref(false)
 const { success: toastSuccess, error: toastError } = useCustomToast()
+const { showFetchErrorPage } = useAdminErrorPage()
 
 // 選択状態管理
 const selectedAnswerIds = ref<number[]>([])
@@ -431,6 +442,9 @@ const emailModalRef = ref<{
 // メール送信ログ関連
 const emailLogs = ref<any[]>([])
 const loadingLogs = ref(false)
+
+// 共有機能関連
+const copyingResults = ref(false)
 
 const fetchEmailLogs = async () => {
   loadingLogs.value = true
@@ -558,8 +572,9 @@ const fetchFormData = async () => {
     answers.value = answersResponse.data || []
   } catch (error) {
     console.error('データ取得エラー:', error)
-    toastError('データの取得に失敗しました')
-    await navigateTo('/admin/forms')
+    // 初期表示の取得失敗はエラー画面にする（操作系はトーストのまま）
+    showFetchErrorPage(error, 'データの取得に失敗しました')
+    return
   } finally {
     loading.value = false
   }
@@ -934,6 +949,21 @@ const handleEmailSend = async (data: {
     if (emailModalRef.value) {
       emailModalRef.value.setSending(false)
     }
+  }
+}
+
+// 回答状況ページのURLをクリップボードにコピー
+const handleShareResults = async () => {
+  copyingResults.value = true
+  try {
+    const url = `${window.location.origin}/admin/forms/${formId.value}/results`
+    await navigator.clipboard.writeText(url)
+    toastSuccess('URLをクリップボードにコピーしました')
+  } catch (error) {
+    console.error('コピーエラー:', error)
+    toastError('URLのコピーに失敗しました')
+  } finally {
+    copyingResults.value = false
   }
 }
 

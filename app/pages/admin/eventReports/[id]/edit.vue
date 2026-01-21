@@ -50,6 +50,7 @@ const route = useRoute()
 const id = computed(() => route.params.id as string)
 
 const { success: toastSuccess, error: toastError } = useCustomToast()
+const { showFetchErrorPage } = useAdminErrorPage()
 
 interface Event {
   id: number
@@ -121,7 +122,9 @@ const fetchEventReport = async () => {
     }
   } catch (error) {
     console.error('イベントレポート取得エラー:', error)
-    toastError('イベントレポートの取得に失敗しました')
+    // 初期表示の取得失敗はエラー画面にする
+    showFetchErrorPage(error, 'イベントレポートの取得に失敗しました')
+    return
   } finally {
     loading.value = false
   }
