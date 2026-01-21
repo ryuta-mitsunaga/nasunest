@@ -5,7 +5,12 @@
       borderColor: event.form_id ? '#F4D35E' : 'transparent',
     }"
   >
-    <NuxtLink :to="`/events/${event.id}`" class="block">
+    <NuxtLink :to="`/events/${event.id}`" class="block h-full relative">
+      <!-- 終了/募集終了のときはカード全体に薄グレーのオーバーレイを被せる -->
+      <div
+        v-if="isClosedOrRecruitmentClosed"
+        class="absolute inset-0 bg-black opacity-20 z-10 pointer-events-none"
+      />
       <!-- サムネイル画像 -->
       <div
         v-if="event.thumbnail"
@@ -17,13 +22,6 @@
           :alt="event.title"
           class="w-full h-full object-cover absolute"
         />
-
-        <div
-          v-if="statusText"
-          class="absolute w-full h-full bg-black/50 text-white flex items-center justify-center font-bold text-lg"
-        >
-          {{ statusText }}
-        </div>
       </div>
 
       <!-- サムネイルがない場合 -->
@@ -39,6 +37,7 @@
       <div class="py-3 px-4 space-y-2">
         <!-- カテゴリ -->
         <EventsEventCategories :categories="event.categories" />
+        <div>
         <!-- タイトル -->
         <h2 class="text-md font-bold line-clamp-3" style="color: #2e5e3e">
           {{ event.title }}
@@ -50,6 +49,7 @@
             〜 {{ formatDate(event.end_date) }}
           </span>
         </div>
+      </div>
       </div>
     </NuxtLink>
   </div>
@@ -98,14 +98,8 @@ const isRecruitmentClosed = computed(() => {
   return props.event.status === 'recruitment_closed'
 })
 
-const statusText = computed(() => {
-  if (isClosed.value) {
-    return 'イベント終了'
-  }
-  if (isRecruitmentClosed.value) {
-    return '募集終了'
-  }
-  return ''
+const isClosedOrRecruitmentClosed = computed(() => {
+  return isClosed.value || isRecruitmentClosed.value
 })
 </script>
 
