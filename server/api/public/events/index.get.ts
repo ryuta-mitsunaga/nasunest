@@ -21,11 +21,7 @@ export default defineEventHandler(async event => {
       : []
     const startDate = (query.startDate as string) || ''
     const endDate = (query.endDate as string) || ''
-    const includeRecruitmentClosed =
-      query.includeRecruitmentClosed === 'true' ||
-      query.includeRecruitmentClosed === true
-    const includeEventEnded =
-      query.includeEventEnded === 'true' || query.includeEventEnded === true
+    const onlyOpen = query.onlyOpen === 'true' || query.onlyOpen === true
 
     // 検索条件を構築
     const whereConditions: any[] = [
@@ -117,30 +113,22 @@ export default defineEventHandler(async event => {
       offset: 0,
     })
 
-    // JavaScriptでフィルタリング（募集終了・イベント終了の除外）
+    // JavaScriptでフィルタリング
+    // - デフォルト: 全件表示（終了/募集終了も含む）
+    // - onlyOpen=true: 「募集中のみ」（イベント未終了 かつ 募集未終了）
     const filteredEvents = allEvents.filter(event => {
+      if (!onlyOpen) return true
+
       const eventData = event.toJSON() as any
 
-      // イベントが終了しているかどうかを判定
       const isEventEnded = eventData.end_date
         ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
         : false
 
-      // 募集が終了しているかどうかを判定
       const isRecruitmentEnded = eventData.form?.published_end
         ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
         : false
 
-      // 全て表示する場合
-      if (includeEventEnded && includeRecruitmentClosed) true
-
-      // 募集終了のイベントを除外
-      if (includeRecruitmentClosed && isRecruitmentEnded) return true
-
-      // イベント終了のイベントを除外
-      if (includeEventEnded && isEventEnded) return true
-
-      // イベント終了または募集終了のイベントを除外
       return !(isEventEnded || isRecruitmentEnded)
     })
 

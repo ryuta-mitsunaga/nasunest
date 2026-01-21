@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -10,7 +10,8 @@ services:
       POSTGRES_USER: ${DB_USER:-${MYSQL_USER:-app_user}}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-${MYSQL_PASSWORD:-app_password}}
     ports:
-      - "${DB_PORT:-${MYSQL_PORT:-5432}}:5432"
+      # ホスト側ポートは衝突しやすいのでデフォルトをずらす（必要ならDB_PORTで上書き）
+      - "${DB_PORT:-${MYSQL_PORT:-5433}}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
@@ -25,7 +26,8 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
     ports:
-      - "${PGADMIN_PORT:-8080}:80"
+      # ホスト側ポートは衝突しやすいのでデフォルトをずらす（必要ならPGADMIN_PORTで上書き）
+      - "${PGADMIN_PORT:-8081}:80"
     depends_on:
       - postgres
     networks:
@@ -38,4 +40,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-

@@ -80,8 +80,7 @@ const searchFilters = reactive({
   categoryIds: [] as number[],
   startDate: '',
   endDate: '',
-  includeEventEnded: false,
-  includeRecruitmentClosed: false,
+  onlyOpen: false,
 })
 
 interface PaginationResponse {
@@ -118,12 +117,8 @@ const buildQueryString = (page: number) => {
     params.append('endDate', searchFilters.endDate)
   }
 
-  if (searchFilters.includeEventEnded) {
-    params.append('includeEventEnded', 'true')
-  }
-
-  if (searchFilters.includeRecruitmentClosed) {
-    params.append('includeRecruitmentClosed', 'true')
+  if (searchFilters.onlyOpen) {
+    params.append('onlyOpen', 'true')
   }
 
   return params.toString()
@@ -242,16 +237,13 @@ const handleSearch = (filters: {
   categoryIds: number[]
   startDate?: string
   endDate?: string
-  includeEventEnded?: boolean
-  includeRecruitmentClosed?: boolean
+  onlyOpen?: boolean
 }) => {
   searchFilters.keyword = filters.keyword
   searchFilters.categoryIds = filters.categoryIds
   searchFilters.startDate = filters.startDate || ''
   searchFilters.endDate = filters.endDate || ''
-  searchFilters.includeEventEnded = filters.includeEventEnded || false
-  searchFilters.includeRecruitmentClosed =
-    filters.includeRecruitmentClosed || false
+  searchFilters.onlyOpen = filters.onlyOpen || false
   // 検索時は1ページ目から再取得
   currentPage.value = 1
   additionalEvents.value = []
