@@ -33,6 +33,7 @@
     "floating-vue": "^5.2.2",
     "google-auth-library": "^10.5.0",
     "googleapis": "^144.0.0",
+    "nodemailer": "^7.0.12",
     "nuxt": "^4.2.1",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
@@ -43,6 +44,7 @@
   "packageManager": "pnpm@8.10.5+sha1.4370a069f21873a0ad83c785b8048ed8caf6e6e9",
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
+    "@types/nodemailer": "^7.0.5",
     "dotenv": "^17.2.3",
     "prettier": "^3.6.2",
     "sequelize-cli": "^6.6.3",
