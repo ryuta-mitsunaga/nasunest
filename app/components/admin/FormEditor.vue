@@ -16,12 +16,12 @@
         />
       </UFormField>
 
-      <UFormField label="公開開始日" name="published_start">
-        <UInput v-model="localPublishedStart" type="date" />
+      <UFormField label="公開開始日時" name="published_start">
+        <UInput v-model="localPublishedStart" type="datetime-local" />
       </UFormField>
 
-      <UFormField label="公開終了日" name="published_end">
-        <UInput v-model="localPublishedEnd" type="date" />
+      <UFormField label="公開終了日時" name="published_end">
+        <UInput v-model="localPublishedEnd" type="datetime-local" />
       </UFormField>
 
       <!-- フィールドエディタ -->
@@ -215,12 +215,15 @@
                     variant="soft"
                     size="sm"
                     @click="removeDateOption(index, optIndex)"
-                    class="mb-0"
                   >
                     削除
                   </UButton>
                 </div>
-                <UButton size="sm" variant="soft" @click="addDateOption(index)">
+                <UButton
+                  size="sm"
+                  variant="soft"
+                  @click="addDateOption(index)"
+                >
                   日程を追加
                 </UButton>
               </div>
@@ -462,12 +465,17 @@ const handleSubmit = () => {
     return
   }
 
+  // 空文字列をnullに変換するヘルパー関数
+  const toNullIfEmpty = (value: string | null | undefined): string | null => {
+    return value && value.trim() ? value : null
+  }
+
   emit('submit', {
     name: localFormName.value,
     description: localFormDescription.value || undefined,
     fields: localFormFields.value,
-    published_start: localPublishedStart.value || null,
-    published_end: localPublishedEnd.value || null,
+    published_start: toNullIfEmpty(localPublishedStart.value),
+    published_end: toNullIfEmpty(localPublishedEnd.value),
   })
 }
 </script>

@@ -4,8 +4,7 @@ import { Op } from 'sequelize'
 export default defineEventHandler(async event => {
   try {
     const baseUrl = 'https://www.nasunest.com'
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const now = new Date()
 
     // 公開されているイベントを取得
     const events = await Event.findAll({
@@ -15,13 +14,13 @@ export default defineEventHandler(async event => {
           {
             [Op.or]: [
               { published_start: null },
-              { published_start: { [Op.lte]: today } },
+              { published_start: { [Op.lte]: now } },
             ],
           },
           {
             [Op.or]: [
               { published_end: null },
-              { published_end: { [Op.gte]: today } },
+              { published_end: { [Op.gte]: now } },
             ],
           },
         ],

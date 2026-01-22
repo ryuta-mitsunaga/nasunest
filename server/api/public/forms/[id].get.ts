@@ -6,9 +6,8 @@ export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id')
 
     // 公開用なので認証不要でフォームを取得
-    // 公開期間を考慮
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // 公開期間を考慮（分まで考慮）
+    const now = new Date()
 
     const form = await Form.findOne({
       where: {
@@ -17,13 +16,13 @@ export default defineEventHandler(async (event) => {
           {
             [Op.or]: [
               { published_start: null },
-              { published_start: { [Op.lte]: today } },
+              { published_start: { [Op.lte]: now } },
             ],
           },
           {
             [Op.or]: [
               { published_end: null },
-              { published_end: { [Op.gte]: today } },
+              { published_end: { [Op.gte]: now } },
             ],
           },
         ],

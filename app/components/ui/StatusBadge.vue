@@ -23,9 +23,9 @@ const statusText = computed(() => {
     case 'unpublished':
       return '非公開'
     case 'closed':
-      return '募集終了'
+      return '終了'
     case 'recruitment_closed':
-      return 'イベント終了'
+      return '募集終了'
     default:
       return '不明'
   }

@@ -5,10 +5,9 @@ import dayjs from 'dayjs'
 export default defineEventHandler(async event => {
   try {
     // 公開用なので認証不要でイベントを取得（公開されているもののみ）
-    // 公開期間を考慮
+    // 公開期間を考慮（分まで考慮）
     const id = getRouterParam(event, 'id')
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const now = new Date()
 
     const eventData = await Event.findOne<Event & { form: Form }>({
       where: {
@@ -18,13 +17,13 @@ export default defineEventHandler(async event => {
           {
             [Op.or]: [
               { published_start: null },
-              { published_start: { [Op.lte]: today } },
+              { published_start: { [Op.lte]: now } },
             ],
           },
           {
             [Op.or]: [
               { published_end: null },
-              { published_end: { [Op.gte]: today } },
+              { published_end: { [Op.gte]: now } },
             ],
           },
         ],
@@ -56,14 +55,14 @@ export default defineEventHandler(async event => {
     let status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed' =
       'published'
 
-    // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+    // イベントが終了しているかどうかを判定（分まで考慮）
     const isEventEnded = eventData.end_date
-      ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+      ? dayjs(eventData.end_date).isBefore(dayjs())
       : false
 
-    // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+    // 募集が終了しているかどうかを判定（分まで考慮）
     const isRecruitmentEnded = eventData.form?.published_end
-      ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
+      ? dayjs(eventData.form.published_end).isBefore(dayjs())
       : false
 
     // イベントが公開されているかどうかを判定

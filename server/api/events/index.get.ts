@@ -69,25 +69,30 @@ export default defineEventHandler(async event => {
           | 'closed'
           | 'recruitment_closed' = 'published'
 
-        // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
-        const isEventEnded = eventData.end_date
-          ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
-          : false
+        const now = dayjs()
 
-        // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
-        const isRecruitmentEnded = eventData.form?.published_end
-          ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
-          : false
-
-        // イベントが公開されているかどうかを判定
-        const isPublished = eventData.is_displayed
-
-        if (isEventEnded) {
-          status = 'closed'
-        } else if (isRecruitmentEnded) {
-          status = 'recruitment_closed'
-        } else if (!isPublished) {
+        // 非表示の場合は非公開
+        if (!eventData.is_displayed) {
           status = 'unpublished'
+        } else {
+          // イベントが終了しているかどうかを判定（分まで考慮）
+          const isEventEnded = eventData.end_date
+            ? dayjs(eventData.end_date).isBefore(now)
+            : false
+
+          // 募集が終了しているかどうかを判定（分まで考慮）
+          const isRecruitmentEnded = eventData.form?.published_end
+            ? dayjs(eventData.form.published_end).isBefore(now)
+            : false
+
+          // ステータス判定
+          if (isEventEnded && isRecruitmentEnded) {
+            status = 'closed' // イベント終了 && 募集終了 = イベント終了
+          } else if (!isEventEnded && isRecruitmentEnded) {
+            status = 'recruitment_closed' // !イベント終了 && 募集終了 = 募集終了
+          } else {
+            status = 'published' // !イベント終了 && !募集終了 = 公開
+          }
         }
 
         // 未回答申し込み数を取得

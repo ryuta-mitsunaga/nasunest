@@ -20,10 +20,10 @@
           {{ forms.indexOf(row.original) + 1 }}
         </template>
         <template #published_start-cell="{ row }">
-          {{ formatDate(row.original.published_start) }}
+          {{ formatDateTime(row.original.published_start) }}
         </template>
         <template #published_end-cell="{ row }">
-          {{ formatDate(row.original.published_end) }}
+          {{ formatDateTime(row.original.published_end) }}
         </template>
         <template #actions-cell="{ row }">
           <div class="flex gap-2">
@@ -92,8 +92,8 @@ const columns: TableColumn<Form>[] = [
   { accessorKey: 'id', header: 'No.' },
   { accessorKey: 'name', header: 'フォーム名' },
   { accessorKey: 'answers_count', header: '応募数' },
-  { accessorKey: 'published_start', header: '公開開始日' },
-  { accessorKey: 'published_end', header: '公開終了日' },
+  { accessorKey: 'published_start', header: '公開開始日時' },
+  { accessorKey: 'published_end', header: '公開終了日時' },
   { accessorKey: 'createdAt', header: '作成日' },
   { accessorKey: 'actions', header: '操作' },
 ]
@@ -153,13 +153,15 @@ const handleDelete = async (id: number) => {
   }
 }
 
-const formatDate = (dateString: string | null) => {
+const formatDateTime = (dateString: string | null) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP', {
+  return date.toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 

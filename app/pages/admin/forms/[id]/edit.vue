@@ -65,6 +65,21 @@ const formPublishedStart = ref<string | null>(null)
 const formPublishedEnd = ref<string | null>(null)
 const { showFetchErrorPage } = useAdminErrorPage()
 
+// 日時をdatetime-local形式に変換する関数
+const toDateTimeLocal = (dateString: string | null | undefined): string => {
+  if (!dateString) return ''
+  // ISO 8601形式やその他の形式をdatetime-local形式（YYYY-MM-DDTHH:mm）に変換
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return ''
+  // ローカルタイムゾーンで日時を取得
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 const fetchForm = async () => {
   loading.value = true
   try {
@@ -78,8 +93,8 @@ const fetchForm = async () => {
     formName.value = form.name
     formDescription.value = form.content.description || ''
     formFields.value = JSON.parse(JSON.stringify(form.content.fields || []))
-    formPublishedStart.value = form.published_start
-    formPublishedEnd.value = form.published_end
+    formPublishedStart.value = toDateTimeLocal(form.published_start)
+    formPublishedEnd.value = toDateTimeLocal(form.published_end)
   } catch (error) {
     console.error('フォーム取得エラー:', error)
     // 初期表示の取得失敗はエラー画面にする
@@ -88,6 +103,11 @@ const fetchForm = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 空文字列をnullに変換するヘルパー関数
+const toNullIfEmpty = (value: string | null | undefined): string | null => {
+  return value && value.trim() ? value : null
 }
 
 const handleSubmit = async (data: {
@@ -110,8 +130,8 @@ const handleSubmit = async (data: {
       body: {
         name: data.name,
         content,
-        published_start: data.published_start || null,
-        published_end: data.published_end || null,
+        published_start: toNullIfEmpty(data.published_start),
+        published_end: toNullIfEmpty(data.published_end),
       },
     })
 

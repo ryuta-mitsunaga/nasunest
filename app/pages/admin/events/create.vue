@@ -201,6 +201,11 @@ const clearThumbnail = () => {
   form.thumbnail = null
 }
 
+// 空文字列をnullに変換するヘルパー関数
+const toNullIfEmpty = (value: string | null | undefined): string | null => {
+  return value && value.trim() ? value : null
+}
+
 const handleSubmit = async () => {
   if (!form.title.trim() || !form.start_date) {
     toastError('タイトルと開始日は必須項目です')
@@ -216,8 +221,8 @@ const handleSubmit = async () => {
         title: form.title,
         form_id: form.form_id || null,
         form_link: form.form_link || null,
-        start_date: form.start_date,
-        end_date: form.end_date || null,
+        start_date: toNullIfEmpty(form.start_date),
+        end_date: toNullIfEmpty(form.end_date),
         description: form.description,
         body: form.body ? JSON.stringify(form.body) : null,
         location_name: form.location_name || null,
@@ -226,8 +231,8 @@ const handleSubmit = async () => {
         thumbnail: form.thumbnail || null,
         cta_button_text: form.cta_button_text || null,
         is_displayed: form.is_displayed,
-        published_start: form.published_start || null,
-        published_end: form.published_end || null,
+        published_start: toNullIfEmpty(form.published_start),
+        published_end: toNullIfEmpty(form.published_end),
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
         category_ids: form.category_ids,

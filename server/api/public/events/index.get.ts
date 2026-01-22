@@ -1,12 +1,12 @@
-import { Event, EventCategory, Form } from '~~/server/database'
-import { Op } from 'sequelize'
+import { Event, EventCategory, Form, FormAnswer } from '~~/server/database'
+import { Op, fn, col } from 'sequelize'
 import dayjs from 'dayjs'
 
 export default defineEventHandler(async event => {
   try {
     // 公開用なので認証不要でイベントを取得（公開されているもののみ）
-    // 公開期間を考慮
-    const today = dayjs().startOf('day').toDate()
+    // 公開期間を考慮（分まで考慮）
+    const now = new Date()
 
     // クエリパラメータからページネーション情報と検索条件を取得
     const query = getQuery(event)
@@ -31,13 +31,13 @@ export default defineEventHandler(async event => {
           {
             [Op.or]: [
               { published_start: null },
-              { published_start: { [Op.lte]: today } },
+              { published_start: { [Op.lte]: now } },
             ],
           },
           {
             [Op.or]: [
               { published_end: null },
-              { published_end: { [Op.gte]: today } },
+              { published_end: { [Op.gte]: now } },
             ],
           },
         ],
@@ -56,10 +56,10 @@ export default defineEventHandler(async event => {
       })
     }
 
-    // 開催日絞り込み
+    // 開催日絞り込み（分まで考慮）
     if (startDate) {
-      const startDateObj = dayjs(startDate).startOf('day').toDate()
-      // 指定した開始日以降に開始する、または指定した開始日以降に終了するイベント
+      const startDateObj = dayjs(startDate).toDate()
+      // 指定した開始日時以降に開始する、または指定した開始日時以降に終了するイベント
       whereConditions.push({
         [Op.or]: [
           { start_date: { [Op.gte]: startDateObj } },
@@ -69,8 +69,8 @@ export default defineEventHandler(async event => {
     }
 
     if (endDate) {
-      const endDateObj = dayjs(endDate).endOf('day').toDate()
-      // 指定した終了日以前に開始する、または指定した終了日以前に終了するイベント
+      const endDateObj = dayjs(endDate).toDate()
+      // 指定した終了日時以前に開始する、または指定した終了日時以前に終了するイベント
       whereConditions.push({
         [Op.or]: [
           { start_date: { [Op.lte]: endDateObj } },
@@ -122,15 +122,38 @@ export default defineEventHandler(async event => {
       const eventData = event.toJSON() as any
 
       const isEventEnded = eventData.end_date
-        ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+        ? dayjs(eventData.end_date).isBefore(dayjs())
         : false
 
       const isRecruitmentEnded = eventData.form?.published_end
-        ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
+        ? dayjs(eventData.form.published_end).isBefore(dayjs())
         : false
 
       return !(isEventEnded || isRecruitmentEnded)
     })
+
+    // 参加人数を取得（event_idで集計）
+    const eventIds = filteredEvents.map(e => (e.toJSON() as any).id)
+    const participantCountMap = new Map<number, number>()
+
+    if (eventIds.length > 0) {
+      const participantCounts = await FormAnswer.findAll({
+        where: {
+          event_id: { [Op.in]: eventIds },
+        },
+        attributes: ['event_id', [fn('COUNT', col('id')), 'count']],
+        group: ['event_id'],
+        raw: true,
+      })
+
+      for (const count of participantCounts as any[]) {
+        const eventId = Number(count.event_id)
+        const participantCount = parseInt(count.count as string, 10) || 0
+        participantCountMap.set(eventId, participantCount)
+      }
+      
+      console.log('👺', participantCountMap)
+    }
 
     // フィルタリング後のデータをマッピング
     const eventsData = filteredEvents.map(event => {
@@ -143,14 +166,14 @@ export default defineEventHandler(async event => {
         | 'closed'
         | 'recruitment_closed' = 'published'
 
-      // イベントが終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+      // イベントが終了しているかどうかを判定（分まで考慮）
       const isEventEnded = eventData.end_date
-        ? dayjs(eventData.end_date).isBefore(dayjs(), 'day')
+        ? dayjs(eventData.end_date).isBefore(dayjs())
         : false
 
-      // 募集が終了しているかどうかを判定（dayjsでタイムゾーンに依存しない比較）
+      // 募集が終了しているかどうかを判定（分まで考慮）
       const isRecruitmentEnded = eventData.form?.published_end
-        ? dayjs(eventData.form.published_end).isBefore(dayjs(), 'day')
+        ? dayjs(eventData.form.published_end).isBefore(dayjs())
         : false
 
       // イベントが公開されているかどうかを判定
@@ -164,9 +187,13 @@ export default defineEventHandler(async event => {
         status = 'unpublished'
       }
 
+      // 参加人数を取得
+      const participantCount = participantCountMap.get(Number(eventData.id)) || 0
+      
       return {
         ...eventData,
         status,
+        participant_count: participantCount,
       }
     })
 

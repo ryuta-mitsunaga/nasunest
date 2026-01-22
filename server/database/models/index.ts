@@ -234,14 +234,14 @@ Form.init(
       allowNull: false,
     },
     published_start: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
-      comment: '公開開始日',
+      comment: '公開開始日時',
     },
     published_end: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
-      comment: '公開終了日',
+      comment: '公開終了日時',
     },
   },
   {
@@ -468,11 +468,11 @@ Event.init(
         '外部フォームURL（NasuNestフォームではなく外部リンクを使う場合）',
     },
     start_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
     },
     end_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
     },
     description: {
@@ -513,14 +513,14 @@ Event.init(
       comment: '表示フラグ（true: 表示, false: 非表示）',
     },
     published_start: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
-      comment: '公開開始日',
+      comment: '公開開始日時',
     },
     published_end: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
-      comment: '公開終了日',
+      comment: '公開終了日時',
     },
     capacity: {
       type: DataTypes.INTEGER,

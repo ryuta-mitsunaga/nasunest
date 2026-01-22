@@ -11,6 +11,15 @@
         v-if="isClosedOrRecruitmentClosed"
         class="absolute inset-0 bg-black opacity-20 z-10 pointer-events-none"
       />
+      <!-- 参加人数表示（右上） -->
+      <div
+        v-if="event.participant_count !== undefined && event.participant_count > 0"
+        class="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1 text-sm font-medium z-20"
+        style="color: #2e5e3e"
+      >
+        <UIcon name="i-heroicons-user" class="w-4 h-4" />
+        <span>{{ event.participant_count }}名参加</span>
+      </div>
       <!-- サムネイル画像 -->
       <div
         v-if="event.thumbnail"
@@ -69,6 +78,7 @@ export interface Event {
   thumbnail: string | null
   cta_button_text: string | null
   status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
+  participant_count?: number
   categories?: Array<{
     id: number
     name: string
