@@ -166,7 +166,7 @@
         leave-to-class="translate-y-full opacity-0"
       >
         <div
-          v-if="showFixedCta && (event?.form_id || (event as any)?.form_link)"
+          v-if="showFixedCta && event && (event.form_id || (event as any).form_link)"
           class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
           style="border-color: #2e5e3e"
         >
@@ -178,7 +178,7 @@
               :redirect-path="route.fullPath"
               :full-width="true"
               :compact="true"
-              :is-recruitment-closed="isRecruitmentClosed"
+              :is-recruitment-closed="event.status === 'recruitment_closed'"
               @click="handleCtaClick"
             />
           </div>
@@ -189,6 +189,10 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 interface Event {
   id: number
   title: string
@@ -539,12 +543,10 @@ useHead({
 })
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  // UTC日時をUTCのまま表示（タイムゾーン変換なし）
+  const date = dayjs.utc(dateString)
+  if (!date.isValid()) return dateString
+  return date.format('YYYY年M月D日 HH:mm')
 }
 
 const showCtaButton = computed(() => {
