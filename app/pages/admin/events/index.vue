@@ -98,6 +98,10 @@
 
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 definePageMeta({
   layout: 'admin',
@@ -218,14 +222,10 @@ const handleDelete = async (id: number) => {
 
 const formatDateTime = (dateString: string | null) => {
   if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  // UTC日時をUTCのまま表示（タイムゾーン変換なし）
+  const date = dayjs.utc(dateString)
+  if (!date.isValid()) return '-'
+  return date.format('YYYY年M月D日 HH:mm')
 }
 
 const { success: toastSuccess, error: toastError } = useCustomToast()
