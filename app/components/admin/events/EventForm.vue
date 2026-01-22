@@ -89,20 +89,20 @@
       <URadioGroup v-model="form.is_displayed" :items="displayOptions" />
     </UFormField>
 
-    <UFormField label="イベント開始日" name="start_date" required>
-      <UInput v-model="form.start_date" type="date" />
+    <UFormField label="イベント開始日時" name="start_date" required>
+      <UInput v-model="form.start_date" type="datetime-local" />
     </UFormField>
 
-    <UFormField label="イベント終了日" name="end_date">
-      <UInput v-model="form.end_date" type="date" />
+    <UFormField label="イベント終了日時" name="end_date">
+      <UInput v-model="form.end_date" type="datetime-local" />
     </UFormField>
 
-    <UFormField label="イベント公開開始日" name="published_start">
-      <UInput v-model="form.published_start" type="date" />
+    <UFormField label="イベント公開開始日時" name="published_start">
+      <UInput v-model="form.published_start" type="datetime-local" />
     </UFormField>
 
-    <UFormField label="イベント公開終了日" name="published_end">
-      <UInput v-model="form.published_end" type="date" />
+    <UFormField label="イベント公開終了日時" name="published_end">
+      <UInput v-model="form.published_end" type="datetime-local" />
     </UFormField>
 
     <UFormField name="body">

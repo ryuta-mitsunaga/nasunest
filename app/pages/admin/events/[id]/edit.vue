@@ -150,6 +150,21 @@ const handleAddCategory = async (name: string): Promise<Category> => {
   }
 }
 
+// 日時をdatetime-local形式に変換する関数
+const toDateTimeLocal = (dateString: string | null | undefined): string => {
+  if (!dateString) return ''
+  // ISO 8601形式やその他の形式をdatetime-local形式（YYYY-MM-DDTHH:mm）に変換
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return ''
+  // ローカルタイムゾーンで日時を取得
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 const fetchEvent = async () => {
   loading.value = true
   try {
@@ -163,8 +178,8 @@ const fetchEvent = async () => {
     form.title = eventData.title
     form.form_id = eventData.form_id
     form.form_link = eventData.form_link || ''
-    form.start_date = eventData.start_date
-    form.end_date = eventData.end_date || ''
+    form.start_date = toDateTimeLocal(eventData.start_date)
+    form.end_date = toDateTimeLocal(eventData.end_date)
     form.description = eventData.description
     form.body = eventData.body ? JSON.parse(eventData.body) : null
     form.location_name = eventData.location_name || ''
@@ -173,8 +188,8 @@ const fetchEvent = async () => {
     form.thumbnail = eventData.thumbnail || null
     form.cta_button_text = eventData.cta_button_text || ''
     form.is_displayed = eventData.is_displayed ?? true
-    form.published_start = eventData.published_start || ''
-    form.published_end = eventData.published_end || ''
+    form.published_start = toDateTimeLocal(eventData.published_start)
+    form.published_end = toDateTimeLocal(eventData.published_end)
     form.capacity = eventData.capacity || null
     form.approval_type = eventData.approval_type ?? 0
     form.category_ids = eventData.categories?.map(c => c.id) || []
@@ -282,6 +297,11 @@ const clearThumbnail = () => {
   form.thumbnail = null
 }
 
+// 空文字列をnullに変換するヘルパー関数
+const toNullIfEmpty = (value: string | null | undefined): string | null => {
+  return value && value.trim() ? value : null
+}
+
 const handleSubmit = async () => {
   if (!form.title.trim() || !form.start_date) {
     toastError('タイトルと開始日は必須項目です')
@@ -297,8 +317,8 @@ const handleSubmit = async () => {
         title: form.title,
         form_id: form.form_id || null,
         form_link: form.form_link || null,
-        start_date: form.start_date,
-        end_date: form.end_date || null,
+        start_date: toNullIfEmpty(form.start_date),
+        end_date: toNullIfEmpty(form.end_date),
         description: form.description,
         body: form.body ? JSON.stringify(form.body) : null,
         location_name: form.location_name || null,
@@ -307,8 +327,8 @@ const handleSubmit = async () => {
         thumbnail: form.thumbnail || null,
         cta_button_text: form.cta_button_text || null,
         is_displayed: form.is_displayed,
-        published_start: form.published_start || null,
-        published_end: form.published_end || null,
+        published_start: toNullIfEmpty(form.published_start),
+        published_end: toNullIfEmpty(form.published_end),
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
         category_ids: form.category_ids,

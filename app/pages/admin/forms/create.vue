@@ -37,6 +37,11 @@ const isFromEventForm = computed(() => {
 const { success: toastSuccess, error: toastError } = useCustomToast()
 const submitting = ref(false)
 
+// 空文字列をnullに変換するヘルパー関数
+const toNullIfEmpty = (value: string | null | undefined): string | null => {
+  return value && value.trim() ? value : null
+}
+
 const handleSubmit = async (data: {
   name: string
   description?: string
@@ -59,8 +64,8 @@ const handleSubmit = async (data: {
         body: {
           name: data.name,
           content,
-          published_start: data.published_start || null,
-          published_end: data.published_end || null,
+          published_start: toNullIfEmpty(data.published_start),
+          published_end: toNullIfEmpty(data.published_end),
         },
       }
     )

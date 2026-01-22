@@ -6,9 +6,8 @@ export default defineEventHandler(async event => {
   try {
     const userId = requireUserId(event)
 
-    // 今日の日付を取得（時刻部分を0時0分0秒に設定）
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // 現在時刻を取得（分まで考慮）
+    const now = new Date()
 
     // ユーザーが申し込みしたイベントを取得（開催期間を過ぎていないもののみ）
     const formAnswers = await FormAnswer.findAll({
@@ -23,19 +22,19 @@ export default defineEventHandler(async event => {
           attributes: ['id', 'title', 'start_date', 'end_date'],
           required: true,
           where: {
-            // 終了していないイベントのみ
+            // 終了していないイベントのみ（分まで考慮）
             [Op.or]: [
-              // start_date <= today && end_date >= today
+              // start_date <= now && end_date >= now
               {
                 [Op.and]: [
-                  { start_date: { [Op.lte]: today } },
-                  { end_date: { [Op.gte]: today } },
+                  { start_date: { [Op.lte]: now } },
+                  { end_date: { [Op.gte]: now } },
                 ],
               },
-              // start_date >= today && end_date IS NULL
+              // start_date >= now && end_date IS NULL
               {
                 [Op.and]: [
-                  { start_date: { [Op.gte]: today } },
+                  { start_date: { [Op.gte]: now } },
                   { end_date: null },
                 ],
               },

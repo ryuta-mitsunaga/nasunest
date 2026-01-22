@@ -41,11 +41,17 @@
         <template #is_displayed-cell="{ row }">
           <UiStatusBadge :status="row.original.status" />
         </template>
+        <template #start_date-cell="{ row }">
+          {{ formatDateTime(row.original.start_date) }}
+        </template>
+        <template #end_date-cell="{ row }">
+          {{ formatDateTime(row.original.end_date) }}
+        </template>
         <template #published_start-cell="{ row }">
-          {{ formatDate(row.original.published_start) }}
+          {{ formatDateTime(row.original.published_start) }}
         </template>
         <template #published_end-cell="{ row }">
-          {{ formatDate(row.original.published_end) }}
+          {{ formatDateTime(row.original.published_end) }}
         </template>
         <template #form-cell="{ row }">
           <NuxtLink
@@ -111,7 +117,7 @@ interface Event {
   published_start: string | null
   published_end: string | null
   createdAt: string
-  status: 'published' | 'unpublished' | 'closed'
+  status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
   approval_type: number | null
   pending_answers_count?: number
   form?: {
@@ -148,10 +154,10 @@ const columns: TableColumn<Event>[] = [
     accessorKey: 'is_displayed',
     header: 'ステータス',
   },
-  { accessorKey: 'start_date', header: 'イベント開始日' },
-  { accessorKey: 'end_date', header: 'イベント終了日' },
-  { accessorKey: 'published_start', header: '公開開始日' },
-  { accessorKey: 'published_end', header: '公開終了日' },
+  { accessorKey: 'start_date', header: 'イベント開始日時' },
+  { accessorKey: 'end_date', header: 'イベント終了日時' },
+  { accessorKey: 'published_start', header: '公開開始日時' },
+  { accessorKey: 'published_end', header: '公開終了日時' },
   { accessorKey: 'location_name', header: '場所' },
   { accessorKey: 'form', header: 'フォーム' },
   { accessorKey: 'actions', header: '操作' },
@@ -210,13 +216,15 @@ const handleDelete = async (id: number) => {
   }
 }
 
-const formatDate = (dateString: string | null) => {
+const formatDateTime = (dateString: string | null) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP', {
+  return date.toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 
