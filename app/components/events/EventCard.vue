@@ -65,6 +65,11 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
+
 export interface Event {
   id: number
   title: string
@@ -92,12 +97,10 @@ interface Props {
 const props = defineProps<Props>()
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  // UTC日時をUTCのまま表示（タイムゾーン変換なし）
+  const date = dayjs.utc(dateString)
+  if (!date.isValid()) return dateString
+  return date.format('YYYY年M月D日 HH:mm')
 }
 
 const isClosed = computed(() => {
