@@ -29,6 +29,10 @@
 
 <script setup lang="ts">
 import type { FormField } from '~/components/admin/FormEditor.vue'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 definePageMeta({
   layout: 'admin',
@@ -65,19 +69,14 @@ const formPublishedStart = ref<string | null>(null)
 const formPublishedEnd = ref<string | null>(null)
 const { showFetchErrorPage } = useAdminErrorPage()
 
-// 日時をdatetime-local形式に変換する関数
+// 日時をdatetime-local形式に変換する関数（UTC日時をUTCのまま表示）
 const toDateTimeLocal = (dateString: string | null | undefined): string => {
   if (!dateString) return ''
-  // ISO 8601形式やその他の形式をdatetime-local形式（YYYY-MM-DDTHH:mm）に変換
-  const date = new Date(dateString)
-  if (isNaN(date.getTime())) return ''
-  // ローカルタイムゾーンで日時を取得
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day}T${hours}:${minutes}`
+  // dayjsでUTCとして解釈し、UTCのままdatetime-local形式に変換
+  const date = dayjs.utc(dateString)
+  if (!date.isValid()) return ''
+  // UTC日時をUTCのままフォーマット（タイムゾーン変換なし）
+  return date.format('YYYY-MM-DDTHH:mm')
 }
 
 const fetchForm = async () => {
