@@ -34,6 +34,12 @@ useHead({
         'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。移住者・地域住民・観光者がイベント・体験・交流会を簡単に探して参加できます。',
     },
     {
+      name: 'keywords',
+      content:
+        '那須町,地域コミュニティ,移住,二地域居住,イベント,体験,交流会,ワークショップ,地域おこし協力隊,NasuNest,なすねすと,ナスネスト',
+    },
+    // Open Graph
+    {
       property: 'og:title',
       content:
         'NasuNest - 那須町の人がつながるきっかけを生み出す地域コミュニティプラットフォーム',
@@ -43,9 +49,57 @@ useHead({
       content:
         'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。移住者・地域住民・観光者がイベント・体験・交流会を簡単に探して参加できます。',
     },
-    { property: 'og:url', content: `${baseUrl}/` },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:image', content: `${baseUrl}/img/title-logo.png` },
+    {
+      property: 'og:url',
+      content: `${baseUrl}/`,
+    },
+    {
+      property: 'og:type',
+      content: 'website',
+    },
+    {
+      property: 'og:image',
+      content: `${baseUrl}/img/title-logo.png`,
+    },
+    {
+      property: 'og:image:width',
+      content: '1200',
+    },
+    {
+      property: 'og:image:height',
+      content: '630',
+    },
+    {
+      property: 'og:image:alt',
+      content: 'NasuNest - 那須町の地域コミュニティプラットフォーム',
+    },
+    {
+      property: 'og:site_name',
+      content: 'NasuNest',
+    },
+    {
+      property: 'og:locale',
+      content: 'ja_JP',
+    },
+    // Twitter Card
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:title',
+      content:
+        'NasuNest - 那須町の人がつながるきっかけを生み出す地域コミュニティプラットフォーム',
+    },
+    {
+      name: 'twitter:description',
+      content:
+        'NasuNestは、栃木県那須町の「人がつながるきっかけ」を生み出す地域コミュニティプラットフォーム。移住者・地域住民・観光者がイベント・体験・交流会を簡単に探して参加できます。',
+    },
+    {
+      name: 'twitter:image',
+      content: `${baseUrl}/img/title-logo.png`,
+    },
   ],
   script: [
     {

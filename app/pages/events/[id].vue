@@ -294,36 +294,248 @@ loading.value = false
 
 const baseUrl = 'https://www.nasunest.com'
 
+// 日時をISO 8601形式に変換
+const formatDateForOGP = (dateString: string | null): string | null => {
+  if (!dateString) return null
+  return new Date(dateString).toISOString()
+}
+
+// EditorJSのbodyからテキストを抽出
+const extractTextFromEditorJS = (body: any): string => {
+  if (!body) return ''
+  
+  // 文字列の場合はパースを試みる
+  let parsedBody = body
+  if (typeof body === 'string') {
+    try {
+      parsedBody = JSON.parse(body)
+    } catch {
+      return ''
+    }
+  }
+  
+  // blocksが存在しない場合は空文字を返す
+  if (!parsedBody?.blocks || !Array.isArray(parsedBody.blocks)) {
+    return ''
+  }
+  
+  const texts: string[] = []
+  
+  for (const block of parsedBody.blocks) {
+    if (!block.data) continue
+    
+    switch (block.type) {
+      case 'paragraph':
+        if (block.data.text) {
+          // HTMLタグを除去してテキストのみ抽出
+          const text = block.data.text.replace(/<[^>]*>/g, '').trim()
+          if (text) texts.push(text)
+        }
+        break
+      case 'header':
+        if (block.data.text) {
+          const text = block.data.text.replace(/<[^>]*>/g, '').trim()
+          if (text) texts.push(text)
+        }
+        break
+      case 'list':
+        if (block.data.items && Array.isArray(block.data.items)) {
+          for (const item of block.data.items) {
+            // itemが文字列でない場合は文字列に変換
+            const itemText = typeof item === 'string' ? item : String(item || '')
+            const text = itemText.replace(/<[^>]*>/g, '').trim()
+            if (text) texts.push(text)
+          }
+        }
+        break
+      case 'quote':
+        if (block.data.text) {
+          const text = block.data.text.replace(/<[^>]*>/g, '').trim()
+          if (text) texts.push(text)
+        }
+        break
+    }
+  }
+  
+  return texts.join(' ').substring(0, 160)
+}
+
 // SEO設定
 useHead({
   title: computed(() => event.value?.title || 'イベント詳細'),
-  meta: computed(() => [
+  meta: computed(() => {
+    const eventTitle = event.value?.title || 'イベント詳細'
+    // bodyからテキストを抽出してdescriptionに使用
+    const eventDescription =
+      extractTextFromEditorJS(event.value?.body) ||
+      '那須町のイベント情報詳細ページです。'
+    const eventImage =
+      event.value?.thumbnail || `${baseUrl}/img/title-logo.png`
+    const eventUrl = `${baseUrl}/events/${eventId.value}`
+    const startTime = formatDateForOGP(event.value?.start_date || null)
+    const endTime = formatDateForOGP(event.value?.end_date || null)
+    const location = event.value?.location_name || event.value?.location_address
+
+    // カテゴリ名をキーワードに追加
+    const categoryKeywords = event.value?.categories
+      ?.map(cat => cat.name)
+      .join(', ') || ''
+    const keywords = [
+      '那須町',
+      'イベント',
+      eventTitle,
+      categoryKeywords,
+      '移住',
+      '二地域居住',
+      '地域コミュニティ',
+      '地域おこし協力隊',
+      'NasuNest',
+      'なすねすと',
+      'ナスネスト',
+    ]
+      .filter(Boolean)
+      .join(', ')
+
+    const metaTags: any[] = [
+      {
+        name: 'description',
+        content: eventDescription,
+      },
+      {
+        name: 'keywords',
+        content: keywords,
+      },
+      // Open Graph
+      {
+        property: 'og:title',
+        content: `${eventTitle} | NasuNest`,
+      },
+      {
+        property: 'og:description',
+        content: eventDescription,
+      },
+      {
+        property: 'og:image',
+        content: eventImage,
+      },
+      {
+        property: 'og:image:width',
+        content: '1200',
+      },
+      {
+        property: 'og:image:height',
+        content: '630',
+      },
+      {
+        property: 'og:image:alt',
+        content: eventTitle,
+      },
+      {
+        property: 'og:url',
+        content: eventUrl,
+      },
+      {
+        property: 'og:type',
+        content: 'event',
+      },
+      {
+        property: 'og:site_name',
+        content: 'NasuNest',
+      },
+      {
+        property: 'og:locale',
+        content: 'ja_JP',
+      },
+      // Twitter Card
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:title',
+        content: `${eventTitle} | NasuNest`,
+      },
+      {
+        name: 'twitter:description',
+        content: eventDescription,
+      },
+      {
+        name: 'twitter:image',
+        content: eventImage,
+      },
+    ]
+
+    // イベント開始時刻
+    if (startTime) {
+      metaTags.push({
+        property: 'event:start_time',
+        content: startTime,
+      })
+    }
+
+    // イベント終了時刻
+    if (endTime) {
+      metaTags.push({
+        property: 'event:end_time',
+        content: endTime,
+      })
+    }
+
+    // イベント場所
+    if (location) {
+      metaTags.push({
+        property: 'event:location',
+        content: location,
+      })
+    }
+
+    return metaTags
+  }),
+  link: computed(() => [
     {
-      name: 'description',
-      content:
-        event.value?.description?.substring(0, 120) ||
-        '那須町のイベント情報詳細ページです。',
+      rel: 'canonical',
+      href: `${baseUrl}/events/${eventId.value}`,
     },
-    {
-      property: 'og:title',
-      content: `${event.value?.title || 'イベント詳細'} | NasuNest`,
-    },
-    {
-      property: 'og:description',
-      content:
-        event.value?.description?.substring(0, 120) ||
-        '那須町のイベント情報詳細ページです。',
-    },
-    {
-      property: 'og:image',
-      content: event.value?.thumbnail || `${baseUrl}/img/title-logo.png`,
-    },
-    {
-      property: 'og:url',
-      content: `${baseUrl}/events/${eventId.value}`,
-    },
-    { property: 'og:type', content: 'article' },
   ]),
+  script: computed(() => {
+    if (!event.value) return []
+    
+    // 構造化データ（JSON-LD）を追加
+    const eventSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Event',
+      name: event.value.title,
+      description: extractTextFromEditorJS(event.value.body) || '那須町のイベント情報',
+      startDate: event.value.start_date,
+      endDate: event.value.end_date || event.value.start_date,
+      image: event.value.thumbnail || `${baseUrl}/img/title-logo.png`,
+      location: event.value.location_name
+        ? {
+            '@type': 'Place',
+            name: event.value.location_name,
+            address: event.value.location_address
+              ? {
+                  '@type': 'PostalAddress',
+                  streetAddress: event.value.location_address,
+                }
+              : undefined,
+          }
+        : undefined,
+      organizer: {
+        '@type': 'Organization',
+        name: 'NasuNest',
+        url: baseUrl,
+      },
+      url: `${baseUrl}/events/${eventId.value}`,
+    }
+    
+    return [
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(eventSchema),
+      },
+    ]
+  }),
 })
 
 const formatDate = (dateString: string) => {

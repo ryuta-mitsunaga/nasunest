@@ -63,6 +63,12 @@ useHead({
     { property: 'og:url', content: `${baseUrl}/events` },
     { property: 'og:type', content: 'website' },
   ],
+  link: [
+    {
+      rel: 'canonical',
+      href: `${baseUrl}/events`,
+    },
+  ],
 })
 
 interface Category {
