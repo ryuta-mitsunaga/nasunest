@@ -98,10 +98,7 @@
 
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-
-dayjs.extend(utc)
+const { dayjs } = useDayjs()
 
 definePageMeta({
   layout: 'admin',
@@ -222,8 +219,8 @@ const handleDelete = async (id: number) => {
 
 const formatDateTime = (dateString: string | null) => {
   if (!dateString) return '-'
-  // UTC日時をUTCのまま表示（タイムゾーン変換なし）
-  const date = dayjs.utc(dateString)
+  // UTCとして解釈し、JSTに変換して表示
+  const date = dayjs.utc(dateString).tz('Asia/Tokyo')
   if (!date.isValid()) return '-'
   return date.format('YYYY年M月D日 HH:mm')
 }

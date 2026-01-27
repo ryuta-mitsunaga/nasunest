@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import type { FormField } from '~/components/admin/FormEditor.vue'
+const { toUTC } = useDayjs()
 
 definePageMeta({
   layout: 'admin',
@@ -36,11 +37,6 @@ const isFromEventForm = computed(() => {
 
 const { success: toastSuccess, error: toastError } = useCustomToast()
 const submitting = ref(false)
-
-// 空文字列をnullに変換するヘルパー関数
-const toNullIfEmpty = (value: string | null | undefined): string | null => {
-  return value && value.trim() ? value : null
-}
 
 const handleSubmit = async (data: {
   name: string
@@ -64,8 +60,8 @@ const handleSubmit = async (data: {
         body: {
           name: data.name,
           content,
-          published_start: toNullIfEmpty(data.published_start),
-          published_end: toNullIfEmpty(data.published_end),
+          published_start: toUTC(data.published_start),
+          published_end: toUTC(data.published_end),
         },
       }
     )

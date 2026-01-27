@@ -1,9 +1,11 @@
 import { PickupEvent, Event } from '~~/server/database'
 import { Op } from 'sequelize'
+import dayjs from '~~/server/lib/dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
-    const now = new Date()
+    // UTCの現在時刻を取得（DBにUTCで保存されているため）
+    const now = dayjs.utc().toDate()
 
     // 最新のピックアップイベントを取得（1つだけ）
     const pickupEvent = await PickupEvent.findOne({

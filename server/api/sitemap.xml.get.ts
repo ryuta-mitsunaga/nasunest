@@ -1,10 +1,12 @@
 import { Event } from '~~/server/database'
 import { Op } from 'sequelize'
+import dayjs from '~~/server/lib/dayjs'
 
 export default defineEventHandler(async event => {
   try {
     const baseUrl = 'https://www.nasunest.com'
-    const now = new Date()
+    // UTCの現在時刻を取得（DBにUTCで保存されているため）
+    const now = dayjs.utc().toDate()
 
     // 公開されているイベントを取得
     const events = await Event.findAll({

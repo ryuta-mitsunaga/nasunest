@@ -1,12 +1,13 @@
 import { Event, EventCategory, Form, FormAnswer } from '~~/server/database'
 import { Op, fn, col } from 'sequelize'
-import dayjs from 'dayjs'
+import dayjs from '~~/server/lib/dayjs'
 
 export default defineEventHandler(async event => {
   try {
     // 公開用なので認証不要でイベントを取得（公開されているもののみ）
     // 公開期間を考慮（分まで考慮）
-    const now = new Date()
+    // UTCの現在時刻を取得（DBにUTCで保存されているため）
+    const now = dayjs.utc().toDate()
 
     // クエリパラメータからページネーション情報と検索条件を取得
     const query = getQuery(event)
@@ -57,8 +58,10 @@ export default defineEventHandler(async event => {
     }
 
     // 開催日絞り込み（分まで考慮）
+    // クエリパラメータの日付はJSTとして解釈し、UTCに変換して比較
     if (startDate) {
-      const startDateObj = dayjs(startDate).toDate()
+      // JSTとして解釈し、UTCに変換
+      const startDateObj = dayjs.tz(startDate, 'Asia/Tokyo').utc().toDate()
       // 指定した開始日時以降に開始する、または指定した開始日時以降に終了するイベント
       whereConditions.push({
         [Op.or]: [
@@ -69,7 +72,8 @@ export default defineEventHandler(async event => {
     }
 
     if (endDate) {
-      const endDateObj = dayjs(endDate).toDate()
+      // JSTとして解釈し、UTCに変換
+      const endDateObj = dayjs.tz(endDate, 'Asia/Tokyo').utc().toDate()
       // 指定した終了日時以前に開始する、または指定した終了日時以前に終了するイベント
       whereConditions.push({
         [Op.or]: [
@@ -121,12 +125,14 @@ export default defineEventHandler(async event => {
 
       const eventData = event.toJSON() as any
 
+      // UTCで比較（DBにUTCで保存されているため）
+      const now = dayjs.utc()
       const isEventEnded = eventData.end_date
-        ? dayjs(eventData.end_date).isBefore(dayjs())
+        ? dayjs.utc(eventData.end_date).isBefore(now)
         : false
 
       const isRecruitmentEnded = eventData.form?.published_end
-        ? dayjs(eventData.form.published_end).isBefore(dayjs())
+        ? dayjs.utc(eventData.form.published_end).isBefore(now)
         : false
 
       return !(isEventEnded || isRecruitmentEnded)
@@ -151,8 +157,6 @@ export default defineEventHandler(async event => {
         const participantCount = parseInt(count.count as string, 10) || 0
         participantCountMap.set(eventId, participantCount)
       }
-      
-      console.log('👺', participantCountMap)
     }
 
     // フィルタリング後のデータをマッピング
@@ -166,14 +170,17 @@ export default defineEventHandler(async event => {
         | 'closed'
         | 'recruitment_closed' = 'published'
 
-      // イベントが終了しているかどうかを判定（分まで考慮）
+      // UTCの現在時刻を取得（DBにUTCで保存されているため）
+      const now = dayjs.utc()
+      
+      // イベントが終了しているかどうかを判定（UTCで比較、分まで考慮）
       const isEventEnded = eventData.end_date
-        ? dayjs(eventData.end_date).isBefore(dayjs())
+        ? dayjs.utc(eventData.end_date).isBefore(now)
         : false
 
-      // 募集が終了しているかどうかを判定（分まで考慮）
+      // 募集が終了しているかどうかを判定（UTCで比較、分まで考慮）
       const isRecruitmentEnded = eventData.form?.published_end
-        ? dayjs(eventData.form.published_end).isBefore(dayjs())
+        ? dayjs.utc(eventData.form.published_end).isBefore(now)
         : false
 
       // イベントが公開されているかどうかを判定

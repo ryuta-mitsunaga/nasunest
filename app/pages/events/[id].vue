@@ -189,10 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-
-dayjs.extend(utc)
+const { dayjs } = useDayjs()
 interface Event {
   id: number
   title: string
@@ -543,8 +540,8 @@ useHead({
 })
 
 const formatDate = (dateString: string) => {
-  // UTC日時をUTCのまま表示（タイムゾーン変換なし）
-  const date = dayjs.utc(dateString)
+  // UTCとして解釈し、JSTに変換して表示
+  const date = dayjs.utc(dateString).tz('Asia/Tokyo')
   if (!date.isValid()) return dateString
   return date.format('YYYY年M月D日 HH:mm')
 }
