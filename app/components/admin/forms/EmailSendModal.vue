@@ -167,10 +167,14 @@ const handleSend = () => {
     ? [testRecipientEmail.value]
     : props.recipientEmails
 
+  // 改行文字（\n）を<br>タグに変換
+  // 既存のHTMLタグ（<p>、<div>など）はそのまま保持
+  const htmlWithBreaks = form.html.replace(/\n/g, '<br>')
+
   emit('send', {
     to,
     subject: form.subject,
-    html: form.html,
+    html: htmlWithBreaks,
     isTest: isTestSend.value,
   })
   // 送信後は親コンポーネントでモーダルを閉じる

@@ -69,18 +69,19 @@ export default defineEventHandler(async event => {
           | 'closed'
           | 'recruitment_closed' = 'published'
 
+        // JSTの現在時刻を取得（DBにJSTで保存されているため）
         const now = dayjs()
 
         // 非表示の場合は非公開
         if (!eventData.is_displayed) {
           status = 'unpublished'
         } else {
-          // イベントが終了しているかどうかを判定（分まで考慮）
+          // イベントが終了しているかどうかを判定（JSTで比較、分まで考慮）
           const isEventEnded = eventData.end_date
             ? dayjs(eventData.end_date).isBefore(now)
             : false
 
-          // 募集が終了しているかどうかを判定（分まで考慮）
+          // 募集が終了しているかどうかを判定（JSTで比較、分まで考慮）
           const isRecruitmentEnded = eventData.form?.published_end
             ? dayjs(eventData.form.published_end).isBefore(now)
             : false

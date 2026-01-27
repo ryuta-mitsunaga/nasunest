@@ -1,13 +1,14 @@
 import { FormAnswer, Event } from '~~/server/database'
 import { requireUserId } from '~~/server/lib/user-auth'
 import { Op } from 'sequelize'
+import dayjs from '~~/server/lib/dayjs'
 
 export default defineEventHandler(async event => {
   try {
     const userId = requireUserId(event)
 
-    // 現在時刻を取得（分まで考慮）
-    const now = new Date()
+    // UTCの現在時刻を取得（DBにUTCで保存されているため、分まで考慮）
+    const now = dayjs.utc().toDate()
 
     // ユーザーが申し込みしたイベントを取得（開催期間を過ぎていないもののみ）
     const formAnswers = await FormAnswer.findAll({

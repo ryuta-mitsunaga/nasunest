@@ -41,10 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-
-dayjs.extend(utc)
+const { dayjs, toDateTimeLocal, toUTC } = useDayjs()
 
 definePageMeta({
   layout: 'admin',
@@ -155,15 +152,6 @@ const handleAddCategory = async (name: string): Promise<Category> => {
   }
 }
 
-// 日時をdatetime-local形式に変換する関数（UTC日時をUTCのまま表示）
-const toDateTimeLocal = (dateString: string | null | undefined): string => {
-  if (!dateString) return ''
-  // dayjsでUTCとして解釈し、UTCのままdatetime-local形式に変換
-  const date = dayjs.utc(dateString)
-  if (!date.isValid()) return ''
-  // UTC日時をUTCのままフォーマット（タイムゾーン変換なし）
-  return date.format('YYYY-MM-DDTHH:mm')
-}
 
 const fetchEvent = async () => {
   loading.value = true
@@ -317,8 +305,8 @@ const handleSubmit = async () => {
         title: form.title,
         form_id: form.form_id || null,
         form_link: form.form_link || null,
-        start_date: toNullIfEmpty(form.start_date),
-        end_date: toNullIfEmpty(form.end_date),
+        start_date: toUTC(form.start_date),
+        end_date: toUTC(form.end_date),
         description: form.description,
         body: form.body ? JSON.stringify(form.body) : null,
         location_name: form.location_name || null,
@@ -327,8 +315,8 @@ const handleSubmit = async () => {
         thumbnail: form.thumbnail || null,
         cta_button_text: form.cta_button_text || null,
         is_displayed: form.is_displayed,
-        published_start: toNullIfEmpty(form.published_start),
-        published_end: toNullIfEmpty(form.published_end),
+        published_start: toUTC(form.published_start),
+        published_end: toUTC(form.published_end),
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
         category_ids: form.category_ids,

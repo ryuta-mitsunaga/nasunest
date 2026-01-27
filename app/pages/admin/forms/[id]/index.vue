@@ -367,6 +367,15 @@
               </span>
               <span v-else class="text-xs text-gray-400">-</span>
             </template>
+            <template #body-cell="{ row }">
+              <UButton
+                size="sm"
+                variant="soft"
+                @click="openEmailBodyModal(row.original.html)"
+              >
+                確認
+              </UButton>
+            </template>
           </UTable>
         </div>
       </UCard>
@@ -379,6 +388,12 @@
       @send="handleEmailSend"
       ref="emailModalRef"
     />
+
+    <!-- メール本文確認モーダル -->
+    <AdminFormsEmailBodyModal
+      v-model:open="isEmailBodyModalOpen"
+      :body="selectedEmailBody"
+    />
   </div>
 </template>
 
@@ -387,6 +402,7 @@ import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { FormField } from '~/components/admin/FormEditor.vue'
 import AdminFormsBulkEmailSender from '~/components/admin/forms/BulkEmailSender.vue'
 import AdminFormsEmailSendModal from '~/components/admin/forms/EmailSendModal.vue'
+import AdminFormsEmailBodyModal from '~/components/admin/forms/EmailBodyModal.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -443,6 +459,10 @@ const emailModalRef = ref<{
 const emailLogs = ref<any[]>([])
 const loadingLogs = ref(false)
 
+// メール本文確認モーダル関連
+const isEmailBodyModalOpen = ref(false)
+const selectedEmailBody = ref('')
+
 // 共有機能関連
 const copyingResults = ref(false)
 
@@ -468,6 +488,7 @@ const emailLogColumns = computed(() => [
   { accessorKey: 'createdAt', header: '送信日時' },
   { accessorKey: 'recipient_email', header: '送信先' },
   { accessorKey: 'subject', header: '件名' },
+  { accessorKey: 'body', header: '本文' },
   { accessorKey: 'status', header: 'ステータス' },
   { accessorKey: 'is_test', header: 'テスト配信' },
   { accessorKey: 'admin', header: '送信者' },
@@ -965,6 +986,12 @@ const handleShareResults = async () => {
   } finally {
     copyingResults.value = false
   }
+}
+
+// メール本文確認モーダルを開く
+const openEmailBodyModal = (body: string | null | undefined) => {
+  selectedEmailBody.value = body || ''
+  isEmailBodyModalOpen.value = true
 }
 
 onMounted(() => {

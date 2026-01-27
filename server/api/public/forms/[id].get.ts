@@ -1,5 +1,6 @@
 import { Form } from '~~/server/database'
 import { Op } from 'sequelize'
+import dayjs from '~~/server/lib/dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -7,7 +8,8 @@ export default defineEventHandler(async (event) => {
 
     // 公開用なので認証不要でフォームを取得
     // 公開期間を考慮（分まで考慮）
-    const now = new Date()
+    // UTCの現在時刻を取得（DBにUTCで保存されているため）
+    const now = dayjs.utc().toDate()
 
     const form = await Form.findOne({
       where: {

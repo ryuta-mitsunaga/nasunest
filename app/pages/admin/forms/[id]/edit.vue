@@ -29,10 +29,7 @@
 
 <script setup lang="ts">
 import type { FormField } from '~/components/admin/FormEditor.vue'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-
-dayjs.extend(utc)
+const { dayjs, toDateTimeLocal, toUTC } = useDayjs()
 
 definePageMeta({
   layout: 'admin',
@@ -68,16 +65,6 @@ const formFields = ref<FormField[]>([])
 const formPublishedStart = ref<string | null>(null)
 const formPublishedEnd = ref<string | null>(null)
 const { showFetchErrorPage } = useAdminErrorPage()
-
-// 日時をdatetime-local形式に変換する関数（UTC日時をUTCのまま表示）
-const toDateTimeLocal = (dateString: string | null | undefined): string => {
-  if (!dateString) return ''
-  // dayjsでUTCとして解釈し、UTCのままdatetime-local形式に変換
-  const date = dayjs.utc(dateString)
-  if (!date.isValid()) return ''
-  // UTC日時をUTCのままフォーマット（タイムゾーン変換なし）
-  return date.format('YYYY-MM-DDTHH:mm')
-}
 
 const fetchForm = async () => {
   loading.value = true
@@ -129,8 +116,8 @@ const handleSubmit = async (data: {
       body: {
         name: data.name,
         content,
-        published_start: toNullIfEmpty(data.published_start),
-        published_end: toNullIfEmpty(data.published_end),
+        published_start: toUTC(data.published_start),
+        published_end: toUTC(data.published_end),
       },
     })
 
