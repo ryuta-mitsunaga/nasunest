@@ -37,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDayjs } from '~/composables/useDayjs'
+
 const { toUTC } = useDayjs()
 
 definePageMeta({

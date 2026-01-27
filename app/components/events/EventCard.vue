@@ -65,6 +65,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDayjs } from '~/composables/useDayjs'
+
 const { dayjs } = useDayjs()
 
 export interface Event {
