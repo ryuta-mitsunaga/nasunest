@@ -26,9 +26,9 @@
 
       <!-- フィールドエディタ -->
       <div class="space-y-4">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <h4 class="text-lg font-semibold">フィールド</h4>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <UButton size="sm" @click="addField('text')">テキスト</UButton>
             <UButton size="sm" @click="addField('email')"
               >メールアドレス</UButton
@@ -59,10 +59,12 @@
             <div class="flex-1 space-y-3">
               <div class="flex items-center gap-3">
                 <UInput
+                  v-if="field.type !== 'email'"
                   v-model="field.label"
                   placeholder="質問文を入力"
                   class="font-semibold flex-1"
                 />
+
                 <label class="flex items-center gap-2 whitespace-nowrap">
                   <input
                     type="checkbox"
@@ -92,17 +94,19 @@
                 <div
                   v-for="(option, optIndex) in field.options"
                   :key="optIndex"
-                  class="flex gap-2 mb-2"
+                  class="flex gap-2 mb-2 items-center"
                 >
                   <UInput
                     v-model="field.options[optIndex]"
                     :placeholder="`選択肢 ${optIndex + 1}`"
+                    class="flex-1"
                   />
                   <UButton
                     color="error"
                     variant="soft"
                     size="sm"
                     @click="removeOption(index, optIndex)"
+                    class="flex-shrink-0"
                   >
                     削除
                   </UButton>
@@ -117,17 +121,19 @@
                 <div
                   v-for="(option, optIndex) in field.options"
                   :key="optIndex"
-                  class="flex gap-2 mb-2"
+                  class="flex gap-2 mb-2 items-center"
                 >
                   <UInput
                     v-model="field.options[optIndex]"
                     :placeholder="`選択肢 ${optIndex + 1}`"
+                    class="flex-1"
                   />
                   <UButton
                     color="error"
                     variant="soft"
                     size="sm"
                     @click="removeOption(index, optIndex)"
+                    class="flex-shrink-0"
                   >
                     削除
                   </UButton>
@@ -142,7 +148,8 @@
                   :key="optIndex"
                   class="flex gap-2 mb-2 items-end"
                 >
-                  <div class="flex-1">
+                <div class="flex gap-2 flex-wrap">
+                  <div>
                     <label class="text-xs text-gray-600 mb-1 block">日付</label>
                     <UInput
                       v-model="dateOption.date"
@@ -150,7 +157,7 @@
                       class="w-full"
                     />
                   </div>
-                  <div class="flex-1">
+                  <div>
                     <label class="text-xs text-gray-600 mb-1 block">時刻</label>
                     <UInput
                       v-model="dateOption.time"
@@ -160,56 +167,16 @@
                       :step="1800"
                     />
                     <datalist id="data-list">
-                      <option value="00:00">00:00</option>
-                      <option value="00:30">00:30</option>
-                      <option value="01:00">01:00</option>
-                      <option value="01:30">01:30</option>
-                      <option value="02:00">02:00</option>
-                      <option value="02:30">02:30</option>
-                      <option value="03:00">03:00</option>
-                      <option value="03:30">03:30</option>
-                      <option value="04:00">04:00</option>
-                      <option value="04:30">04:30</option>
-                      <option value="05:00">05:00</option>
-                      <option value="05:30">05:30</option>
-                      <option value="06:00">06:00</option>
-                      <option value="06:30">06:30</option>
-                      <option value="07:00">07:00</option>
-                      <option value="07:30">07:30</option>
-                      <option value="08:00">08:00</option>
-                      <option value="08:30">08:30</option>
-                      <option value="09:00">09:00</option>
-                      <option value="09:30">09:30</option>
-                      <option value="10:00">10:00</option>
-                      <option value="10:30">10:30</option>
-                      <option value="11:00">11:00</option>
-                      <option value="11:30">11:30</option>
-                      <option value="12:00">12:00</option>
-                      <option value="12:30">12:30</option>
-                      <option value="13:00">13:00</option>
-                      <option value="13:30">13:30</option>
-                      <option value="14:00">14:00</option>
-                      <option value="14:30">14:30</option>
-                      <option value="15:00">15:00</option>
-                      <option value="15:30">15:30</option>
-                      <option value="16:00">16:00</option>
-                      <option value="16:30">16:30</option>
-                      <option value="17:00">17:00</option>
-                      <option value="17:30">17:30</option>
-                      <option value="18:00">18:00</option>
-                      <option value="18:30">18:30</option>
-                      <option value="19:00">19:00</option>
-                      <option value="19:30">19:30</option>
-                      <option value="20:00">20:00</option>
-                      <option value="20:30">20:30</option>
-                      <option value="21:00">21:00</option>
-                      <option value="21:30">21:30</option>
-                      <option value="22:00">22:00</option>
-                      <option value="22:30">22:30</option>
-                      <option value="23:00">23:00</option>
-                      <option value="23:30">23:30</option>
+                      <option
+                        v-for="timeOption in timeOptions"
+                        :key="timeOption"
+                        :value="timeOption"
+                      >
+                        {{ timeOption }}
+                      </option>
                     </datalist>
                   </div>
+                </div>
                   <UButton
                     color="error"
                     variant="soft"
@@ -384,15 +351,32 @@ const addField = (
   const field: FormField = {
     id: `field_${++fieldIdCounter}`,
     type,
-    label: '',
+    label: type === 'email' ? 'メールアドレス' : '',
   }
   if (type === 'select' || type === 'checkbox') {
     field.options = ['']
   } else if (type === 'date-picker') {
     field.options = [{ date: '', time: '' }]
+  } else if (type === 'email') {
+    // メールアドレスは基本必須として扱う（必要ならUIでOFFにできる）
+    field.required = true
+    field.placeholder = 'example@example.com'
   }
   localFormFields.value.push(field)
 }
+
+// 既存データにlabelがないemailフィールドがあれば補完
+watch(
+  localFormFields,
+  fields => {
+    for (const f of fields) {
+      if (f.type === 'email' && (!f.label || !f.label.trim())) {
+        f.label = 'メールアドレス'
+      }
+    }
+  },
+  { deep: true }
+)
 
 const removeField = (index: number) => {
   localFormFields.value.splice(index, 1)
@@ -458,6 +442,19 @@ const removeDateOption = (fieldIndex: number, optionIndex: number) => {
 }
 
 const { error: toastError } = useCustomToast()
+
+// 時刻オプションを生成（30分間隔）
+const timeOptions = computed(() => {
+  const options: string[] = []
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const hourStr = String(hour).padStart(2, '0')
+      const minuteStr = String(minute).padStart(2, '0')
+      options.push(`${hourStr}:${minuteStr}`)
+    }
+  }
+  return options
+})
 
 const handleSubmit = () => {
   if (!localFormName.value.trim()) {

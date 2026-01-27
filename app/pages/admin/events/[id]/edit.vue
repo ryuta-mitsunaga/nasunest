@@ -41,6 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDayjs } from '~/composables/useDayjs'
+
 const { dayjs, toDateTimeLocal, toUTC } = useDayjs()
 
 definePageMeta({

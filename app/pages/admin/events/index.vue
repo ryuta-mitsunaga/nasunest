@@ -98,6 +98,8 @@
 
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import { useDayjs } from '~/composables/useDayjs'
+
 const { dayjs } = useDayjs()
 
 definePageMeta({
