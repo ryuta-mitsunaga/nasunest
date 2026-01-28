@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxt/ui', '@nuxt/fonts'],
   css: ['~/assets/css/main.css'],
+  
+  ui: {
+    colorMode: false,
+  },
+  
   app: {
     head: {
       title:

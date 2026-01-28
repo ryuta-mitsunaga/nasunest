@@ -35,7 +35,7 @@
         </p>
       </div>
     </div>
-    <UFormField label="本文" name="eventContent">
+    <UFormField :label="readOnly ? '' : '本文（編集可能）'" name="eventContent">
       <div
         ref="editorContainer"
         :class="[
