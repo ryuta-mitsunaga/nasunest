@@ -3,24 +3,38 @@
     <div v-if="!readOnly" class="mb-4 space-y-4">
       <!-- イベント内容入力欄 -->
       <div v-if="useAi">
-        <div class="flex items-center justify-between mb-2">
-          <UiLabelWithHelp
-            label="イベント内容（AIによる自動生成）"
-            help-text="イベントの情報を入力すると、AIが自動的にイベント記事を生成します。フォーマットを使用することで、より自然で正確な記事を生成できます。"
-          />
-          <button
-            type="button"
-            @click="copyExampleFormat"
-            class="text-xs text-blue-600 hover:text-blue-800 underline"
-          >
-            自動生成用のフォーマットをコピー
-          </button>
+        <UiLabelWithHelp
+          label="イベント内容（AIによる自動生成）"
+          help-text="イベントの情報を入力すると、AIが自動的にイベント記事を生成します。フォーマットを使用することで、より自然で正確な記事を生成できます。"
+        />
+        <!-- プロンプト選択 -->
+        <div class="mb-3">
+          <label class="block text-sm font-medium mt-2">プロンプト選択</label>
+          <div class="flex items-center gap-2 mt-1">
+            <USelect
+              :model-value="selectedPrompt || undefined"
+              :items="promptOptions"
+              placeholder="プロンプトを選択"
+              class="flex-1 min-w-0"
+              @update:model-value="selectedPrompt = ($event as string) || null"
+            />
+            <UButton
+              variant="soft"
+              size="sm"
+              class="flex-shrink-0"
+              @click="showPromptManagerModal = true"
+            >
+              編集
+            </UButton>
+          </div>
         </div>
-        <textarea
+
+        <UTextarea
           v-model="eventContent"
-          class="w-full border rounded-lg p-3 text-sm min-h-[150px]"
+          class="w-full text-sm"
+          :rows="10"
           placeholder="イベントの内容を入力してください。&#10;例）&#10;イベント名：地域おこしフェスティバル&#10;日時：2024年3月15日 10:00-16:00&#10;場所：市民会館&#10;内容：地域の特産品の販売やワークショップを行います。"
-        ></textarea>
+        ></UTextarea>
         <button
           type="button"
           @click="generateJsonFromContent"
@@ -41,7 +55,7 @@
         :class="[
           readOnly
             ? 'editorjs-viewer'
-            : 'border rounded-lg p-4 min-h-[400px] bg-white',
+            : 'border rounded-lg border-gray-300 p-4 min-h-[400px] bg-white',
         ]"
       ></div>
     </UFormField>
@@ -66,6 +80,12 @@
         </div>
       </div>
     </UiPreviewModal>
+
+    <!-- プロンプト管理モーダル -->
+    <AdminEditorJsPromptManagerModal
+      v-model:open="showPromptManagerModal"
+      @prompt-updated="handlePromptUpdated"
+    />
   </div>
 </template>
 
@@ -94,28 +114,23 @@ let editor: any = null
 let updatingModel = false
 const jsonInput = ref('')
 const jsonError = ref('')
-const eventContent = ref('')
+const eventContent = ref(`イベント名：
+日時：
+場所：
+内容：`)
 const generating = ref(false)
 const generateError = ref('')
 const isPreviewModalOpen = ref(false)
 const previewData = ref<any>(null)
 const { success: toastSuccess, error: toastError } = useCustomToast()
 
-// 例のフォーマットをクリップボードにコピー
-const copyExampleFormat = async () => {
-  const exampleFormat = `イベント名：
-日時：
-場所：
-内容：`
+// プロンプト関連
+const masterPrompts = ref<any[]>([])
+const customPrompts = ref<any[]>([])
+const selectedPrompt = ref<string | null>(null)
+const selectedPromptType = ref<'master' | 'custom' | null>(null)
+const showPromptManagerModal = ref(false)
 
-  try {
-    await navigator.clipboard.writeText(exampleFormat)
-
-    toastSuccess('自動生成用のフォーマットをコピーしました')
-  } catch (error) {
-    toastError('自動生成用のフォーマットをコピーに失敗しました')
-  }
-}
 
 // VueのProxyオブジェクトを通常のオブジェクトに変換
 const toPlainObject = (obj: any): any => {
@@ -202,6 +217,89 @@ const updateJsonInput = () => {
   }
 }
 
+// プロンプトオプションを計算
+const promptOptions = computed(() => {
+  const options: Array<{ label: string; value: string }> = []
+  
+  // デフォルトプロンプト
+  masterPrompts.value.forEach((prompt: any) => {
+    options.push({
+      label: `${prompt.name}`,
+      value: `master_${prompt.id}`,
+    })
+  })
+  
+  // カスタムプロンプト
+  customPrompts.value.forEach((prompt: any) => {
+    options.push({
+      label: `${prompt.name}`,
+      value: `custom_${prompt.id}`,
+    })
+  })
+  
+  return options
+})
+
+// プロンプト一覧を取得
+const fetchPrompts = async () => {
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data: { master: any[]; custom: any[] }
+    }>('/api/admin/editorjs-prompts', {
+      credentials: 'include',
+    })
+
+    if (response.success) {
+      masterPrompts.value = response.data.master
+      customPrompts.value = response.data.custom
+      
+      // デフォルトプロンプトを選択
+      if (masterPrompts.value.length > 0 && !selectedPrompt.value) {
+        selectedPrompt.value = `master_${masterPrompts.value[0].id}`
+        selectedPromptType.value = 'master'
+      }
+    }
+  } catch (error) {
+    console.error('プロンプト取得エラー:', error)
+  }
+}
+
+// 選択されたプロンプトを監視
+watch(selectedPrompt, (newValue) => {
+  if (newValue) {
+    const parts = newValue.split('_')
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      selectedPromptType.value = parts[0] as 'master' | 'custom'
+    }
+  } else {
+    selectedPromptType.value = null
+  }
+})
+
+// プロンプト更新時の処理
+const handlePromptUpdated = async () => {
+  await fetchPrompts()
+  // 選択中のプロンプトが削除された場合の処理
+  if (selectedPrompt.value && selectedPromptType.value === 'custom') {
+    const parts = selectedPrompt.value.split('_')
+    if (parts.length >= 2 && parts[1]) {
+      const id = parts[1]
+      const exists = customPrompts.value.some((p: any) => p.id === parseInt(id, 10))
+      if (!exists) {
+        // 削除された場合はデフォルトプロンプトを選択
+        if (masterPrompts.value.length > 0) {
+          selectedPrompt.value = `master_${masterPrompts.value[0].id}`
+          selectedPromptType.value = 'master'
+        } else {
+          selectedPrompt.value = null
+          selectedPromptType.value = null
+        }
+      }
+    }
+  }
+}
+
 // イベント内容からJSONを自動生成
 const generateJsonFromContent = async () => {
   if (!eventContent.value.trim()) {
@@ -212,12 +310,28 @@ const generateJsonFromContent = async () => {
   generateError.value = ''
 
   try {
+    // プロンプトIDとタイプを取得
+    let promptId: number | null = null
+    let promptType: 'master' | 'custom' | null = null
+    
+    if (selectedPrompt.value) {
+      const parts = selectedPrompt.value.split('_')
+      if (parts.length >= 2 && parts[0] && parts[1]) {
+        const type = parts[0]
+        const id = parts[1]
+        promptId = parseInt(id, 10)
+        promptType = type as 'master' | 'custom'
+      }
+    }
+
     const response = await $fetch<{ success: boolean; data: any }>(
       '/api/admin/generate-editorjs',
       {
         method: 'POST',
         body: {
           content: eventContent.value,
+          promptId,
+          promptType,
         },
         credentials: 'include',
       }
@@ -259,6 +373,11 @@ const cancelPreview = () => {
 }
 
 onMounted(async () => {
+  // プロンプト一覧を取得
+  if (props.useAi) {
+    await fetchPrompts()
+  }
+
   if (!editorContainer.value || typeof window === 'undefined') return
 
   // クライアントサイドでのみEditor.jsを動的インポート

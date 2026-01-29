@@ -1,4 +1,10 @@
-import { requireAdminId } from '~~/server/lib/admin-auth'
+import {
+  requireAdminId,
+} from '~~/server/lib/admin-auth'
+import {
+  EditorJsPromptMaster,
+  EditorJsPromptCustom,
+} from '~~/server/database'
 
 export default defineEventHandler(async event => {
   try {
@@ -6,7 +12,7 @@ export default defineEventHandler(async event => {
     const adminId = requireAdminId(event)
 
     const body = await readBody(event)
-    const { content } = body
+    const { content, promptId, promptType } = body
 
     if (!content || typeof content !== 'string') {
       throw createError({
@@ -23,30 +29,52 @@ export default defineEventHandler(async event => {
       })
     }
 
-    // Gemini APIを呼び出し
-    const prompt = `
-あなたは、イベント参加につながる読みやすい記事を作成するプロフェッショナル編集者です。
+    // プロンプトを取得
+    let promptTemplate = ''
+    if (promptId && promptType) {
+      if (promptType === 'master') {
+        const masterPrompt = await EditorJsPromptMaster.findByPk(promptId)
+        if (!masterPrompt) {
+          throw createError({
+            statusCode: 404,
+            message: 'プロンプトが見つかりません',
+          })
+        }
+        promptTemplate = masterPrompt.prompt
+      } else if (promptType === 'custom') {
+        const customPrompt = await EditorJsPromptCustom.findOne({
+          where: {
+            id: promptId,
+            admin_id: adminId,
+          },
+        })
+        if (!customPrompt) {
+          throw createError({
+            statusCode: 404,
+            message: 'プロンプトが見つかりません',
+          })
+        }
+        promptTemplate = customPrompt.prompt
+      }
+    }
 
-【イベント記事のルール】  
-以下のUXルールを必ず守り、読みやすい構成にしてください。
+    // プロンプトが指定されていない場合はデフォルトを使用
+    if (!promptTemplate) {
+      const defaultPrompt = await EditorJsPromptMaster.findOne({
+        order: [['display_order', 'ASC']],
+      })
+      if (!defaultPrompt) {
+        throw createError({
+          statusCode: 404,
+          message: 'デフォルトプロンプトが見つかりません',
+        })
+      }
+      promptTemplate = defaultPrompt.prompt
+    }
 
-- 1つの段落は長く書かず、最大3〜4行以内で簡潔にまとめる  
-- 長文を避け、情報は「短い段落」か「箇条書き」で整理する  
-- セクション間にメリハリを付け、読み疲れを起こさない  
-- 抽象表現は避け、イベント内容を具体的に書く  
-- 初心者向け安心ポイントは、1段落＋箇条書きで簡潔に  
-- メリットは1つずつ短く明確に（長文禁止）  
-- ゲスト紹介はコンパクトにしつつ魅力が伝わるように  
-- 全体で読みやすい長さ（一般的なイベント告知レベル）に収める  
-
-【記事に必ず入れる要素】  
-1. イベント要点（listで簡潔に）  
-2. イベントの簡単な紹介（短い段落）  
-3. 初心者安心ポイント（簡潔）  
-4. 参加メリット3つ（短く）  
-5. ゲスト紹介（短く魅力的に）  
-6. FAQ（必要最低限でOK）  
-7. 最後の後押し（短い一言）
+    // 固定のEditorJS形式説明とイベント内容を定義
+    // これらは必ず末尾に追加される（どのプロンプトにも適用）
+    const editorJsFormatInstruction = `
 
 【EditorJS形式】
 {
@@ -65,8 +93,12 @@ export default defineEventHandler(async event => {
 ・SNSシェアや参加意欲が高まりやすい文章を意識すること。
 
 イベント内容：
-${content}
-`
+${content}`
+
+    // プロンプトテンプレートに固定のEditorJS形式説明とイベント内容を追加
+    // プロンプトテンプレート内の{{content}}は削除（既にAPI側で追加されるため）
+    const cleanedTemplate = promptTemplate.replace(/\n*イベント内容：\s*\n*{{content}}\s*/g, '').trim()
+    const prompt = cleanedTemplate + editorJsFormatInstruction
 
     const response = (await $fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
