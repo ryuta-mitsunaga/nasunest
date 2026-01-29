@@ -1431,6 +1431,138 @@ Admin.hasMany(EmailSendLog, {
   as: 'emailSendLogs',
 })
 
+// EditorJsPromptMasterモデル
+export interface EditorJsPromptMasterAttributes {
+  id: number
+  name: string
+  prompt: string
+  display_order: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EditorJsPromptMasterCreationAttributes
+  extends Optional<
+    EditorJsPromptMasterAttributes,
+    'id' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EditorJsPromptMaster
+  extends Model<
+    EditorJsPromptMasterAttributes,
+    EditorJsPromptMasterCreationAttributes
+  >
+  implements EditorJsPromptMasterAttributes
+{
+  declare id: number
+  declare name: string
+  declare prompt: string
+  declare display_order: number
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
+EditorJsPromptMaster.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    prompt: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    display_order: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'editorjs_prompts_master',
+    timestamps: true,
+  }
+)
+
+// EditorJsPromptCustomモデル
+export interface EditorJsPromptCustomAttributes {
+  id: number
+  admin_id: number
+  name: string
+  prompt: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface EditorJsPromptCustomCreationAttributes
+  extends Optional<
+    EditorJsPromptCustomAttributes,
+    'id' | 'createdAt' | 'updatedAt'
+  > {}
+
+export class EditorJsPromptCustom
+  extends Model<
+    EditorJsPromptCustomAttributes,
+    EditorJsPromptCustomCreationAttributes
+  >
+  implements EditorJsPromptCustomAttributes
+{
+  declare id: number
+  declare admin_id: number
+  declare name: string
+  declare prompt: string
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
+EditorJsPromptCustom.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    admin_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'admins',
+        key: 'id',
+      },
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    prompt: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'editorjs_prompts_custom',
+    timestamps: true,
+  }
+)
+
+// EditorJsPromptCustomとAdminの関連
+EditorJsPromptCustom.belongsTo(Admin, {
+  foreignKey: 'admin_id',
+  as: 'admin',
+})
+
+Admin.hasMany(EditorJsPromptCustom, {
+  foreignKey: 'admin_id',
+  as: 'editorJsPromptCustoms',
+})
+
 // すべてのモデルをエクスポート
 export const models = {
   Member,
@@ -1448,4 +1580,6 @@ export const models = {
   EventReport,
   EventReportComment,
   EmailSendLog,
+  EditorJsPromptMaster,
+  EditorJsPromptCustom,
 }

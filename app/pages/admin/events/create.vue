@@ -206,8 +206,8 @@ const clearThumbnail = () => {
 }
 
 const handleSubmit = async () => {
-  if (!form.title.trim() || !form.start_date) {
-    toastError('タイトルと開始日は必須項目です')
+  if (!form.title.trim() || !form.start_date || !form.end_date) {
+    toastError('タイトル、開始日、終了日は必須項目です')
     return
   }
 

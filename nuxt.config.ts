@@ -72,7 +72,7 @@ export default defineNuxtConfig({
         { rel: 'apple-touch-icon', href: '/favicon.ico' },
         { rel: 'canonical', href: 'https://www.nasunest.com' },
       ],
-      script: [
+      script: process.env.NODE_ENV === 'production' ? [
         {
           innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -92,7 +92,7 @@ gtag('js', new Date());
 gtag('config', 'G-M5B43LHSBF');`,
           type: 'text/javascript',
         },
-      ],
+      ] : [],
     },
   },
   fonts: {

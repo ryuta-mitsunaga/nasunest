@@ -4,17 +4,17 @@
       <UInput v-model="form.title" placeholder="イベントタイトル" />
     </UFormField>
 
-    <UFormField class="max-w-md" label="フォーム" name="form_id">
+    <UFormField label="フォーム" name="form_id">
       <div class="space-y-3">
         <USwitch v-model="useExternalForm" label="外部フォームを使う" />
         <template v-if="!useExternalForm">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <USelect
               v-model="form.form_id"
               v-model:open="isFormSelectOpen"
               :items="formOptions"
               placeholder="フォームを選択（任意）"
-              class="flex-1"
+              class="flex-1 min-w-32"
             />
             <UButton
               :to="'/admin/forms/create?returnTo=event'"
@@ -72,19 +72,6 @@
       />
     </UFormField>
 
-    <UFormField name="approval_type">
-      <LabelWithHelp
-        label="参加承認の方式"
-        help-text="自動承認の場合は、参加申し込みが自動的に承認されます（ユーザーのログイン必須）。手動承認の場合は、管理者が手動で参加申し込みを承認する必要があります（ユーザーのログイン必須）。承認なしの場合は、ユーザーのログイン状態に関わらず参加申し込みが可能です。"
-      ></LabelWithHelp>
-      <URadioGroup
-        class="mt-1"
-        :model-value="form.approval_type"
-        :items="approvalTypeOptions"
-        @update:model-value="form.approval_type = $event"
-      />
-    </UFormField>
-
     <UFormField label="イベント表示設定" name="is_displayed">
       <URadioGroup v-model="form.is_displayed" :items="displayOptions" />
     </UFormField>
@@ -93,8 +80,41 @@
       <UInput v-model="form.start_date" type="datetime-local" />
     </UFormField>
 
-    <UFormField label="イベント終了日時" name="end_date">
-      <UInput v-model="form.end_date" type="datetime-local" />
+    <UFormField label="イベント終了日時" name="end_date" required>
+      <template #default>
+        <div class="space-y-2">
+          <div class="flex flex-wrap gap-2 sm:flex-nowrap">
+            <UButton
+              variant="soft"
+              size="sm"
+              class="flex-1 sm:flex-none"
+              @click="addTimeToEndDate(30, 'minutes')"
+              :disabled="!form.start_date"
+            >
+              +30分
+            </UButton>
+            <UButton
+              variant="soft"
+              size="sm"
+              class="flex-1 sm:flex-none"
+              @click="addTimeToEndDate(1, 'hours')"
+              :disabled="!form.start_date"
+            >
+              +1時間
+            </UButton>
+            <UButton
+              variant="soft"
+              size="sm"
+              class="flex-1 sm:flex-none"
+              @click="addTimeToEndDate(1, 'days')"
+              :disabled="!form.start_date"
+            >
+              +1日
+            </UButton>
+          </div>
+          <UInput v-model="form.end_date" type="datetime-local" />
+        </div>
+      </template>
     </UFormField>
 
     <UFormField label="イベント公開開始日時" name="published_start">
@@ -160,6 +180,9 @@
 
 <script setup lang="ts">
 import LabelWithHelp from '~/components/ui/LabelWithHelp.vue'
+import { useDayjs } from '~/composables/useDayjs'
+
+const { dayjs } = useDayjs()
 
 interface Form {
   id: number
@@ -245,4 +268,21 @@ watch(useExternalForm, val => {
     props.form.form_link = ''
   }
 })
+
+const addTimeToEndDate = (amount: number, unit: 'minutes' | 'hours' | 'days') => {
+  if (!props.form.start_date) return
+  
+  // 基準日時を決定（終了日時が入力されている場合はそれを基準、なければ開始日時を基準）
+  const baseDate = props.form.end_date && props.form.end_date.trim()
+    ? dayjs.tz(props.form.end_date, 'Asia/Tokyo')
+    : dayjs.tz(props.form.start_date, 'Asia/Tokyo')
+  
+  if (!baseDate.isValid()) return
+  
+  // 指定した時間を加算
+  const endDate = baseDate.add(amount, unit)
+  
+  // datetime-local形式に変換
+  props.form.end_date = endDate.format('YYYY-MM-DDTHH:mm')
+}
 </script>
