@@ -34,9 +34,7 @@
             <p class="font-medium text-gray-900">通知先（LINEユーザー）</p>
             <p class="text-sm text-gray-600 mt-1">
               現在の連携:
-              <span class="text-xs">{{
-                lineUserId || '未連携'
-              }}</span>
+              <span class="text-xs">{{ lineUserId || '未連携' }}</span>
             </p>
           </div>
 

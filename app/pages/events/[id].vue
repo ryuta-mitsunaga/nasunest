@@ -149,6 +149,8 @@
             :is-authenticated="isAuthenticated"
             :button-text="event.cta_button_text"
             :redirect-path="route.fullPath"
+            :is-recruitment-closed="event.status === 'recruitment_closed'"
+            :is-capacity-full="(event as any).is_full === true"
             @click="handleCtaClick"
           />
         </div>
@@ -179,6 +181,7 @@
               :full-width="true"
               :compact="true"
               :is-recruitment-closed="event.status === 'recruitment_closed'"
+              :is-capacity-full="(event as any).is_full === true"
               @click="handleCtaClick"
             />
           </div>
@@ -231,6 +234,10 @@ const ctaButtonContainer = ref<HTMLElement | null>(null)
 const showFixedCta = ref(false)
 
 const handleCtaClick = () => {
+  // 定員到達または募集終了の場合は何もしない
+  if (event.value?.status === 'recruitment_closed') {
+    return
+  }
   // 手動承認（approval_type === 1）の場合はログイン必須
   if (event.value?.approval_type === 1 && !isAuthenticated.value) {
     // ログイン必須の場合はログイン画面にリダイレクト

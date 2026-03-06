@@ -1,4 +1,5 @@
 import { Admin, Form, FormAnswer, Event } from '~~/server/database'
+import { Op } from 'sequelize'
 import { getCookie } from 'h3'
 import { decryptId } from '~~/server/lib/crypto-utils'
 import { pushLineMessage } from '~~/server/lib/line'
@@ -66,6 +67,24 @@ export default defineEventHandler(async event => {
 
       eventId = eventIdNum
       approvalType = event.approval_type
+
+      // 定員チェック（capacity が設定されている場合）
+      const capacity = event.capacity
+      if (capacity != null && capacity > 0) {
+        const participantCount = await FormAnswer.count({
+          where: {
+            event_id: eventIdNum,
+            status: { [Op.in]: [0, 1] }, // 0: 回答待ち, 1: 承認済み（定員にカウント）
+          },
+        })
+        if (participantCount >= capacity) {
+          throw createError({
+            statusCode: 400,
+            statusMessage: '定員に達したため、申し込みを受け付けることができません',
+            message: '定員に達したため、申し込みを受け付けることができません',
+          })
+        }
+      }
     }
 
     // 回答データを保存

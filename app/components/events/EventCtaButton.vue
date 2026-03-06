@@ -1,8 +1,34 @@
 <template>
   <div class="space-y-3">
+    <!-- 定員に達した場合 -->
+    <template v-if="isCapacityFull">
+      <button
+        disabled
+        :class="[
+          'inline-flex items-center justify-center px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm opacity-50 cursor-not-allowed',
+          fullWidth ? 'w-full' : 'w-full md:w-auto',
+        ]"
+        style="background-color: #f4d35e; color: #2e5e3e"
+      >
+        <span>定員に達しました</span>
+      </button>
+    </template>
+    <!-- 募集終了（フォーム公開終了など）の場合 -->
+    <template v-else-if="isRecruitmentClosed">
+      <button
+        disabled
+        :class="[
+          'inline-flex items-center justify-center px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 shadow-sm opacity-50 cursor-not-allowed',
+          fullWidth ? 'w-full' : 'w-full md:w-auto',
+        ]"
+        style="background-color: #f4d35e; color: #2e5e3e"
+      >
+        <span>募集終了</span>
+      </button>
+    </template>
     <!-- 未ログインかつ手動承認（ログイン必須）または自動承認の場合 -->
     <template
-      v-if="(approvalType === 0 || approvalType === 1) && !isAuthenticated"
+      v-else-if="(approvalType === 0 || approvalType === 1) && !isAuthenticated"
     >
       <button
         disabled
@@ -77,12 +103,16 @@ interface Props {
   redirectPath: string
   fullWidth?: boolean
   compact?: boolean
+  isRecruitmentClosed?: boolean
+  isCapacityFull?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   buttonText: null,
   fullWidth: false,
   compact: false,
+  isRecruitmentClosed: false,
+  isCapacityFull: false,
 })
 
 const emit = defineEmits<{
