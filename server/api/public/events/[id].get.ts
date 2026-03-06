@@ -1,4 +1,4 @@
-import { Event, EventCategory, Form } from '~~/server/database'
+import { Event, EventCategory, Form, FormAnswer } from '~~/server/database'
 import { Op } from 'sequelize'
 import dayjs from '~~/server/lib/dayjs'
 
@@ -66,12 +66,26 @@ export default defineEventHandler(async event => {
       ? dayjs.utc(eventData.form.published_end).isBefore(now)
       : false
 
+    // 定員に達しているかどうかを判定
+    const capacity = eventData.capacity
+    let participantCount = 0
+    let isCapacityFull = false
+    if (capacity != null && capacity > 0 && eventData.form_id) {
+      participantCount = await FormAnswer.count({
+        where: {
+          event_id: eventData.id,
+          status: { [Op.in]: [0, 1] }, // 0: 回答待ち, 1: 承認済み
+        },
+      })
+      isCapacityFull = participantCount >= capacity
+    }
+
     // イベントが公開されているかどうかを判定
     const isPublished = eventData.is_displayed
 
     if (isEventEnded) {
       status = 'closed'
-    } else if (isRecruitmentEnded) {
+    } else if (isRecruitmentEnded || isCapacityFull) {
       status = 'recruitment_closed'
     } else if (!isPublished) {
       status = 'unpublished'
@@ -80,6 +94,9 @@ export default defineEventHandler(async event => {
     const eventDataWithStatus = {
       ...eventData.toJSON(),
       status,
+      capacity,
+      participant_count: participantCount,
+      is_full: isCapacityFull,
     }
 
     // thumbnailは既にURLなので変換不要

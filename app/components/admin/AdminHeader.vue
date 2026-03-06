@@ -37,7 +37,6 @@
             class="md:hidden"
             @click="isMobileMenuOpen = !isMobileMenuOpen"
           />
-
           <!-- 設定 -->
           <UButton
             color="neutral"
@@ -45,7 +44,9 @@
             icon="i-heroicons-cog-6-tooth"
             :to="`/admin/settings`"
             class="hidden md:flex"
-          />
+          >
+            設定
+          </UButton>
         </div>
       </div>
 
@@ -165,6 +166,12 @@ const allMenus = [
     to: '/admin/admins',
     icon: 'i-heroicons-shield-check',
     permission: 'admin_management',
+  },
+  {
+    label: 'マニュアル',
+    to: '/admin/docs',
+    icon: 'i-heroicons-book-open',
+    permission: null, // 全員に表示
   },
 ]
 
