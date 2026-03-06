@@ -98,6 +98,7 @@ export default defineEventHandler(async event => {
 
     // 新しいイベントを作成（タイトルに「コピー」を追加）
     // 作成時は非表示にする
+    // 承認なしにする
     const newEvent = await Event.create({
       admin_id: adminId,
       title: `${originalData.title} (コピー)`,
@@ -114,6 +115,7 @@ export default defineEventHandler(async event => {
       is_displayed: false,
       published_start: originalData.published_start || null,
       published_end: originalData.published_end || null,
+      approval_type: 2,
     })
 
     // カテゴリの関連付け（元のイベントから直接取得したカテゴリを使用）
