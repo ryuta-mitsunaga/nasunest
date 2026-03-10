@@ -51,6 +51,7 @@ definePageMeta({
 
 const { success: toastSuccess, error: toastError } = useCustomToast()
 const { showFetchErrorPage } = useAdminErrorPage()
+const { confirm } = useConfirm()
 
 interface Event {
   id: number
@@ -325,8 +326,32 @@ const handleSubmit = async () => {
       },
     })
 
-    await navigateTo('/admin/events')
     toastSuccess('保存しました')
+
+    if (form.is_displayed) {
+      const shouldBroadcast = await confirm({
+        title: 'LINE配信',
+        message:
+          'LINE公式アカウントの友だち全員に、イベント更新のお知らせを配信しますか？',
+        confirmText: '配信する',
+        cancelText: 'スキップ',
+      })
+      if (shouldBroadcast) {
+        try {
+          await $fetch('/api/admin/line/broadcast-event', {
+            method: 'POST',
+            credentials: 'include',
+            body: { event_id: Number(eventId.value) },
+          })
+          toastSuccess('LINE配信しました')
+        } catch (err) {
+          console.error('LINE配信エラー:', err)
+          toastError('LINE配信に失敗しました')
+        }
+      }
+    }
+
+    await navigateTo('/admin/events')
   } catch (error) {
     console.error('保存エラー:', error)
     toastError('保存に失敗しました')
