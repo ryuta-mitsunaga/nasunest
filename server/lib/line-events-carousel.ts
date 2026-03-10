@@ -7,6 +7,31 @@ const BASE_URL = process.env.NUXT_PUBLIC_SITE_URL || 'https://www.nasunest.com'
 const DEFAULT_THUMBNAIL = `${BASE_URL}/img/title-logo.png`
 
 /**
+ * 指定IDのイベントを取得（公開チェックなし）
+ */
+export async function getEventById(eventId: number) {
+  const ev = await Event.findByPk(eventId, {
+    include: [
+      {
+        model: EventCategory,
+        as: 'categories',
+        attributes: ['id', 'name'],
+        through: { attributes: [] },
+        required: false,
+      },
+      {
+        model: Form,
+        as: 'form',
+        attributes: ['published_end'],
+        required: false,
+      },
+    ],
+    attributes: ['id', 'title', 'start_date', 'end_date', 'location_name', 'thumbnail'],
+  })
+  return ev
+}
+
+/**
  * 開催予定のイベントを取得（募集中・未終了）
  */
 export async function getUpcomingEvents(limit = 10) {
