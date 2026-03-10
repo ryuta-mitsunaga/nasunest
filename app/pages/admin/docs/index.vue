@@ -316,6 +316,40 @@
               </NuxtLink>
             </div>
           </section>
+
+          <!-- LINE公式アカウントでのイベント配信 -->
+          <section>
+            <h3
+              class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"
+            >
+              <UIcon name="i-heroicons-chat-bubble-left-right" class="w-5 h-5" />
+              LINE公式アカウントでのイベント配信
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+              リッチメニューのボタンを押したとき、または「イベント」「イベント一覧」「開催予定」とメッセージを送ったときに、開催予定のイベントがカルーセル形式で表示されます。
+            </p>
+            <div class="space-y-4">
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="font-medium text-gray-900 mb-2">リッチメニューの設定</p>
+                <p class="text-sm text-gray-600 mb-2">
+                  LINE Developersコンソールでリッチメニューを作成し、ポストバックアクションを設定してください。
+                </p>
+                <ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                  <li>アクションタイプ: ポストバック</li>
+                  <li>データ: <code class="bg-gray-200 px-1 rounded">action=events</code> または <code class="bg-gray-200 px-1 rounded">events</code></li>
+                </ul>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="font-medium text-gray-900 mb-2">Webhook URL</p>
+                <p class="text-sm text-gray-600">
+                  <code class="bg-gray-200 px-1 rounded break-all">https://www.nasunest.com/api/line/webhook</code>
+                </p>
+                <p class="text-sm text-gray-600 mt-2">
+                  環境変数 <code class="bg-gray-200 px-1 rounded">LINE_CHANNEL_SECRET</code> の設定が必要です。
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
       </template>
     </UAccordion>
