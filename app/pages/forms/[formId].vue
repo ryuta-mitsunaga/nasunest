@@ -124,6 +124,40 @@
           </UCard>
         </div>
 
+        <!-- 注意事項への同意 -->
+        <UCard data-consent-section>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">注意事項</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            以下の内容に同意いただいたうえでお申し込みください。
+          </p>
+          <ul class="text-sm text-gray-600 space-y-2 list-disc list-inside mb-4">
+            <li>
+              イベント内で発生した事故やトラブルについては、主催者および運営は責任を負いかねます。
+            </li>
+            <li>
+              ご記入いただいた個人情報は、本事業の運営およびご連絡の目的にのみ使用いたします。
+            </li>
+            <li>
+              イベントの様子を写真・動画で記録し、広報や記録として使用する場合があります。
+            </li>
+            <li>
+              やむを得ない事情により、イベントの中止または内容の変更が生じる場合があります。
+            </li>
+          </ul>
+          <UFormField label="上記の注意事項に同意します" name="consent" required>
+            <UCheckbox
+              id="consent"
+              v-model="consentAccepted"
+              label="注意事項に同意する"
+              size="lg"
+              @update:model-value="onConsentChange"
+            />
+          </UFormField>
+          <p v-if="consentError" class="text-sm text-red-600 mt-2">
+            {{ consentError }}
+          </p>
+        </UCard>
+
         <!-- 送信ボタン -->
         <div class="flex justify-end gap-4 pt-4">
           <UButton
@@ -183,6 +217,8 @@ const formDescription = ref('')
 const formFields = ref<FormField[]>([])
 const formData = ref<Record<string, any>>({})
 const fieldErrors = ref<Record<string, string>>({})
+const consentAccepted = ref(false)
+const consentError = ref('')
 
 const formState = computed(() => formData.value)
 
@@ -322,6 +358,12 @@ const getFieldError = (fieldId: string) => {
   return fieldErrors.value[fieldId] || ''
 }
 
+const onConsentChange = (checked: boolean | 'indeterminate') => {
+  if (checked === true) {
+    consentError.value = ''
+  }
+}
+
 const validateForm = () => {
   fieldErrors.value = {}
   const errors: string[] = []
@@ -351,6 +393,18 @@ const validateForm = () => {
 }
 
 const handleSubmit = async () => {
+  consentError.value = ''
+
+  // 注意事項への同意確認
+  if (!consentAccepted.value) {
+    consentError.value = '送信するには注意事項への同意が必要です'
+    const consentCard = document.querySelector('[data-consent-section]')
+    if (consentCard) {
+      consentCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    return
+  }
+
   // 必須項目のバリデーション
   const errors = validateForm()
   if (errors.length > 0) {
