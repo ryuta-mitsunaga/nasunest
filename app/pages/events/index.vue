@@ -175,10 +175,14 @@ const { data: myApplicationsData } = await useAsyncData<{
   data: EventApplication[]
 }>(
   'my-event-applications',
-  () =>
-    requestFetch<{ success: boolean; data: EventApplication[] }>(
+  async () => {
+    // ログイン中のみ取得
+    if (!isAuthenticated.value) return { success: true, data: [] }
+
+    return requestFetch<{ success: boolean; data: EventApplication[] }>(
       '/api/public/events/my-applications'
-    ),
+    )
+  },
   {
     default: () => ({
       data: [],
