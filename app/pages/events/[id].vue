@@ -36,7 +36,19 @@
       v-else-if="event"
       class="bg-white rounded-2xl shadow-md overflow-hidden"
     >
-      <!--130 サムネイル画像 -->
+      <!-- カテゴリ・参加者・日付（サムネイル上） -->
+      <div class="px-6 pt-6 pb-4">
+        <EventsEventDetailMeta
+          :categories="event.categories"
+          :participant-count="(event as any).participant_count"
+          :capacity="(event as any).capacity"
+          :has-form="!!(event.form_id || (event as any).form_link)"
+          :start-date="event.start_date"
+          :end-date="event.end_date"
+        />
+      </div>
+
+      <!-- サムネイル画像 -->
       <div
         v-if="event.thumbnail"
         class="relative w-full overflow-hidden"
@@ -51,29 +63,6 @@
 
       <!-- イベント情報 -->
       <div class="p-6 md:p-8 space-y-6">
-        <!-- カテゴリ -->
-        <EventsEventCategories :categories="event.categories" />
-        <!-- 日付情報 -->
-        <div class="flex items-center gap-2" style="color: #2e5e3e">
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          <span class="font-semibold">{{ formatDate(event.start_date) }}</span>
-          <span v-if="event.end_date && event.end_date !== event.start_date">
-            〜 {{ formatDate(event.end_date) }}
-          </span>
-        </div>
-
         <!-- 本文（EditorJS） -->
         <div v-if="event.body">
           <AdminEditorJsEditor :data="event.body" :read-only="true" />
@@ -168,7 +157,9 @@
         leave-to-class="translate-y-full opacity-0"
       >
         <div
-          v-if="showFixedCta && event && (event.form_id || (event as any).form_link)"
+          v-if="
+            showFixedCta && event && (event.form_id || (event as any).form_link)
+          "
           class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
           style="border-color: #2e5e3e"
         >
@@ -192,9 +183,6 @@
 </template>
 
 <script setup lang="ts">
-import { useDayjs } from '~/composables/useDayjs'
-
-const { dayjs } = useDayjs()
 interface Event {
   id: number
   title: string
@@ -313,7 +301,7 @@ const formatDateForOGP = (dateString: string | null): string | null => {
 // EditorJSのbodyからテキストを抽出
 const extractTextFromEditorJS = (body: any): string => {
   if (!body) return ''
-  
+
   // 文字列の場合はパースを試みる
   let parsedBody = body
   if (typeof body === 'string') {
@@ -323,17 +311,17 @@ const extractTextFromEditorJS = (body: any): string => {
       return ''
     }
   }
-  
+
   // blocksが存在しない場合は空文字を返す
   if (!parsedBody?.blocks || !Array.isArray(parsedBody.blocks)) {
     return ''
   }
-  
+
   const texts: string[] = []
-  
+
   for (const block of parsedBody.blocks) {
     if (!block.data) continue
-    
+
     switch (block.type) {
       case 'paragraph':
         if (block.data.text) {
@@ -352,7 +340,8 @@ const extractTextFromEditorJS = (body: any): string => {
         if (block.data.items && Array.isArray(block.data.items)) {
           for (const item of block.data.items) {
             // itemが文字列でない場合は文字列に変換
-            const itemText = typeof item === 'string' ? item : String(item || '')
+            const itemText =
+              typeof item === 'string' ? item : String(item || '')
             const text = itemText.replace(/<[^>]*>/g, '').trim()
             if (text) texts.push(text)
           }
@@ -366,7 +355,7 @@ const extractTextFromEditorJS = (body: any): string => {
         break
     }
   }
-  
+
   return texts.join(' ').substring(0, 160)
 }
 
@@ -379,17 +368,15 @@ useHead({
     const eventDescription =
       extractTextFromEditorJS(event.value?.body) ||
       '那須町のイベント情報詳細ページです。'
-    const eventImage =
-      event.value?.thumbnail || `${baseUrl}/img/title-logo.png`
+    const eventImage = event.value?.thumbnail || `${baseUrl}/img/title-logo.png`
     const eventUrl = `${baseUrl}/events/${eventId.value}`
     const startTime = formatDateForOGP(event.value?.start_date || null)
     const endTime = formatDateForOGP(event.value?.end_date || null)
     const location = event.value?.location_name || event.value?.location_address
 
     // カテゴリ名をキーワードに追加
-    const categoryKeywords = event.value?.categories
-      ?.map(cat => cat.name)
-      .join(', ') || ''
+    const categoryKeywords =
+      event.value?.categories?.map(cat => cat.name).join(', ') || ''
     const keywords = [
       '那須町',
       'イベント',
@@ -509,13 +496,14 @@ useHead({
   ]),
   script: computed(() => {
     if (!event.value) return []
-    
+
     // 構造化データ（JSON-LD）を追加
     const eventSchema = {
       '@context': 'https://schema.org',
       '@type': 'Event',
       name: event.value.title,
-      description: extractTextFromEditorJS(event.value.body) || '那須町のイベント情報',
+      description:
+        extractTextFromEditorJS(event.value.body) || '那須町のイベント情報',
       startDate: event.value.start_date,
       endDate: event.value.end_date || event.value.start_date,
       image: event.value.thumbnail || `${baseUrl}/img/title-logo.png`,
@@ -538,7 +526,7 @@ useHead({
       },
       url: `${baseUrl}/events/${eventId.value}`,
     }
-    
+
     return [
       {
         type: 'application/ld+json',
@@ -547,13 +535,6 @@ useHead({
     ]
   }),
 })
-
-const formatDate = (dateString: string) => {
-  // UTCとして解釈し、JSTに変換して表示
-  const date = dayjs.utc(dateString).tz('Asia/Tokyo')
-  if (!date.isValid()) return dateString
-  return date.format('YYYY年M月D日 HH:mm')
-}
 
 const showCtaButton = computed(() => {
   return (

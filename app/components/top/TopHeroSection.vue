@@ -1,5 +1,7 @@
 <template>
-  <section class="relative w-full h-screen max-h-[600px] overflow-hidden">
+  <section
+    class="relative w-full h-screen max-h-[600px] overflow-hidden hero-area"
+  >
     <!-- タイトルテキスト (画像表示前) -->
     <Transition name="fade-out">
       <div
@@ -17,21 +19,30 @@
     <!-- 背景のフォトスタック -->
     <Transition name="fade-in">
       <div
-        v-if="showPhotoStack"
+        v-if="showPhotoStack && !showTitleLogo"
         class="absolute inset-0 flex items-center justify-center h-full pointer-events-none"
       >
-        <TopPhotoStack :events="events" @images-loaded="handleImagesLoaded" />
+        <TopPhotoStack
+          :events="events"
+          @images-loaded="handleImagesLoaded"
+          @cards-animation-complete="handleCardsAnimationComplete"
+        />
       </div>
     </Transition>
 
-    <!-- ロゴ -->
-    <div class="absolute bottom-3 right-3 md:bottom-10 md:right-10 z-10">
-      <img
-        src="/img/title-logo.png"
-        alt="nasunest"
-        class="logo-image md:w-[140px] w-[100px]"
-      />
-    </div>
+    <!-- タイトルロゴ（カードアニメーション完了後に表示） -->
+    <Transition name="fade-in">
+      <div
+        v-if="showTitleLogo"
+        class="absolute inset-0 flex items-center justify-center h-full pointer-events-none z-10"
+      >
+        <img
+          src="/img/title-logo.png"
+          alt="NasuNest"
+          class="logo-image max-w-[280px] md:max-w-[360px] w-[70vw]"
+        />
+      </div>
+    </Transition>
 
     <Transition name="fade">
       <NuxtLink
@@ -91,6 +102,7 @@ const pickupEventLink = computed(() => {
 const imagesLoaded = ref(false)
 const titleAnimationCompleted = ref(false)
 const showPhotoStack = ref(false)
+const showTitleLogo = ref(false)
 
 // タイトルテキストのアニメーション完了を待つ（3秒 + フェードアウト時間0.8秒）
 onMounted(() => {
@@ -108,9 +120,19 @@ onMounted(() => {
 const handleImagesLoaded = () => {
   imagesLoaded.value = true
 }
+
+const handleCardsAnimationComplete = () => {
+  showTitleLogo.value = true
+}
 </script>
 
 <style scoped>
+.hero-area {
+  background-image: url('/img/hero-background.png');
+  background-repeat: repeat;
+  background-size: auto;
+}
+
 .logo-image {
   height: auto;
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));

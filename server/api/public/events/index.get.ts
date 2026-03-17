@@ -146,6 +146,8 @@ export default defineEventHandler(async event => {
       const participantCounts = await FormAnswer.findAll({
         where: {
           event_id: { [Op.in]: eventIds },
+          status: { [Op.in]: [0, 1] },
+          is_cancel: false,
         },
         attributes: ['event_id', [fn('COUNT', col('id')), 'count']],
         group: ['event_id'],
@@ -194,9 +196,13 @@ export default defineEventHandler(async event => {
         status = 'unpublished'
       }
 
-      // 参加人数を取得
-      const participantCount = participantCountMap.get(Number(eventData.id)) || 0
-      
+      // 参加人数を取得（イベント作成者も参加の場合は+1）
+      let participantCount =
+        participantCountMap.get(Number(eventData.id)) || 0
+      if (eventData.creator_participates) {
+        participantCount += 1
+      }
+
       return {
         ...eventData,
         status,

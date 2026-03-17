@@ -66,18 +66,24 @@ export default defineEventHandler(async event => {
       ? dayjs.utc(eventData.form.published_end).isBefore(now)
       : false
 
-    // 定員に達しているかどうかを判定
+    // 参加人数・定員（フォーム登録時のみ）
     const capacity = eventData.capacity
-    let participantCount = 0
+    let participantCount: number | null = null
     let isCapacityFull = false
-    if (capacity != null && capacity > 0 && eventData.form_id) {
+
+    if (eventData.form_id) {
       participantCount = await FormAnswer.count({
         where: {
           event_id: eventData.id,
-          status: { [Op.in]: [0, 1] }, // 0: 回答待ち, 1: 承認済み
+          status: { [Op.in]: [0, 1] },
+          is_cancel: false,
         },
       })
-      isCapacityFull = participantCount >= capacity
+      if (eventData.creator_participates) {
+        participantCount += 1
+      }
+      isCapacityFull =
+        capacity != null && capacity > 0 && participantCount >= capacity
     }
 
     // イベントが公開されているかどうかを判定
