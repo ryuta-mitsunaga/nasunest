@@ -45,6 +45,7 @@
           :has-form="!!(event.form_id || (event as any).form_link)"
           :start-date="event.start_date"
           :end-date="event.end_date"
+          :creator="event.creator"
         />
       </div>
 
@@ -203,6 +204,7 @@ interface Event {
     name: string
   }>
   status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
+  creator?: { icon_url: string } | null
 }
 
 const route = useRoute()
