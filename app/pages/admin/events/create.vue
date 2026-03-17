@@ -75,6 +75,7 @@ const form = reactive({
   published_end: '',
   capacity: null as number | null,
   approval_type: 2,
+  creator_participates: false,
   category_ids: [] as number[],
 })
 
@@ -234,6 +235,7 @@ const handleSubmit = async () => {
         published_end: toUTC(form.published_end),
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
+        creator_participates: form.creator_participates,
         category_ids: form.category_ids,
       },
     })

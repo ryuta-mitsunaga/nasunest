@@ -72,6 +72,7 @@ interface Event {
   published_end: string | null
   capacity: number | null
   approval_type: number | null
+  creator_participates?: boolean
   categories?: Array<{
     id: number
     name: string
@@ -125,6 +126,7 @@ const form = reactive({
   published_end: '',
   capacity: null as number | null,
   approval_type: 0 as number,
+  creator_participates: false,
   category_ids: [] as number[],
 })
 
@@ -183,6 +185,7 @@ const fetchEvent = async () => {
     form.published_end = toDateTimeLocal(eventData.published_end)
     form.capacity = eventData.capacity || null
     form.approval_type = eventData.approval_type ?? 0
+    form.creator_participates = eventData.creator_participates ?? false
     form.category_ids = eventData.categories?.map(c => c.id) || []
     thumbnailPreview.value = eventData.thumbnail || null
   } catch (error) {
@@ -322,6 +325,7 @@ const handleSubmit = async () => {
         published_end: toUTC(form.published_end),
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
+        creator_participates: form.creator_participates,
         category_ids: form.category_ids,
       },
     })

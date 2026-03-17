@@ -62,7 +62,11 @@ const imagesLoaded = ref(false)
 
 const emit = defineEmits<{
   'images-loaded': []
+  'cards-animation-complete': []
 }>()
+
+// カードアニメーション完了時間（最後のカードのdelay + アニメーション時間）
+const CARD_ANIMATION_DURATION = (PHOTO_COUNT - 1) * 200 + 800
 
 const spreadFactor = ref(0.3)
 
@@ -137,6 +141,11 @@ onMounted(() => {
   updateSpread()
   window.addEventListener('scroll', updateSpread, { passive: true })
   window.addEventListener('resize', updateSpread)
+
+  // カードアニメーション完了後にemit
+  setTimeout(() => {
+    emit('cards-animation-complete')
+  }, CARD_ANIMATION_DURATION)
 
   // 画像のロードを開始
   nextTick(() => {

@@ -34,6 +34,7 @@ export default defineEventHandler(async event => {
       capacity: body.capacity ? parseInt(body.capacity, 10) : null,
       approval_type:
         body.approval_type !== undefined ? parseInt(body.approval_type, 10) : 0,
+      creator_participates: !!body.creator_participates,
     })
 
     // カテゴリの関連付け

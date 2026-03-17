@@ -72,6 +72,13 @@
       />
     </UFormField>
 
+    <UFormField label="イベント作成者も参加" name="creator_participates">
+      <UCheckbox
+        v-model="form.creator_participates"
+        label="イベント作成者も参加者に含める（参加人数に+1されます）"
+      />
+    </UFormField>
+
     <UFormField label="イベント表示設定" name="is_displayed">
       <URadioGroup v-model="form.is_displayed" :items="displayOptions" />
     </UFormField>
@@ -212,6 +219,7 @@ interface EventFormData {
   published_end: string
   capacity: number | null
   approval_type: number
+  creator_participates: boolean
   category_ids: number[]
 }
 

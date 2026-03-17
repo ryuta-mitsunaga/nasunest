@@ -1,5 +1,7 @@
 <template>
   <TopHeroSection :events="allEvents" />
+  <TopNasuNestSection />
+
   <TopEventsSection
     :events="latestEvents"
     :loading="eventsLoading"
@@ -10,7 +12,6 @@
     :loading="eventReportsLoading"
     :error="eventReportsError"
   />
-  <TopNasuNestSection />
 </template>
 
 <script setup lang="ts">

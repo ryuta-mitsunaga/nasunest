@@ -379,6 +379,7 @@ export interface EventAttributes {
   published_end: Date | null
   capacity: number | null
   approval_type: number | null
+  creator_participates: boolean
   createdAt?: Date
   updatedAt?: Date
 }
@@ -401,6 +402,7 @@ export interface EventCreationAttributes
     | 'published_end'
     | 'capacity'
     | 'approval_type'
+    | 'creator_participates'
     | 'createdAt'
     | 'updatedAt'
   > {}
@@ -428,6 +430,7 @@ export class Event
   declare published_end: Date | null
   declare capacity: number | null
   declare approval_type: number | null
+  declare creator_participates: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -532,6 +535,12 @@ Event.init(
       allowNull: true,
       defaultValue: 0,
       comment: '参加承認の方式（0: 自動承認, 1: 手動承認, 2: 承認なし）',
+    },
+    creator_participates: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'イベント作成者も参加者に含める（true: +1する）',
     },
   },
   {

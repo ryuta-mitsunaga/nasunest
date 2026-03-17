@@ -71,6 +71,10 @@ export default defineEventHandler(async event => {
         body.approval_type !== undefined
           ? parseInt(body.approval_type, 10)
           : undefined,
+      creator_participates:
+        body.creator_participates !== undefined
+          ? !!body.creator_participates
+          : undefined,
     }
 
     if (thumbnailUrl !== undefined) {

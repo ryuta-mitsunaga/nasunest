@@ -1,5 +1,7 @@
 <template>
   <div class="container mx-auto p-6">
+    <AdminQuickMenu v-if="isAdminTop" />
+
     <div class="mb-6">
       <h1 class="text-xl font-bold">管理画面</h1>
       <p class="text-gray-600 mt-2">各種管理機能にアクセスできます</p>
@@ -36,6 +38,9 @@ interface AdminData {
 definePageMeta({
   layout: 'admin',
 })
+
+const route = useRoute()
+const isAdminTop = computed(() => route.path === '/admin')
 
 // 管理者情報と権限を取得
 const { data: adminData } = await useFetch<{
