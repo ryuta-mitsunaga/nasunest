@@ -44,9 +44,6 @@
         〜 {{ formattedEndDate }}
       </span>
     </div>
-
-    <!-- 作成者 -->
-    <EventsEventCreator class="justify-end" :creator="creator" size="xl" />
   </div>
 </template>
 
@@ -67,7 +64,6 @@ interface Props {
   hasForm: boolean
   startDate: string
   endDate?: string | null
-  creator?: { icon_url: string } | null
 }
 
 const props = defineProps<Props>()

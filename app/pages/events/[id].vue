@@ -36,19 +36,6 @@
       v-else-if="event"
       class="bg-white rounded-2xl shadow-md overflow-hidden"
     >
-      <!-- カテゴリ・参加者・日付（サムネイル上） -->
-      <div class="px-6 pt-6 pb-4">
-        <EventsEventDetailMeta
-          :categories="event.categories"
-          :participant-count="(event as any).participant_count"
-          :capacity="(event as any).capacity"
-          :has-form="!!(event.form_id || (event as any).form_link)"
-          :start-date="event.start_date"
-          :end-date="event.end_date"
-          :creator="event.creator"
-        />
-      </div>
-
       <!-- サムネイル画像 -->
       <div
         v-if="event.thumbnail"
@@ -59,6 +46,18 @@
           :src="event.thumbnail"
           :alt="event.title"
           class="w-full h-full object-cover"
+        />
+      </div>
+
+      <!-- カテゴリ・参加者・日付（サムネイル上） -->
+      <div class="px-6 pt-6 pb-2">
+        <EventsEventDetailMeta
+          :categories="event.categories"
+          :participant-count="(event as any).participant_count"
+          :capacity="(event as any).capacity"
+          :has-form="!!(event.form_id || (event as any).form_link)"
+          :start-date="event.start_date"
+          :end-date="event.end_date"
         />
       </div>
 
@@ -128,17 +127,20 @@
           </a>
         </div>
 
+        <!-- 作成者 -->
+        <EventsEventCreator
+          class="justify-end"
+          :creator="event.creator"
+          size="xl"
+        />
+
         <!-- イベントレポート -->
-        <div
-          v-if="event.event_reports?.length"
-          class="space-y-2"
-        >
-          <h2 class="text-lg font-bold" style="color: #2e5e3e">イベントレポート</h2>
+        <div v-if="event.event_reports?.length" class="space-y-2">
+          <h2 class="text-lg font-bold" style="color: #2e5e3e">
+            イベントレポート
+          </h2>
           <ul class="space-y-2">
-            <li
-              v-for="report in event.event_reports"
-              :key="report.id"
-            >
+            <li v-for="report in event.event_reports" :key="report.id">
               <NuxtLink
                 :to="`/eventReports/${report.id}`"
                 class="inline-flex items-center gap-2 text-sm hover:underline"
