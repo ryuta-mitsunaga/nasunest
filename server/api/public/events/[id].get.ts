@@ -1,4 +1,11 @@
-import { Event, EventCategory, Form, FormAnswer } from '~~/server/database'
+import {
+  Event,
+  EventCategory,
+  EventReport,
+  Form,
+  FormAnswer,
+  Admin,
+} from '~~/server/database'
 import { Op } from 'sequelize'
 import dayjs from '~~/server/lib/dayjs'
 
@@ -10,7 +17,7 @@ export default defineEventHandler(async event => {
     // UTCの現在時刻を取得（DBにUTCで保存されているため）
     const now = dayjs.utc()
 
-    const eventData = await Event.findOne<Event & { form: Form }>({
+    const eventData = await Event.findOne({
       where: {
         id,
         is_displayed: true,
@@ -40,6 +47,18 @@ export default defineEventHandler(async event => {
           model: Form,
           as: 'form',
           attributes: ['id', 'name', 'published_end'],
+          required: false,
+        },
+        {
+          model: Admin,
+          as: 'admin',
+          attributes: ['id', 'icon_url'],
+          required: false,
+        },
+        {
+          model: EventReport,
+          as: 'eventReports',
+          attributes: ['id', 'title', 'thumbnail', 'createdAt'],
           required: false,
         },
       ],
@@ -97,12 +116,21 @@ export default defineEventHandler(async event => {
       status = 'unpublished'
     }
 
+    const eventJson = eventData.toJSON() as any
+    const creator =
+      eventData.show_creator && eventJson.admin
+        ? { icon_url: eventJson.admin.icon_url }
+        : null
+
+    const { admin, eventReports, ...rest } = eventJson
     const eventDataWithStatus = {
-      ...eventData.toJSON(),
+      ...rest,
       status,
       capacity,
       participant_count: participantCount,
       is_full: isCapacityFull,
+      creator,
+      event_reports: eventReports || [],
     }
 
     // thumbnailは既にURLなので変換不要

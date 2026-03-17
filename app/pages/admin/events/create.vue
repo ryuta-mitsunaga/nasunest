@@ -76,6 +76,7 @@ const form = reactive({
   capacity: null as number | null,
   approval_type: 2,
   creator_participates: false,
+  show_creator: false,
   category_ids: [] as number[],
 })
 
@@ -236,6 +237,7 @@ const handleSubmit = async () => {
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
         creator_participates: form.creator_participates,
+        show_creator: form.show_creator,
         category_ids: form.category_ids,
       },
     })

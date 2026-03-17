@@ -73,6 +73,7 @@ interface Event {
   capacity: number | null
   approval_type: number | null
   creator_participates?: boolean
+  show_creator?: boolean
   categories?: Array<{
     id: number
     name: string
@@ -127,6 +128,7 @@ const form = reactive({
   capacity: null as number | null,
   approval_type: 0 as number,
   creator_participates: false,
+  show_creator: false,
   category_ids: [] as number[],
 })
 
@@ -186,6 +188,7 @@ const fetchEvent = async () => {
     form.capacity = eventData.capacity || null
     form.approval_type = eventData.approval_type ?? 0
     form.creator_participates = eventData.creator_participates ?? false
+    form.show_creator = eventData.show_creator ?? false
     form.category_ids = eventData.categories?.map(c => c.id) || []
     thumbnailPreview.value = eventData.thumbnail || null
   } catch (error) {
@@ -326,6 +329,7 @@ const handleSubmit = async () => {
         capacity: form.capacity || null,
         approval_type: form.approval_type ?? 0,
         creator_participates: form.creator_participates,
+        show_creator: form.show_creator,
         category_ids: form.category_ids,
       },
     })

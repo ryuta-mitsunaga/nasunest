@@ -128,6 +128,41 @@
           </a>
         </div>
 
+        <!-- イベントレポート -->
+        <div
+          v-if="event.event_reports?.length"
+          class="space-y-2"
+        >
+          <h2 class="text-lg font-bold" style="color: #2e5e3e">イベントレポート</h2>
+          <ul class="space-y-2">
+            <li
+              v-for="report in event.event_reports"
+              :key="report.id"
+            >
+              <NuxtLink
+                :to="`/eventReports/${report.id}`"
+                class="inline-flex items-center gap-2 text-sm hover:underline"
+                style="color: #2e5e3e"
+              >
+                <svg
+                  class="w-4 h-4 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <span>{{ report.title }}</span>
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+
         <!-- フォームリンク -->
         <div
           v-if="showCtaButton && (event.form_id || (event as any).form_link)"
@@ -184,6 +219,13 @@
 </template>
 
 <script setup lang="ts">
+interface EventReport {
+  id: number
+  title: string
+  thumbnail: string | null
+  createdAt: string
+}
+
 interface Event {
   id: number
   title: string
@@ -205,6 +247,7 @@ interface Event {
   }>
   status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
   creator?: { icon_url: string } | null
+  event_reports?: EventReport[]
 }
 
 const route = useRoute()

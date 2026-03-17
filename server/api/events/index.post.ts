@@ -35,6 +35,7 @@ export default defineEventHandler(async event => {
       approval_type:
         body.approval_type !== undefined ? parseInt(body.approval_type, 10) : 0,
       creator_participates: !!body.creator_participates,
+      show_creator: !!body.show_creator,
     })
 
     // カテゴリの関連付け

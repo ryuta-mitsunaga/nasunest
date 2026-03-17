@@ -75,6 +75,8 @@ export default defineEventHandler(async event => {
         body.creator_participates !== undefined
           ? !!body.creator_participates
           : undefined,
+      show_creator:
+        body.show_creator !== undefined ? !!body.show_creator : undefined,
     }
 
     if (thumbnailUrl !== undefined) {

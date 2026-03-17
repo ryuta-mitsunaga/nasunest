@@ -1,6 +1,7 @@
 <template>
   <nav
-    class="relative flex justify-between items-center gap-8 py-4 px-4 sticky top-0 z-100 bg-[#f9f7f2] h-[60px]"
+    class="relative flex justify-between items-center gap-8 py-4 px-4 sticky top-0 z-100 h-[60px] transition-colors duration-300"
+    :class="isScrolled ? 'bg-[#f9f7f2]' : 'bg-transparent'"
   >
     <NuxtLink
       to="/"
@@ -27,7 +28,7 @@
       </NuxtLink>
     </div>
 
-    <!-- ログイン/ログアウトボタン（デスクトップ） -->
+    <!-- SNS・ログイン/ログアウトボタン（デスクトップ） -->
     <div class="hidden md:flex items-center gap-4">
       <!-- ログイン済み -->
       <template v-if="isAuthenticated">
@@ -70,9 +71,31 @@
 <script setup lang="ts">
 const { isAuthenticated, logout, loading: authLoading } = useAuth()
 
+const isScrolled = ref(false)
+
+const updateScrollState = () => {
+  if (process.client) {
+    isScrolled.value = window.scrollY > 0
+  }
+}
+
+onMounted(() => {
+  if (process.client) {
+    updateScrollState()
+    window.addEventListener('scroll', updateScrollState, { passive: true })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (process.client) {
+    window.removeEventListener('scroll', updateScrollState)
+  }
+})
+
 const linkMenus = [
   { label: 'トップ', to: '/' },
   { label: 'イベント', to: '/events' },
+  { label: 'イベントレポート', to: '/eventReports' },
   { label: '那須町地域おこし協力隊', to: '/chikiOkoshiMembers' },
 ]
 
