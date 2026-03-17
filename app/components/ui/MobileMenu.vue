@@ -149,6 +149,24 @@
                     </svg>
                   </NuxtLink>
                 </template>
+
+                <!-- SNSエリア -->
+                <div class="mt-4 pt-4 border-t border-gray-300 flex flex-col gap-2">
+                  <UiSnsLink
+                    type="line"
+                    href="https://lin.ee/VLzjPvj"
+                    label="LINE公式アカウント"
+                    aria-label="LINE公式アカウント"
+                    @click="closeMenu"
+                  />
+                  <UiSnsLink
+                    type="instagram"
+                    href="https://www.instagram.com/nasunest.info/"
+                    label="Instagram"
+                    aria-label="NasuNest Instagram"
+                    @click="closeMenu"
+                  />
+                </div>
               </div>
             </ClientOnly>
           </div>
@@ -166,8 +184,9 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: 'トップ', to: '/' },
-  { label: '那須町地域おこし協力隊', to: '/chikiOkoshiMembers' },
   { label: 'イベント', to: '/events' },
+  { label: 'イベントレポート', to: '/eventReports' },
+  { label: '那須町地域おこし協力隊', to: '/chikiOkoshiMembers' },
 ]
 
 const { isOpen, toggleMenu, closeMenu } = useMobileMenu()

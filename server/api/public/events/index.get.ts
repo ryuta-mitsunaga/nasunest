@@ -1,4 +1,10 @@
-import { Event, EventCategory, Form, FormAnswer } from '~~/server/database'
+import {
+  Event,
+  EventCategory,
+  Form,
+  FormAnswer,
+  Admin,
+} from '~~/server/database'
 import { Op, fn, col } from 'sequelize'
 import dayjs from '~~/server/lib/dayjs'
 
@@ -108,6 +114,12 @@ export default defineEventHandler(async event => {
           attributes: ['id', 'name', 'published_end'],
           required: false,
         },
+        {
+          model: Admin,
+          as: 'admin',
+          attributes: ['id', 'icon_url'],
+          required: false,
+        },
       ],
       attributes: {
         exclude: ['body'], // 大きなデータを除外
@@ -203,10 +215,18 @@ export default defineEventHandler(async event => {
         participantCount += 1
       }
 
+      // 作成者情報（show_creator時のみ）
+      const creator =
+        eventData.show_creator && eventData.admin
+          ? { icon_url: eventData.admin.icon_url }
+          : null
+
+      const { admin, ...rest } = eventData
       return {
-        ...eventData,
+        ...rest,
         status,
         participant_count: participantCount,
+        creator,
       }
     })
 

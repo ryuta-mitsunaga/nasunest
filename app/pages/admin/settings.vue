@@ -62,6 +62,65 @@
       </div>
     </UCard>
 
+    <UCard class="mb-6">
+      <template #header>
+        <h2 class="text-xl font-semibold">プロフィール画像</h2>
+      </template>
+
+      <div class="p-6">
+        <div class="flex items-start gap-6">
+          <div class="shrink-0">
+            <div
+              class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-gray-200"
+            >
+              <img
+                v-if="iconUrl"
+                :src="iconUrl"
+                alt="プロフィール画像"
+                class="w-full h-full object-cover"
+              />
+              <UIcon
+                v-else
+                name="i-heroicons-user-circle"
+                class="w-16 h-16 text-gray-400"
+              />
+            </div>
+          </div>
+          <div class="flex-1 space-y-4">
+            <p class="text-sm text-gray-600">
+              管理画面で表示するアイコン画像を設定できます。（最大2MB）
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <input
+                ref="iconInputRef"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handleIconUpload"
+              />
+              <UButton
+                variant="soft"
+                color="primary"
+                :loading="uploadingIcon"
+                @click="iconInputRef?.click()"
+              >
+                画像を選択
+              </UButton>
+              <UButton
+                v-if="iconUrl"
+                variant="soft"
+                color="error"
+                :disabled="uploadingIcon"
+                @click="handleClearIcon"
+              >
+                削除
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </UCard>
+
     <UCard>
       <template #header>
         <h2 class="text-xl font-semibold">アカウント</h2>
@@ -98,15 +157,73 @@ const linking = ref(false)
 const lineUserId = ref<string | null>(null)
 const { success: toastSuccess } = useCustomToast()
 
+const iconInputRef = ref<HTMLInputElement | null>(null)
+const iconUrl = ref<string | null>(null)
+const uploadingIcon = ref(false)
+
 const loadAdminMe = async () => {
   try {
     const res = await $fetch<{
       success: boolean
-      data: { line_user_id: string | null }
+      data: { line_user_id: string | null; icon_url: string | null }
     }>('/api/admin/me', { credentials: 'include' })
     lineUserId.value = res.data?.line_user_id || null
+    iconUrl.value = res.data?.icon_url || null
   } catch (e) {
     console.error('管理者情報取得エラー:', e)
+  }
+}
+
+const handleIconUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  uploadingIcon.value = true
+  try {
+    const formData = new FormData()
+    formData.append('icon', file)
+
+    const res = await $fetch<{ success: boolean; data: { url: string } }>(
+      '/api/admin/upload-icon',
+      {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      }
+    )
+
+    if (res.success && res.data.url) {
+      await $fetch('/api/admin/icon', {
+        method: 'PUT',
+        credentials: 'include',
+        body: { icon_url: res.data.url },
+      })
+      iconUrl.value = res.data.url
+      toastSuccess('アイコンを更新しました')
+    }
+  } catch (e) {
+    console.error('アイコンアップロードエラー:', e)
+    alert('アイコンのアップロードに失敗しました')
+  } finally {
+    uploadingIcon.value = false
+    target.value = ''
+  }
+}
+
+const handleClearIcon = async () => {
+  if (!confirm('アイコンを削除しますか？')) return
+  try {
+    await $fetch('/api/admin/icon', {
+      method: 'PUT',
+      credentials: 'include',
+      body: { icon_url: null },
+    })
+    iconUrl.value = null
+    toastSuccess('アイコンを削除しました')
+  } catch (e) {
+    console.error('アイコン削除エラー:', e)
+    alert('アイコンの削除に失敗しました')
   }
 }
 

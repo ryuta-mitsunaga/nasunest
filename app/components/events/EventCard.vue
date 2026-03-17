@@ -13,7 +13,9 @@
       />
       <!-- 参加人数表示（右上） -->
       <div
-        v-if="event.participant_count !== undefined && event.participant_count > 0"
+        v-if="
+          event.participant_count !== undefined && event.participant_count > 0
+        "
         class="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1 text-sm font-medium z-20"
         style="color: #2e5e3e"
       >
@@ -47,18 +49,24 @@
         <!-- カテゴリ -->
         <EventsEventCategories :categories="event.categories" />
         <div>
-        <!-- タイトル -->
-        <h2 class="text-md font-bold line-clamp-3" style="color: #2e5e3e">
-          {{ event.title }}
-        </h2>
-        <!-- 日付 -->
-        <div class="flex items-center gap-2 text-sm" style="color: #8c5a3c">
-          <span>{{ formatDate(event.start_date) }}</span>
-          <span v-if="event.end_date && event.end_date !== event.start_date">
-            〜 {{ formatDate(event.end_date) }}
-          </span>
+          <!-- タイトル -->
+          <h2 class="text-md font-bold line-clamp-3" style="color: #2e5e3e">
+            {{ event.title }}
+          </h2>
+          <!-- 日付 -->
+          <div class="flex items-center gap-2 text-sm" style="color: #8c5a3c">
+            <span>{{ formatDate(event.start_date) }}</span>
+            <span v-if="event.end_date && event.end_date !== event.start_date">
+              〜 {{ formatDate(event.end_date) }}
+            </span>
+          </div>
+          <!-- 作成者 -->
+          <EventsEventCreator
+            class="mt-2 justify-end"
+            :creator="event.creator"
+            size="md"
+          />
         </div>
-      </div>
       </div>
     </NuxtLink>
   </div>
@@ -83,6 +91,7 @@ export interface Event {
   cta_button_text: string | null
   status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
   participant_count?: number
+  creator?: { icon_url: string } | null
   categories?: Array<{
     id: number
     name: string

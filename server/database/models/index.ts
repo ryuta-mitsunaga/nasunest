@@ -122,13 +122,17 @@ export interface AdminAttributes {
   login_id: string
   password: string
   line_user_id: string | null
+  icon_url: string | null
   isMaster: boolean
   createdAt?: Date
   updatedAt?: Date
 }
 
 export interface AdminCreationAttributes
-  extends Optional<AdminAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+  extends Optional<
+    AdminAttributes,
+    'id' | 'line_user_id' | 'icon_url' | 'createdAt' | 'updatedAt'
+  > {}
 
 export class Admin
   extends Model<AdminAttributes, AdminCreationAttributes>
@@ -138,6 +142,7 @@ export class Admin
   declare login_id: string
   declare password: string
   declare line_user_id: string | null
+  declare icon_url: string | null
   declare isMaster: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -163,6 +168,11 @@ Admin.init(
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'LINEユーザーID（LIFF連携用）',
+    },
+    icon_url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Supabase Storageのアイコン画像URL',
     },
     isMaster: {
       type: DataTypes.BOOLEAN,
@@ -380,6 +390,7 @@ export interface EventAttributes {
   capacity: number | null
   approval_type: number | null
   creator_participates: boolean
+  show_creator: boolean
   createdAt?: Date
   updatedAt?: Date
 }
@@ -403,6 +414,7 @@ export interface EventCreationAttributes
     | 'capacity'
     | 'approval_type'
     | 'creator_participates'
+    | 'show_creator'
     | 'createdAt'
     | 'updatedAt'
   > {}
@@ -431,6 +443,7 @@ export class Event
   declare capacity: number | null
   declare approval_type: number | null
   declare creator_participates: boolean
+  declare show_creator: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -541,6 +554,12 @@ Event.init(
       allowNull: false,
       defaultValue: false,
       comment: 'イベント作成者も参加者に含める（true: +1する）',
+    },
+    show_creator: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'イベント作成者を表示するかどうか',
     },
   },
   {
@@ -690,6 +709,16 @@ Event.hasMany(PickupEvent, {
 PickupEvent.belongsTo(Event, {
   foreignKey: 'event_id',
   as: 'event',
+})
+
+Event.belongsTo(Admin, {
+  foreignKey: 'admin_id',
+  as: 'admin',
+})
+
+Admin.hasMany(Event, {
+  foreignKey: 'admin_id',
+  as: 'events',
 })
 
 Admin.hasMany(AdminInvitation, {

@@ -1,7 +1,7 @@
 import { Admin, AdminPermission } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     const adminId = requireAdminId(event)
     const admin = await Admin.findByPk(adminId, {
@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
         id: adminData.id,
         login_id: adminData.login_id,
         line_user_id: adminData.line_user_id || null,
+        icon_url: adminData.icon_url || null,
         isMaster: adminData.isMaster || false,
         permissions: adminData.permissions || [],
       },
@@ -44,4 +45,3 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-

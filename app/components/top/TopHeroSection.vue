@@ -1,7 +1,5 @@
 <template>
-  <section
-    class="relative w-full h-screen max-h-[600px] overflow-hidden hero-area"
-  >
+  <section class="relative w-full h-screen max-h-[600px] overflow-hidden">
     <!-- タイトルテキスト (画像表示前) -->
     <Transition name="fade-out">
       <div
@@ -127,12 +125,6 @@ const handleCardsAnimationComplete = () => {
 </script>
 
 <style scoped>
-.hero-area {
-  background-image: url('/img/hero-background.png');
-  background-repeat: repeat;
-  background-size: auto;
-}
-
 .logo-image {
   height: auto;
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));

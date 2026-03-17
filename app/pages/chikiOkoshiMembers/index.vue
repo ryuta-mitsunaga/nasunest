@@ -3,7 +3,7 @@
     <UiPageTitle title="那須町地域おこし協力隊" />
 
     <!-- 那須町地域おこし協力隊について -->
-    <section class="bg-page-bg mb-12">
+    <section class="mb-12">
       <div class="container mx-auto px-4">
         <div
           class="mt-8 flex flex-col md:flex-row gap-8 items-center md:items-start max-w-screen-lg"

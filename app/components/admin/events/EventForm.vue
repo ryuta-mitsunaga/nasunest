@@ -79,6 +79,13 @@
       />
     </UFormField>
 
+    <UFormField label="作成者を表示" name="show_creator">
+      <UCheckbox
+        v-model="form.show_creator"
+        label="イベントカード・詳細に作成者のアイコンを表示する"
+      />
+    </UFormField>
+
     <UFormField label="イベント表示設定" name="is_displayed">
       <URadioGroup v-model="form.is_displayed" :items="displayOptions" />
     </UFormField>
@@ -220,6 +227,7 @@ interface EventFormData {
   capacity: number | null
   approval_type: number
   creator_participates: boolean
+  show_creator: boolean
   category_ids: number[]
 }
 

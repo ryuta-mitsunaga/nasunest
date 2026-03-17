@@ -1,5 +1,5 @@
 <template>
-  <section class="bg-page-bg py-12">
+  <section class="py-12">
     <div class="container mx-auto px-4">
       <UiSectionTitle title="NasuNestとは" textColorClass="text-[#2E5E3E]" />
 
