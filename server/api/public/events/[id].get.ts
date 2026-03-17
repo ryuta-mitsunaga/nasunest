@@ -57,7 +57,7 @@ export default defineEventHandler(async event => {
         },
         {
           model: EventReport,
-          as: 'eventReports',
+          as: 'reports',
           attributes: ['id', 'title', 'thumbnail', 'createdAt'],
           required: false,
         },
@@ -74,7 +74,7 @@ export default defineEventHandler(async event => {
     // ステータスを計算
     let status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed' =
       'published'
-    
+
     // イベントが終了しているかどうかを判定（UTCで比較、分まで考慮）
     const isEventEnded = eventData.end_date
       ? dayjs.utc(eventData.end_date).isBefore(now)
@@ -122,7 +122,7 @@ export default defineEventHandler(async event => {
         ? { icon_url: eventJson.admin.icon_url }
         : null
 
-    const { admin, eventReports, ...rest } = eventJson
+    const { admin, reports, ...rest } = eventJson
     const eventDataWithStatus = {
       ...rest,
       status,
@@ -130,7 +130,7 @@ export default defineEventHandler(async event => {
       participant_count: participantCount,
       is_full: isCapacityFull,
       creator,
-      event_reports: eventReports || [],
+      event_reports: reports || [],
     }
 
     // thumbnailは既にURLなので変換不要
@@ -139,6 +139,7 @@ export default defineEventHandler(async event => {
       data: eventDataWithStatus,
     }
   } catch (error: any) {
+    console.error(error)
     if (error.statusCode) {
       throw error
     }
