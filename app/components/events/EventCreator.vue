@@ -1,6 +1,6 @@
 <template>
   <div v-if="creator?.icon_url" class="flex items-center gap-2">
-    <span class="font-medium text-gray-600 text-sm"> 作成者 </span>
+    <span class="font-medium text-gray-600 text-sm"> 投稿者 </span>
     <img
       :src="creator.icon_url"
       alt="作成者"
