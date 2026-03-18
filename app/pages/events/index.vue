@@ -1,6 +1,6 @@
 <template>
   <div style="color: #2e5e3e">
-    <UiPageTitle title="イベント一覧" />
+    <UiPageTitle title="那須町のイベント一覧" />
 
     <!-- 申し込み中のイベント -->
     <EventsMyEventApplications
@@ -44,7 +44,7 @@ interface EventApplication {
 
 // SEO設定
 useHead({
-  title: 'イベント一覧',
+  title: '那須町のイベント一覧',
   meta: [
     {
       name: 'description',
@@ -52,8 +52,13 @@ useHead({
         '那須町のイベント情報一覧。カテゴリ・キーワード・開催日で検索して、興味に合ったイベント・体験・交流会を見つけよう。',
     },
     {
+      name: 'keywords',
+      content:
+        '那須,那須町,イベント,体験,交流会,地域コミュニティ,移住,NasuNest',
+    },
+    {
       property: 'og:title',
-      content: 'イベント一覧 | NasuNest',
+      content: '那須町のイベント一覧 | NasuNest',
     },
     {
       property: 'og:description',

@@ -225,6 +225,19 @@ useHead({
         eventReport.value?.title || '那須町のイベントレポート詳細ページです。',
     },
     {
+      name: 'keywords',
+      content: [
+        '那須',
+        '那須町',
+        'イベント',
+        'イベントレポート',
+        eventReport.value?.title,
+        'NasuNest',
+      ]
+        .filter(Boolean)
+        .join(','),
+    },
+    {
       property: 'og:title',
       content: `${
         eventReport.value?.title || 'イベントレポート詳細'

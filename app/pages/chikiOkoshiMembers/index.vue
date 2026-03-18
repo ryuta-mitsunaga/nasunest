@@ -80,6 +80,11 @@ useHead({
         '那須町地域おこし協力隊の隊員一覧。各隊員の活動内容やミッションを紹介しています。',
     },
     {
+      name: 'keywords',
+      content:
+        '那須,那須町,地域おこし協力隊,地域コミュニティ,イベント,NasuNest',
+    },
+    {
       property: 'og:title',
       content: '地域おこし協力隊員一覧 | NasuNest',
     },

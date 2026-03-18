@@ -28,7 +28,7 @@ export default defineNuxtConfig({
         {
           name: 'keywords',
           content:
-            '那須町,地域おこし協力隊,イベント,コミュニティ,移住,地域活動,ワークショップ,交流会,NasuNest',
+            '那須,那須町,地域おこし協力隊,イベント,コミュニティ,移住,地域活動,ワークショップ,交流会,NasuNest',
         },
         { name: 'format-detection', content: 'telephone=no' },
         // OGP
