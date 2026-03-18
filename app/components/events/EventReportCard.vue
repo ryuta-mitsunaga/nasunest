@@ -46,6 +46,7 @@ export interface EventReport {
   title: string
   thumbnail: string | null
   body: string | null
+  body_html?: string | null
   createdAt: string
   event?: {
     id: number

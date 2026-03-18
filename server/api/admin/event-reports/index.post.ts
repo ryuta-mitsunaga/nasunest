@@ -1,5 +1,6 @@
 import { EventReport } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
+import { editorJsToHtml } from '~~/server/lib/editorjs-to-html'
 
 export default defineEventHandler(async event => {
   try {
@@ -17,12 +18,15 @@ export default defineEventHandler(async event => {
       })
     }
 
+    const bodyHtml = reportBody ? editorJsToHtml(reportBody) : null
+
     const eventReport = await EventReport.create({
       event_id: parseInt(event_id),
       admin_id: adminId,
       title,
       thumbnail: thumbnail || null,
       body: reportBody || null,
+      body_html: bodyHtml,
     })
 
     return {

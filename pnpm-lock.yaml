@@ -41,6 +41,9 @@ dependencies:
   dayjs:
     specifier: ^1.11.19
     version: 1.11.19
+  editorjs-html:
+    specifier: ^4.0.5
+    version: 4.0.5
   floating-vue:
     specifier: ^5.2.2
     version: 5.2.2(vue@3.5.25)
@@ -4926,6 +4929,10 @@ packages:
       minimatch: 9.0.1
       semver: 7.7.3
     dev: true
+
+  /editorjs-html@4.0.5:
+    resolution: {integrity: sha512-ImQYxB3fNCJcd+nJ+Vbne/6PxidO1cYByNpu9nBDStVabfjVrMW65BuR+IEZfOii8VKYH+CW/lYDb2GDlzZtDg==}
+    dev: false
 
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}

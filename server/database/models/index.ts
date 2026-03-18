@@ -379,6 +379,7 @@ export interface EventAttributes {
   end_date: Date | null
   description: string
   body: string | null
+  body_html: string | null
   location_name: string | null
   location_address: string | null
   location_url: string | null
@@ -403,6 +404,7 @@ export interface EventCreationAttributes
     | 'form_link'
     | 'end_date'
     | 'body'
+    | 'body_html'
     | 'location_name'
     | 'location_address'
     | 'location_url'
@@ -432,6 +434,7 @@ export class Event
   declare end_date: Date | null
   declare description: string
   declare body: string | null
+  declare body_html: string | null
   declare location_name: string | null
   declare location_address: string | null
   declare location_url: string | null
@@ -499,6 +502,11 @@ Event.init(
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Editor.jsで作成した本文（JSON形式）',
+    },
+    body_html: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: '本文のHTML表示用（SSR用）',
     },
     location_name: {
       type: DataTypes.STRING,
@@ -1113,6 +1121,7 @@ export interface EventReportAttributes {
   title: string
   thumbnail: string | null
   body: string | null
+  body_html: string | null
   comment_token: string | null
   createdAt?: Date
   updatedAt?: Date
@@ -1121,7 +1130,13 @@ export interface EventReportAttributes {
 export interface EventReportCreationAttributes
   extends Optional<
     EventReportAttributes,
-    'id' | 'thumbnail' | 'body' | 'comment_token' | 'createdAt' | 'updatedAt'
+    | 'id'
+    | 'thumbnail'
+    | 'body'
+    | 'body_html'
+    | 'comment_token'
+    | 'createdAt'
+    | 'updatedAt'
   > {}
 
 export class EventReport
@@ -1134,6 +1149,7 @@ export class EventReport
   declare title: string
   declare thumbnail: string | null
   declare body: string | null
+  declare body_html: string | null
   declare comment_token: string | null
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -1179,6 +1195,11 @@ EventReport.init(
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Editor.jsで作成した本文（JSON形式）',
+    },
+    body_html: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: '本文のHTML表示用（SSR用）',
     },
     comment_token: {
       type: DataTypes.STRING,

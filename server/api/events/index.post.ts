@@ -1,5 +1,6 @@
 import { Event, EventCategory } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
+import { editorJsToHtml } from '~~/server/lib/editorjs-to-html'
 
 export default defineEventHandler(async event => {
   try {
@@ -14,6 +15,9 @@ export default defineEventHandler(async event => {
         ? body.thumbnail
         : null
 
+    const bodyJson = body.body || null
+    const bodyHtml = bodyJson ? editorJsToHtml(bodyJson) : null
+
     const newEvent = await Event.create({
       admin_id: adminId,
       title: body.title,
@@ -22,7 +26,8 @@ export default defineEventHandler(async event => {
       start_date: body.start_date,
       end_date: body.end_date || null,
       description: body.description,
-      body: body.body || null,
+      body: bodyJson,
+      body_html: bodyHtml,
       location_name: body.location_name || null,
       location_address: body.location_address || null,
       location_url: body.location_url || null,

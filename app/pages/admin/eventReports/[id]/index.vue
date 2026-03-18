@@ -62,12 +62,20 @@
         </div>
       </UCard>
 
-      <UCard v-if="eventReport.body">
+      <UCard v-if="eventReport.body_html || eventReport.body">
         <template #header>
           <h2 class="text-xl font-semibold">内容</h2>
         </template>
         <div class="p-4">
-          <AdminEditorJsEditor :data="parsedBody" :read-only="true" />
+          <EditorJsHtmlViewer
+            v-if="eventReport.body_html"
+            :html="eventReport.body_html"
+          />
+          <AdminEditorJsEditor
+            v-else-if="parsedBody"
+            :data="parsedBody"
+            :read-only="true"
+          />
         </div>
       </UCard>
     </div>
@@ -93,6 +101,7 @@ interface EventReport {
   title: string
   thumbnail: string | null
   body: string | null
+  body_html?: string | null
   createdAt: string
   event?: {
     id: number
