@@ -69,8 +69,11 @@
 
         <!-- イベントレポート情報 -->
         <div class="p-6 md:p-8 space-y-6">
-          <!-- 本文（EditorJS） -->
-          <div v-if="parsedBody">
+          <!-- 本文（body_htmlでSSR、未変換時はEditorJSにフォールバック） -->
+          <div v-if="eventReport.body_html">
+            <EditorJsHtmlViewer :html="eventReport.body_html" />
+          </div>
+          <div v-else-if="parsedBody">
             <AdminEditorJsEditor :data="parsedBody" :read-only="true" />
           </div>
         </div>
@@ -223,6 +226,19 @@ useHead({
       name: 'description',
       content:
         eventReport.value?.title || '那須町のイベントレポート詳細ページです。',
+    },
+    {
+      name: 'keywords',
+      content: [
+        '那須',
+        '那須町',
+        'イベント',
+        'イベントレポート',
+        eventReport.value?.title,
+        'NasuNest',
+      ]
+        .filter(Boolean)
+        .join(','),
     },
     {
       property: 'og:title',

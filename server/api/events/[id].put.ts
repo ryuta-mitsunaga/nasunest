@@ -1,5 +1,6 @@
 import { Event, EventCategory, Admin } from '~~/server/database'
 import { requireAdminId } from '~~/server/lib/admin-auth'
+import { editorJsToHtml } from '~~/server/lib/editorjs-to-html'
 
 export default defineEventHandler(async event => {
   try {
@@ -46,6 +47,14 @@ export default defineEventHandler(async event => {
         : null
     }
 
+    const bodyJson = body.body !== undefined ? (body.body || null) : undefined
+    const bodyHtml =
+      bodyJson !== undefined
+        ? bodyJson
+          ? editorJsToHtml(bodyJson)
+          : null
+        : undefined
+
     const updateData: any = {
       title: body.title,
       form_id: body.form_id || null,
@@ -53,7 +62,7 @@ export default defineEventHandler(async event => {
       start_date: body.start_date,
       end_date: body.end_date || null,
       description: body.description,
-      body: body.body || null,
+      body: bodyJson,
       location_name: body.location_name || null,
       location_address: body.location_address || null,
       location_url: body.location_url || null,
@@ -81,6 +90,9 @@ export default defineEventHandler(async event => {
 
     if (thumbnailUrl !== undefined) {
       updateData.thumbnail = thumbnailUrl
+    }
+    if (bodyHtml !== undefined) {
+      updateData.body_html = bodyHtml
     }
 
     await eventData.update(updateData)

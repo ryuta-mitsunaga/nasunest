@@ -63,8 +63,11 @@
 
       <!-- イベント情報 -->
       <div class="p-6 md:p-8 space-y-6">
-        <!-- 本文（EditorJS） -->
-        <div v-if="event.body">
+        <!-- 本文（body_htmlでSSR、未変換時はEditorJSにフォールバック） -->
+        <div v-if="(event as any).body_html">
+          <EditorJsHtmlViewer :html="(event as any).body_html" />
+        </div>
+        <div v-else-if="event.body">
           <AdminEditorJsEditor :data="event.body" :read-only="true" />
         </div>
 
@@ -250,6 +253,7 @@ interface Event {
   status: 'published' | 'unpublished' | 'closed' | 'recruitment_closed'
   creator?: { icon_url: string } | null
   event_reports?: EventReport[]
+  body_html?: string | null
 }
 
 const route = useRoute()
@@ -408,7 +412,9 @@ const extractTextFromEditorJS = (body: any): string => {
 
 // SEO設定
 useHead({
-  title: computed(() => event.value?.title || 'イベント詳細'),
+  title: computed(
+    () => `${event.value?.title || 'イベント詳細'}｜那須町のイベント`
+  ),
   meta: computed(() => {
     const eventTitle = event.value?.title || 'イベント詳細'
     // bodyからテキストを抽出してdescriptionに使用
@@ -425,6 +431,7 @@ useHead({
     const categoryKeywords =
       event.value?.categories?.map(cat => cat.name).join(', ') || ''
     const keywords = [
+      '那須',
       '那須町',
       'イベント',
       eventTitle,
@@ -452,7 +459,7 @@ useHead({
       // Open Graph
       {
         property: 'og:title',
-        content: `${eventTitle} | NasuNest`,
+        content: `${eventTitle}｜那須町のイベント | NasuNest`,
       },
       {
         property: 'og:description',
@@ -497,7 +504,7 @@ useHead({
       },
       {
         name: 'twitter:title',
-        content: `${eventTitle} | NasuNest`,
+        content: `${eventTitle}｜那須町のイベント | NasuNest`,
       },
       {
         name: 'twitter:description',

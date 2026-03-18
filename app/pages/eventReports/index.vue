@@ -27,6 +27,11 @@ useHead({
         '那須町のイベントレポート一覧。開催されたイベントの様子やレポートを確認できます。',
     },
     {
+      name: 'keywords',
+      content:
+        '那須,那須町,イベント,イベントレポート,地域コミュニティ,NasuNest',
+    },
+    {
       property: 'og:title',
       content: 'イベントレポート一覧 | NasuNest',
     },
