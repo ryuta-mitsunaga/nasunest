@@ -317,7 +317,12 @@ const getAnswerValue = (content: Record<string, any>, fieldId: string) => {
   if (value === undefined || value === null || value === '') return ''
   if (Array.isArray(value)) return value.join(', ')
   if (typeof value === 'object') return JSON.stringify(value)
-  return String(value)
+  const s = String(value)
+  const field = formFields.value.find(f => f.id === fieldId)
+  if (field?.type === 'textarea') {
+    return s.replace(/\r?\n/g, ' ')
+  }
+  return s
 }
 
 onMounted(() => {
