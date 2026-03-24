@@ -40,6 +40,8 @@
             <UButton size="sm" @click="addField('date-picker')"
               >日程調整</UButton
             >
+            <UButton size="sm" @click="addField('tel')">電話番号</UButton>
+            <UButton size="sm" @click="addField('number')">数値</UButton>
           </div>
         </div>
 
@@ -82,7 +84,14 @@
                   class="text-sm"
                 />
               </div>
-              <div v-if="field.type === 'text' || field.type === 'email'">
+              <div
+                v-if="
+                  field.type === 'text' ||
+                  field.type === 'email' ||
+                  field.type === 'tel' ||
+                  field.type === 'number'
+                "
+              >
                 <UInput
                   v-model="field.placeholder"
                   placeholder="プレースホルダー（任意）"
@@ -243,7 +252,14 @@ export interface DateOption {
 
 export interface FormField {
   id: string
-  type: 'text' | 'email' | 'select' | 'checkbox' | 'date-picker'
+  type:
+    | 'text'
+    | 'email'
+    | 'select'
+    | 'checkbox'
+    | 'date-picker'
+    | 'tel'
+    | 'number'
   label: string
   description?: string
   placeholder?: string
@@ -346,12 +362,26 @@ watch(
 )
 
 const addField = (
-  type: 'text' | 'email' | 'select' | 'checkbox' | 'date-picker'
+  type:
+    | 'text'
+    | 'email'
+    | 'select'
+    | 'checkbox'
+    | 'date-picker'
+    | 'tel'
+    | 'number'
 ) => {
   const field: FormField = {
     id: `field_${++fieldIdCounter}`,
     type,
-    label: type === 'email' ? 'メールアドレス' : '',
+    label:
+      type === 'email'
+        ? 'メールアドレス'
+        : type === 'tel'
+          ? '電話番号'
+          : type === 'number'
+            ? '数値'
+            : '',
   }
   if (type === 'select' || type === 'checkbox') {
     field.options = ['']
@@ -361,17 +391,27 @@ const addField = (
     // メールアドレスは基本必須として扱う（必要ならUIでOFFにできる）
     field.required = true
     field.placeholder = 'example@example.com'
+  } else if (type === 'tel') {
+    field.placeholder = '090-1234-5678'
+  } else if (type === 'number') {
+    field.placeholder = '0'
   }
   localFormFields.value.push(field)
 }
 
-// 既存データにlabelがないemailフィールドがあれば補完
+// 既存データにlabelがないフィールドがあれば補完
 watch(
   localFormFields,
   fields => {
     for (const f of fields) {
       if (f.type === 'email' && (!f.label || !f.label.trim())) {
         f.label = 'メールアドレス'
+      }
+      if (f.type === 'tel' && (!f.label || !f.label.trim())) {
+        f.label = '電話番号'
+      }
+      if (f.type === 'number' && (!f.label || !f.label.trim())) {
+        f.label = '数値'
       }
     }
   },

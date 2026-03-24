@@ -154,7 +154,7 @@
                 <div class="mt-4 pt-4 border-t border-gray-300 flex flex-col gap-2">
                   <UiSnsLink
                     type="line"
-                    href="https://lin.ee/VLzjPvj"
+                    :href="lineOfficialAccountUrl"
                     label="LINE公式アカウント"
                     aria-label="LINE公式アカウント"
                     @click="closeMenu"
@@ -188,6 +188,10 @@ const menuItems: MenuItem[] = [
   { label: 'イベントレポート', to: '/eventReports' },
   { label: '那須町地域おこし協力隊', to: '/chikiOkoshiMembers' },
 ]
+
+const lineOfficialAccountUrl =
+  (useRuntimeConfig().public.lineOfficialAccountUrl as string) ||
+  'https://lin.ee/VLzjPvj'
 
 const { isOpen, toggleMenu, closeMenu } = useMobileMenu()
 const { isAuthenticated, logout, loading: authLoading } = useAuth()

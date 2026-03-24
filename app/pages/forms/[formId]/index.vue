@@ -18,20 +18,8 @@
         class="mb-6"
       />
 
-      <!-- 送信完了 -->
-      <UCard v-else-if="submitted" class="text-center">
-        <div class="py-8">
-          <UIcon
-            name="i-heroicons-check-circle"
-            class="text-6xl text-green-500 mx-auto mb-4"
-          />
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">送信完了</h2>
-          <p class="text-gray-600">ご回答ありがとうございました。</p>
-        </div>
-      </UCard>
-
       <!-- フォーム -->
-      <UForm v-else :state="formState" @submit="handleSubmit" class="space-y-6">
+      <UForm v-else :state="formState" @submit="goToConfirm" class="space-y-6">
         <!-- フォームヘッダー -->
         <UCard>
           <div class="pb-4 border-b border-gray-200">
@@ -73,6 +61,30 @@
                 v-else-if="field.type === 'email'"
                 v-model="formData[field.id]"
                 type="email"
+                :required="field.required"
+                :placeholder="field.placeholder || ''"
+                size="lg"
+              />
+
+              <!-- 電話番号 -->
+              <UInput
+                v-else-if="field.type === 'tel'"
+                v-model="formData[field.id]"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                :required="field.required"
+                :placeholder="field.placeholder || ''"
+                size="lg"
+              />
+
+              <!-- 数値 -->
+              <UInput
+                v-else-if="field.type === 'number'"
+                v-model="formData[field.id]"
+                type="number"
+                inputmode="decimal"
+                step="any"
                 :required="field.required"
                 :placeholder="field.placeholder || ''"
                 size="lg"
@@ -130,7 +142,9 @@
           <p class="text-sm text-gray-600 mb-4">
             以下の内容に同意いただいたうえでお申し込みください。
           </p>
-          <ul class="text-sm text-gray-600 space-y-2 list-disc list-inside mb-4">
+          <ul
+            class="text-sm text-gray-600 space-y-2 list-disc list-inside mb-4"
+          >
             <li>
               イベント内で発生した事故やトラブルについては、主催者および運営は責任を負いかねます。
             </li>
@@ -144,7 +158,11 @@
               やむを得ない事情により、イベントの中止または内容の変更が生じる場合があります。
             </li>
           </ul>
-          <UFormField label="上記の注意事項に同意します" name="consent" required>
+          <UFormField
+            label="上記の注意事項に同意します"
+            name="consent"
+            required
+          >
             <UCheckbox
               id="consent"
               v-model="consentAccepted"
@@ -158,16 +176,9 @@
           </p>
         </UCard>
 
-        <!-- 送信ボタン -->
-        <div class="flex justify-end gap-4 pt-4">
-          <UButton
-            type="submit"
-            size="lg"
-            :loading="submitting"
-            :disabled="submitting"
-          >
-            送信
-          </UButton>
+        <!-- 確認画面へ -->
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <UButton type="submit" size="lg"> 入力内容を確認 </UButton>
         </div>
       </UForm>
     </div>
@@ -182,7 +193,14 @@ interface DateOption {
 
 interface FormField {
   id: string
-  type: 'text' | 'email' | 'select' | 'checkbox' | 'date-picker'
+  type:
+    | 'text'
+    | 'email'
+    | 'select'
+    | 'checkbox'
+    | 'date-picker'
+    | 'tel'
+    | 'number'
   label: string
   description?: string
   placeholder?: string
@@ -208,10 +226,10 @@ const formId = computed(() => {
   return id || ''
 })
 
+const { loadDraft, saveDraft } = usePublicFormDraft()
+
 const loading = ref(true)
 const error = ref('')
-const submitting = ref(false)
-const submitted = ref(false)
 const formName = ref('')
 const formDescription = ref('')
 const formFields = ref<FormField[]>([])
@@ -243,6 +261,17 @@ const fetchForm = async () => {
         formData.value[field.id] = ''
       }
     })
+
+    const restored = loadDraft(formId.value)
+    if (restored) {
+      for (const field of formFields.value) {
+        const id = field.id
+        if (Object.prototype.hasOwnProperty.call(restored.formData, id)) {
+          formData.value[id] = restored.formData[id]
+        }
+      }
+      consentAccepted.value = restored.consentAccepted
+    }
   } catch (err: any) {
     console.error('フォーム取得エラー:', err)
     error.value =
@@ -358,6 +387,26 @@ const getFieldError = (fieldId: string) => {
   return fieldErrors.value[fieldId] || ''
 }
 
+/** 入力値を検証用の文字列にそろえる（number 入力の number 型にも対応） */
+const fieldValueAsTrimmedString = (value: unknown): string => {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'number' && !Number.isNaN(value)) return String(value)
+  if (typeof value === 'string') return value.trim()
+  return String(value).trim()
+}
+
+const isValidNumberFieldInput = (s: string): boolean => {
+  if (s === '') return true
+  const n = Number(s)
+  return Number.isFinite(n)
+}
+
+const isValidTelFieldInput = (s: string): boolean => {
+  if (s === '') return true
+  const digits = s.replace(/\D/g, '')
+  return digits.length >= 10 && digits.length <= 15
+}
+
 const onConsentChange = (checked: boolean | 'indeterminate') => {
   if (checked === true) {
     consentError.value = ''
@@ -369,8 +418,10 @@ const validateForm = () => {
   const errors: string[] = []
 
   for (const field of formFields.value) {
+    const value = formData.value[field.id]
+    const strVal = fieldValueAsTrimmedString(value)
+
     if (field.required) {
-      const value = formData.value[field.id]
       let isValid = false
 
       if (field.type === 'checkbox' || field.type === 'date-picker') {
@@ -378,7 +429,7 @@ const validateForm = () => {
       } else if (field.type === 'select') {
         isValid = value !== '' && value !== null && value !== undefined
       } else {
-        isValid = value && typeof value === 'string' && value.trim() !== ''
+        isValid = strVal !== ''
       }
 
       if (!isValid) {
@@ -387,17 +438,37 @@ const validateForm = () => {
         errors.push(`${field.label}は必須項目です`)
       }
     }
+
+    if (!fieldErrors.value[field.id]) {
+      if (
+        field.type === 'number' &&
+        strVal !== '' &&
+        !isValidNumberFieldInput(strVal)
+      ) {
+        const errorMsg = '有効な数値を入力してください'
+        fieldErrors.value[field.id] = errorMsg
+        errors.push(`${field.label}: ${errorMsg}`)
+      } else if (
+        field.type === 'tel' &&
+        strVal !== '' &&
+        !isValidTelFieldInput(strVal)
+      ) {
+        const errorMsg =
+          '電話番号は10〜15桁の数字で入力してください（ハイフン可）'
+        fieldErrors.value[field.id] = errorMsg
+        errors.push(`${field.label}: ${errorMsg}`)
+      }
+    }
   }
 
   return errors
 }
 
-const handleSubmit = async () => {
+const goToConfirm = async () => {
   consentError.value = ''
 
-  // 注意事項への同意確認
   if (!consentAccepted.value) {
-    consentError.value = '送信するには注意事項への同意が必要です'
+    consentError.value = '確認へ進むには注意事項への同意が必要です'
     const consentCard = document.querySelector('[data-consent-section]')
     if (consentCard) {
       consentCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -405,10 +476,8 @@ const handleSubmit = async () => {
     return
   }
 
-  // 必須項目のバリデーション
   const errors = validateForm()
   if (errors.length > 0) {
-    // 最初のエラーフィールドにスクロール
     const firstErrorFieldId = Object.keys(fieldErrors.value)[0]
     if (firstErrorFieldId) {
       const element = document.querySelector(
@@ -421,50 +490,58 @@ const handleSubmit = async () => {
     return
   }
 
-  submitting.value = true
-  try {
-    // クエリパラメータからevent_idを取得
-    const eventId = route.query.event_id ? String(route.query.event_id) : null
+  const eventId = route.query.event_id ? String(route.query.event_id) : null
+  saveDraft(formId.value, {
+    formData: JSON.parse(JSON.stringify(formData.value)),
+    consentAccepted: consentAccepted.value,
+    eventId,
+  })
 
-    await $fetch(`/api/public/forms/${formId.value}/answers`, {
-      method: 'POST',
-      body: {
-        content: formData.value,
-        event_id: eventId,
-      },
-    })
-
-    submitted.value = true
-  } catch (err: any) {
-    console.error('送信エラー:', err)
-    error.value = err.data?.message || err.message || '送信に失敗しました'
-  } finally {
-    submitting.value = false
-  }
+  await navigateTo({
+    path: `/forms/${formId.value}/confirm`,
+    query: route.query,
+  })
 }
 
 // リアルタイムバリデーション
 watch(
   formData,
   () => {
-    // 入力時にエラーをクリア
     for (const fieldId in fieldErrors.value) {
       const field = formFields.value.find(f => f.id === fieldId)
-      if (field) {
-        const value = formData.value[fieldId]
-        let isValid = false
+      if (!field) continue
 
-        if (field.type === 'checkbox' || field.type === 'date-picker') {
-          isValid = Array.isArray(value) && value.length > 0
-        } else if (field.type === 'select') {
-          isValid = value !== '' && value !== null && value !== undefined
-        } else {
-          isValid = value && typeof value === 'string' && value.trim() !== ''
-        }
+      const value = formData.value[fieldId]
+      const strVal = fieldValueAsTrimmedString(value)
+      let ok = true
 
-        if (isValid) {
-          delete fieldErrors.value[fieldId]
-        }
+      if (field.type === 'checkbox' || field.type === 'date-picker') {
+        ok = Array.isArray(value) && value.length > 0
+      } else if (field.type === 'select') {
+        ok = value !== '' && value !== null && value !== undefined
+      } else if (field.required) {
+        ok = strVal !== ''
+      }
+
+      if (
+        ok &&
+        field.type === 'number' &&
+        strVal !== '' &&
+        !isValidNumberFieldInput(strVal)
+      ) {
+        ok = false
+      }
+      if (
+        ok &&
+        field.type === 'tel' &&
+        strVal !== '' &&
+        !isValidTelFieldInput(strVal)
+      ) {
+        ok = false
+      }
+
+      if (ok) {
+        delete fieldErrors.value[fieldId]
       }
     }
   },

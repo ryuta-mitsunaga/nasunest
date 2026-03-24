@@ -118,6 +118,10 @@ gtag('config', 'G-M5B43LHSBF');`,
     allowedApiHosts: process.env.ALLOWED_API_HOSTS,
     public: {
       liffId: process.env.NUXT_PUBLIC_LIFF_ID,
+      /** フォーム完了画面・SNSリンクなどで共有（未設定時は既存の友だち追加URL） */
+      lineOfficialAccountUrl:
+        process.env.NUXT_PUBLIC_LINE_OFFICIAL_ACCOUNT_URL ||
+        'https://lin.ee/VLzjPvj',
     },
   },
 

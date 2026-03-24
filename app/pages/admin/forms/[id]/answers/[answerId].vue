@@ -243,8 +243,12 @@ const handleReject = async () => {
 const getFieldTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
     text: 'テキスト',
+    email: 'メールアドレス',
     select: 'プルダウン',
     checkbox: 'チェックボックス',
+    'date-picker': '日程調整',
+    tel: '電話番号',
+    number: '数値',
   }
   return labels[type] || type
 }

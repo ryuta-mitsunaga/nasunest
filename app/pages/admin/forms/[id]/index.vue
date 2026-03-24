@@ -707,6 +707,8 @@ const getFieldTypeLabel = (type: string) => {
     select: 'プルダウン',
     checkbox: 'チェックボックス',
     'date-picker': '日程調整',
+    tel: '電話番号',
+    number: '数値',
   }
   return labels[type] || type
 }
