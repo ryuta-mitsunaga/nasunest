@@ -124,8 +124,8 @@
               </p>
             </div>
 
-            <!-- テキストフィールドの集計 -->
-            <div v-if="field.type === 'text'">
+            <!-- 1行テキスト・複数行・メール・電話・数値（いずれも回答一覧形式で集計） -->
+            <div v-if="isTextLikeFieldForSummary(field)">
               <p class="text-sm text-gray-600 mb-2">
                 回答数: {{ getAnswerCount(field.id) }}件
               </p>
@@ -136,7 +136,7 @@
                 <div
                   v-for="(answer, idx) in getTextAnswers(field.id)"
                   :key="idx"
-                  class="p-2 bg-gray-50 rounded text-sm"
+                  class="p-2 bg-gray-50 rounded text-sm whitespace-pre-wrap"
                 >
                   {{ answer }}
                 </div>
@@ -703,6 +703,7 @@ const formatDateForFileName = (date: Date): string => {
 const getFieldTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
     text: 'テキスト',
+    textarea: '複数行テキスト',
     email: 'メールアドレス',
     select: 'プルダウン',
     checkbox: 'チェックボックス',
@@ -713,17 +714,39 @@ const getFieldTypeLabel = (type: string) => {
   return labels[type] || type
 }
 
+/** 集計情報で「回答一覧」形式を出すフィールド（従来 email/tel/number は分岐がなく非表示だった） */
+const isTextLikeFieldForSummary = (field: FormField) => {
+  const t = String(field.type ?? '').trim()
+  return (
+    t === 'text' ||
+    t === 'textarea' ||
+    t === 'email' ||
+    t === 'tel' ||
+    t === 'number'
+  )
+}
+
 const getAnswerCount = (fieldId: string) => {
   return answers.value.filter(answer => {
     const value = answer.content[fieldId]
-    return value !== undefined && value !== null && value !== ''
+    return hasMeaningfulScalarAnswer(value)
   }).length
 }
 
-const getTextAnswers = (fieldId: string) => {
+const getTextAnswers = (fieldId: string): string[] => {
   return answers.value
     .map(answer => answer.content[fieldId])
-    .filter(value => value !== undefined && value !== null && value !== '')
+    .filter(value => hasMeaningfulScalarAnswer(value))
+    .map(value => String(value))
+}
+
+/** 未入力とみなす値を集計から除外（空文字・空白のみ・null/undefined） */
+function hasMeaningfulScalarAnswer(value: unknown): boolean {
+  if (value === undefined || value === null) return false
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'number') return !Number.isNaN(value)
+  if (typeof value === 'string') return value.trim() !== ''
+  return String(value).trim() !== ''
 }
 
 const getOptionCount = (fieldId: string, option: string) => {

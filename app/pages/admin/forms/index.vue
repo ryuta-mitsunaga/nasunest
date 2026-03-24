@@ -44,12 +44,21 @@
               編集
             </UButton>
             <UButton
+              color="neutral"
+              variant="soft"
+              size="sm"
+              icon="i-heroicons-clipboard-document"
+              @click="handleCopyPublicFormUrl(row.original.id)"
+            >
+              URLコピー
+            </UButton>
+            <UButton
               color="secondary"
               variant="soft"
               size="sm"
               @click="handleCopy(row.original.id)"
             >
-              コピー
+              複製
             </UButton>
             <UButton
               color="error"
@@ -120,6 +129,18 @@ const fetchForms = async () => {
 const { success: toastSuccess, error: toastError } = useCustomToast()
 const { confirm } = useConfirm()
 
+const handleCopyPublicFormUrl = async (id: number) => {
+  if (!import.meta.client) return
+  const url = `${window.location.origin}/forms/${id}`
+  try {
+    await navigator.clipboard.writeText(url)
+    toastSuccess('フォームのURLをコピーしました')
+  } catch (error) {
+    console.error('URLコピーエラー:', error)
+    toastError('URLのコピーに失敗しました')
+  }
+}
+
 const handleCopy = async (id: number) => {
   try {
     await $fetch(`/api/forms/${id}/copy`, {
@@ -127,10 +148,10 @@ const handleCopy = async (id: number) => {
       credentials: 'include',
     })
     await fetchForms()
-    toastSuccess('フォームをコピーしました')
+    toastSuccess('フォームを複製しました')
   } catch (error) {
     console.error('コピーエラー:', error)
-    toastError('コピーに失敗しました')
+    toastError('複製に失敗しました')
   }
 }
 

@@ -17,7 +17,11 @@
       </UFormField>
 
       <UFormField label="公開開始日時" name="published_start">
-        <UInput v-model="localPublishedStart" type="datetime-local" @change="(value) => console.log('👺', value)" />
+        <UInput
+          v-model="localPublishedStart"
+          type="datetime-local"
+          @change="value => console.log('👺', value)"
+        />
       </UFormField>
 
       <UFormField label="公開終了日時" name="published_end">
@@ -26,10 +30,15 @@
 
       <!-- フィールドエディタ -->
       <div class="space-y-4">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div
+          class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
+        >
           <h4 class="text-lg font-semibold">フィールド</h4>
           <div class="flex flex-wrap gap-2">
             <UButton size="sm" @click="addField('text')">テキスト</UButton>
+            <UButton size="sm" @click="addField('textarea')"
+              >複数行テキスト</UButton
+            >
             <UButton size="sm" @click="addField('email')"
               >メールアドレス</UButton
             >
@@ -61,7 +70,6 @@
             <div class="flex-1 space-y-3">
               <div class="flex items-center gap-3">
                 <UInput
-                  v-if="field.type !== 'email'"
                   v-model="field.label"
                   placeholder="質問文を入力"
                   class="font-semibold flex-1"
@@ -87,6 +95,7 @@
               <div
                 v-if="
                   field.type === 'text' ||
+                  field.type === 'textarea' ||
                   field.type === 'email' ||
                   field.type === 'tel' ||
                   field.type === 'number'
@@ -157,35 +166,39 @@
                   :key="optIndex"
                   class="flex gap-2 mb-2 items-end"
                 >
-                <div class="flex gap-2 flex-wrap">
-                  <div>
-                    <label class="text-xs text-gray-600 mb-1 block">日付</label>
-                    <UInput
-                      v-model="dateOption.date"
-                      type="date"
-                      class="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label class="text-xs text-gray-600 mb-1 block">時刻</label>
-                    <UInput
-                      v-model="dateOption.time"
-                      list="data-list"
-                      type="time"
-                      class="w-full"
-                      :step="1800"
-                    />
-                    <datalist id="data-list">
-                      <option
-                        v-for="timeOption in timeOptions"
-                        :key="timeOption"
-                        :value="timeOption"
+                  <div class="flex gap-2 flex-wrap">
+                    <div>
+                      <label class="text-xs text-gray-600 mb-1 block"
+                        >日付</label
                       >
-                        {{ timeOption }}
-                      </option>
-                    </datalist>
+                      <UInput
+                        v-model="dateOption.date"
+                        type="date"
+                        class="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label class="text-xs text-gray-600 mb-1 block"
+                        >時刻</label
+                      >
+                      <UInput
+                        v-model="dateOption.time"
+                        list="data-list"
+                        type="time"
+                        class="w-full"
+                        :step="1800"
+                      />
+                      <datalist id="data-list">
+                        <option
+                          v-for="timeOption in timeOptions"
+                          :key="timeOption"
+                          :value="timeOption"
+                        >
+                          {{ timeOption }}
+                        </option>
+                      </datalist>
+                    </div>
                   </div>
-                </div>
                   <UButton
                     color="error"
                     variant="soft"
@@ -195,11 +208,7 @@
                     削除
                   </UButton>
                 </div>
-                <UButton
-                  size="sm"
-                  variant="soft"
-                  @click="addDateOption(index)"
-                >
+                <UButton size="sm" variant="soft" @click="addDateOption(index)">
                   日程を追加
                 </UButton>
               </div>
@@ -254,6 +263,7 @@ export interface FormField {
   id: string
   type:
     | 'text'
+    | 'textarea'
     | 'email'
     | 'select'
     | 'checkbox'
@@ -364,6 +374,7 @@ watch(
 const addField = (
   type:
     | 'text'
+    | 'textarea'
     | 'email'
     | 'select'
     | 'checkbox'
@@ -371,17 +382,26 @@ const addField = (
     | 'tel'
     | 'number'
 ) => {
+  // フィールドのラベルを取得
+  const label = (() => {
+    switch (type) {
+      case 'textarea':
+        return '複数行テキスト'
+      case 'email':
+        return 'メールアドレス'
+      case 'tel':
+        return '電話番号'
+      case 'number':
+        return '数値'
+      default:
+        return ''
+    }
+  })()
+
   const field: FormField = {
     id: `field_${++fieldIdCounter}`,
     type,
-    label:
-      type === 'email'
-        ? 'メールアドレス'
-        : type === 'tel'
-          ? '電話番号'
-          : type === 'number'
-            ? '数値'
-            : '',
+    label,
   }
   if (type === 'select' || type === 'checkbox') {
     field.options = ['']
@@ -395,28 +415,11 @@ const addField = (
     field.placeholder = '090-1234-5678'
   } else if (type === 'number') {
     field.placeholder = '0'
+  } else if (type === 'textarea') {
+    field.placeholder = ''
   }
   localFormFields.value.push(field)
 }
-
-// 既存データにlabelがないフィールドがあれば補完
-watch(
-  localFormFields,
-  fields => {
-    for (const f of fields) {
-      if (f.type === 'email' && (!f.label || !f.label.trim())) {
-        f.label = 'メールアドレス'
-      }
-      if (f.type === 'tel' && (!f.label || !f.label.trim())) {
-        f.label = '電話番号'
-      }
-      if (f.type === 'number' && (!f.label || !f.label.trim())) {
-        f.label = '数値'
-      }
-    }
-  },
-  { deep: true }
-)
 
 const removeField = (index: number) => {
   localFormFields.value.splice(index, 1)

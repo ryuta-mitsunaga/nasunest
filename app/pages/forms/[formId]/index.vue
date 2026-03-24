@@ -56,6 +56,17 @@
                 size="lg"
               />
 
+              <!-- 複数行テキスト -->
+              <UTextarea
+                v-else-if="field.type === 'textarea'"
+                v-model="formData[field.id]"
+                :required="field.required"
+                :placeholder="field.placeholder || ''"
+                :rows="5"
+                size="lg"
+                class="w-full"
+              />
+
               <!-- メールアドレスフィールド -->
               <UInput
                 v-else-if="field.type === 'email'"
@@ -195,6 +206,7 @@ interface FormField {
   id: string
   type:
     | 'text'
+    | 'textarea'
     | 'email'
     | 'select'
     | 'checkbox'

@@ -87,7 +87,12 @@
               </span>
             </div>
             <div class="mt-3">
-              <p class="text-gray-700">
+              <p
+                class="text-gray-700"
+                :class="{
+                  'whitespace-pre-wrap': field.type === 'textarea',
+                }"
+              >
                 {{ getAnswerValue(answer.content, field.id) }}
               </p>
             </div>
@@ -243,6 +248,7 @@ const handleReject = async () => {
 const getFieldTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
     text: 'テキスト',
+    textarea: '複数行テキスト',
     email: 'メールアドレス',
     select: 'プルダウン',
     checkbox: 'チェックボックス',
