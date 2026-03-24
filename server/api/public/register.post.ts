@@ -1,4 +1,5 @@
 import { User } from '~~/server/database'
+import { upsertLineOfficialAccount } from '~~/server/lib/line-official-account'
 import bcrypt from 'bcryptjs'
 import { setCookie } from 'h3'
 import { encryptId } from '~~/server/lib/crypto-utils'
@@ -85,6 +86,22 @@ export default defineEventHandler(async event => {
       maxAge: 60 * 60 * 24 * 7, // 7日間
       path: '/',
     })
+
+    const lineUserId =
+      typeof lineUserIdRaw === 'string' ? lineUserIdRaw.trim() : ''
+    if (lineUserId) {
+      try {
+        await upsertLineOfficialAccount({
+          lineUserId,
+          lastEventType: 'user_registration',
+          email: user.dataValues.email,
+          userId: user.dataValues.id,
+          isActive: true,
+        })
+      } catch (lineErr) {
+        console.error('line_official_accounts upsert (register):', lineErr)
+      }
+    }
 
     return {
       success: true,
