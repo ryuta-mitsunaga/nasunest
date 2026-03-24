@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen py-8">
-    <div class="container mx-auto px-4 max-w-3xl">
+  <div class="min-h-screen py-8 text-neutral-900">
+    <div class="mx-auto max-w-3xl px-4">
       <!-- ローディング -->
       <div v-if="loading" class="flex justify-center items-center py-12">
         <UIcon

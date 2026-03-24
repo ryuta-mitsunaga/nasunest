@@ -1,9 +1,11 @@
 <template>
-  <div class="mb-12 text-left">
-    <h1 class="text-xl md:text-3xl font-bold mb-2" style="color: #2E5E3E">
+  <div class="mb-10 text-left sm:mb-12">
+    <h1
+      class="mb-3 text-2xl font-bold tracking-tight text-neutral-900 md:text-4xl"
+    >
       {{ title }}
     </h1>
-    <UiDivider />
+    <UiDivider color-class="bg-neutral-800" height-class="h-1" />
   </div>
 </template>
 

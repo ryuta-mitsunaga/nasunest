@@ -1,8 +1,7 @@
 <template>
   <div
     v-if="html"
-    class="editorjs-html-viewer prose prose-sm max-w-none"
-    style="color: #2e5e3e"
+    class="editorjs-html-viewer prose prose-sm max-w-none text-neutral-900"
     v-html="html"
   />
 </template>

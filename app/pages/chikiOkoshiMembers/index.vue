@@ -1,5 +1,5 @@
 <template>
-  <div style="color: #2e5e3e">
+  <div>
     <UiPageTitle title="那須町地域おこし協力隊" />
 
     <!-- 那須町地域おこし協力隊について -->
@@ -18,7 +18,7 @@
           </div>
 
           <!-- 右側：説明文 -->
-          <div class="w-full md:w-1/2 flex flex-col gap-4 text-[#2e5e3e]">
+          <div class="flex w-full flex-col gap-4 text-neutral-900 md:w-1/2">
             <h3 class="text-xl md:text-2xl font-semibold py-4">
               地域と暮らしに寄り添う、那須町の協力隊
             </h3>

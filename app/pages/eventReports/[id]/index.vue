@@ -1,9 +1,8 @@
 <template>
-  <div class="relative" style="color: #2e5e3e">
+  <div class="relative text-neutral-900">
     <NuxtLink
       to="/eventReports"
-      class="inline-flex items-center gap-2 text-sm hover:underline mb-4"
-      style="color: #2e5e3e"
+      class="mb-4 inline-flex items-center gap-2 text-sm text-neutral-900 hover:underline"
     >
       <svg
         class="w-4 h-4"
@@ -52,7 +51,7 @@
 
       <div
         v-else-if="eventReport"
-        class="bg-white rounded-2xl shadow-md overflow-hidden"
+        class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-sm"
       >
         <!-- サムネイル画像 -->
         <div
@@ -81,9 +80,7 @@
 
       <!-- 参加者のコメント -->
       <div v-if="!loading && !error" class="mt-8">
-        <h2 class="text-lg font-semibold mb-4" style="color: #2e5e3e">
-          参加者の声
-        </h2>
+        <h2 class="mb-4 text-lg font-semibold text-neutral-900">参加者の声</h2>
         <div v-if="commentsLoading" class="text-center py-6">
           <UIcon name="i-heroicons-arrow-path" class="animate-spin text-xl" />
         </div>
@@ -114,7 +111,7 @@
             <!-- コメント内容 -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
-                <span class="font-medium text-sm" style="color: #2e5e3e">
+                <span class="text-sm font-medium text-neutral-900">
                   {{ comment.name }}
                 </span>
               </div>

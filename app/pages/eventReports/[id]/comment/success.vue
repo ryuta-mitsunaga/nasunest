@@ -1,15 +1,13 @@
 <template>
-  <div class="container mx-auto p-6">
-    <UCard class="text-center">
+  <div class="mx-auto max-w-lg px-4 py-6">
+    <UCard class="border border-neutral-200/90 text-center shadow-sm">
       <div class="py-12">
         <UIcon
           name="i-heroicons-check-circle"
-          class="text-6xl text-green-500 mx-auto mb-4"
+          class="mx-auto mb-4 text-6xl text-neutral-600"
         />
-        <h2 class="text-2xl font-bold mb-2" style="color: #2e5e3e">
-          コメント送信完了
-        </h2>
-        <p class="text-gray-600 mb-6">ご協力ありがとうございました。</p>
+        <h2 class="mb-2 text-2xl font-bold text-neutral-900">コメント送信完了</h2>
+        <p class="mb-6 text-neutral-600">ご協力ありがとうございました。</p>
       </div>
     </UCard>
   </div>

@@ -1,9 +1,7 @@
 <template>
   <div v-if="applications.length > 0" class="mb-8">
     <div class="flex items-center gap-2 mb-2">
-      <h2 class="text-xl font-bold" style="color: #2e5e3e">
-        申し込み中のイベント
-      </h2>
+      <h2 class="text-xl font-bold text-neutral-900">申し込み中のイベント</h2>
       <button
         type="button"
         class="text-xs underline text-gray-600 hover:text-gray-800"

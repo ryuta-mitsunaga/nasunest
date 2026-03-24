@@ -1,5 +1,5 @@
 <template>
-  <div style="color: #2e5e3e">
+  <div>
     <UiPageTitle title="那須町のイベント一覧" />
 
     <!-- 申し込み中のイベント -->

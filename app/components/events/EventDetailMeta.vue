@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-2" style="color: #2e5e3e">
+  <div class="flex flex-col gap-2 text-neutral-900">
     <!-- カテゴリ -->
     <EventsEventCategories :categories="categories" />
 

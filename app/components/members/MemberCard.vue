@@ -1,12 +1,12 @@
 <template>
   <UiFadeInCard>
-    <div class="member-card flex items-center justify-center text-[#2E5E3E]">
+    <div class="member-card flex items-center justify-center text-neutral-900">
       <div class="w-full max-w-56 flex flex-col">
         <!-- 名前 -->
         <p class="text-lg font-bold mb-2 tracking-tight text-left">
           {{ mission }}
         </p>
-        <UiDivider />
+        <UiDivider color-class="bg-neutral-800" height-class="h-0.5" />
 
         <!-- ポートレート画像 -->
         <div class="flex justify-center mt-4">
@@ -45,7 +45,7 @@
               :href="homepageUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-gray-600 hover:text-[#2E5E3E] transition-colors"
+              class="text-neutral-500 transition-colors hover:text-neutral-800"
               aria-label="ホームページ"
               title="ホームページ"
             >

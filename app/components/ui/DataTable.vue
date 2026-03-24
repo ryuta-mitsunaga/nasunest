@@ -9,8 +9,7 @@
         >
           <!-- ラベルセル -->
           <td
-            class="px-6 py-4 text-sm font-bold w-1/3"
-            style="color: #2e5e3e; font-family: 'Kosugi Maru', sans-serif"
+            class="w-1/3 px-6 py-4 text-sm font-bold text-neutral-900"
           >
             <slot :name="`label-${row.key}`" :row="row">
               {{ row.label }}

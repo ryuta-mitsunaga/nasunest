@@ -112,14 +112,14 @@ const containerClass = computed(() => {
   if (isAdminPage.value) {
     return 'min-h-screen flex items-center justify-center bg-gray-50 p-6'
   }
-  return 'min-h-screen flex items-center justify-center bg-page-bg p-6'
+  return 'min-h-screen flex items-center justify-center bg-white p-6'
 })
 
 const contentClass = computed(() => {
   if (isAdminPage.value) {
-    return 'max-w-2xl w-full bg-white rounded-lg shadow-lg p-8 md:p-12'
+    return 'max-w-2xl w-full rounded-2xl border border-neutral-200/90 bg-white p-8 shadow-sm md:p-12'
   }
-  return 'max-w-2xl w-full bg-white rounded-lg shadow-lg p-8 md:p-12'
+  return 'max-w-2xl w-full rounded-2xl border border-neutral-200/90 bg-white p-8 shadow-sm md:p-12'
 })
 
 const iconClass = computed(() => {
@@ -133,7 +133,7 @@ const titleClass = computed(() => {
   if (isAdminPage.value) {
     return 'text-4xl font-bold text-gray-900 mb-4'
   }
-  return 'text-4xl font-bold mb-4 text-[#2e5e3e]'
+  return 'mb-4 text-4xl font-bold text-neutral-900'
 })
 
 const messageClass = computed(() => {
@@ -158,9 +158,3 @@ const handleRetry = () => {
 }
 </script>
 
-<style scoped>
-/* 公開画面用のスタイル */
-:deep(.text-4xl) {
-  color: #2e5e3e;
-}
-</style>

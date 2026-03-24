@@ -3,8 +3,7 @@
     :href="href"
     target="_blank"
     rel="noopener noreferrer"
-    class="sns-link flex items-center gap-1.5 text-sm hover:opacity-70 transition-opacity shrink-0"
-    style="color: #2e5e3e; font-family: 'Kosugi Maru', sans-serif"
+    class="sns-link flex shrink-0 items-center gap-1.5 text-sm text-neutral-900 transition-opacity hover:opacity-80"
     :aria-label="ariaLabel"
     v-bind="$attrs"
   >

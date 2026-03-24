@@ -1,12 +1,11 @@
 <template>
   <NuxtLink
     :to="`/events/${application.event_id}`"
-    class="bg-white rounded-lg border border-gray-200 px-4 py-2 hover:shadow-sm transition-shadow flex md:flex-row flex-col md:items-center items-start gap-2 md:gap-4 cursor-pointer block"
+    class="flex cursor-pointer flex-col items-start gap-2 rounded-xl border border-neutral-200/90 bg-white px-4 py-2 transition-shadow hover:shadow-sm md:flex-row md:items-center md:gap-4"
   >
     <div class="flex-1 min-w-0 w-full md:w-auto">
       <span
-        class="text-sm md:text-base font-semibold block truncate"
-        style="color: #2e5e3e"
+        class="block truncate text-sm font-semibold text-neutral-900 md:text-base"
       >
         {{ application.event_title }}
       </span>

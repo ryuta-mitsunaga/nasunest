@@ -1,5 +1,5 @@
 <template>
-  <div class="md:hidden mobile-menu-container">
+  <div class="mobile-menu-container">
     <!-- ハンバーガーボタン -->
     <button
       @click.stop="toggleMenu"
@@ -7,7 +7,7 @@
       aria-label="メニュー"
     >
       <svg
-        class="w-6 h-6"
+        class="h-6 w-6 text-neutral-900"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -25,7 +25,7 @@
     <Transition name="fade">
       <div
         v-if="isOpen"
-        class="fixed inset-0 bg-opacity-50 z-40"
+        class="fixed inset-0 z-40 bg-black/40"
         @click.stop="closeMenu"
       ></div>
     </Transition>
@@ -34,7 +34,7 @@
     <Transition name="slide-right">
       <div
         v-if="isOpen"
-        class="fixed top-0 right-0 bottom-0 w-80 bg-page-bg shadow-2xl z-50 overflow-y-auto"
+        class="fixed bottom-0 right-0 top-0 z-50 w-80 overflow-y-auto border-l border-neutral-200 bg-white shadow-2xl"
       >
         <!-- メニューの上に表示される閉じるボタン -->
         <button
@@ -60,14 +60,13 @@
         <div class="px-8 py-16 h-full">
           <div class="flex flex-col gap-4 h-full">
             <div
-              v-for="(item, index) in menuItems"
+              v-for="item in menuItems"
               :key="item.to"
               class="flex flex-col gap-1"
             >
               <NuxtLink
                 :to="item.to"
-                class="text-[#2E5E3E] px-4 py-1 flex items-center justify-between hover:opacity-50 transition-opacity"
-                style="font-family: 'Kosugi Maru', sans-serif"
+                class="flex cursor-pointer items-center justify-between rounded-md px-4 py-1 font-medium text-neutral-900 transition-opacity duration-200 hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                 @click.stop="closeMenu"
               >
                 <span>{{ item.label }}</span>
@@ -93,8 +92,7 @@
                 <template v-if="isAuthenticated">
                   <NuxtLink
                     to="/mypage"
-                    class="text-[#2E5E3E] px-4 py-2 flex items-center justify-between hover:opacity-50 transition-opacity"
-                    style="font-family: 'Kosugi Maru', sans-serif"
+                    class="flex cursor-pointer items-center justify-between rounded-md px-4 py-2 font-medium text-neutral-900 transition-opacity duration-200 hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                     @click.stop="closeMenu"
                   >
                     <span>マイページ</span>
@@ -115,8 +113,7 @@
                   <button
                     @click.stop="handleLogout"
                     :disabled="authLoading"
-                    class="w-full text-[#2E5E3E] px-4 py-2 flex items-center justify-between hover:opacity-50 transition-opacity text-left"
-                    style="font-family: 'Kosugi Maru', sans-serif"
+                    class="flex w-full cursor-pointer items-center justify-between rounded-md px-4 py-2 text-left font-medium text-neutral-900 transition-opacity duration-200 hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                   >
                     <span>ログアウト</span>
                     <UIcon
@@ -129,8 +126,7 @@
                 <template v-else>
                   <NuxtLink
                     to="/login"
-                    class="text-[#2E5E3E] px-4 py-2 flex items-center justify-between hover:opacity-50 transition-opacity"
-                    style="font-family: 'Kosugi Maru', sans-serif"
+                    class="flex cursor-pointer items-center justify-between rounded-md px-4 py-2 font-medium text-neutral-900 transition-opacity duration-200 hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                     @click.stop="closeMenu"
                   >
                     <span>ログイン</span>

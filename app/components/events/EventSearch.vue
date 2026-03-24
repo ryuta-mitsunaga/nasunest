@@ -1,5 +1,5 @@
 <template>
-  <UCard class="mb-6">
+  <UCard class="mb-6 border border-neutral-200/90 shadow-sm">
     <template #header>
       <div
         class="flex items-center justify-between cursor-pointer"

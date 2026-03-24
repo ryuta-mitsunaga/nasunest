@@ -2,15 +2,17 @@
   <div class="flex items-center justify-center gap-2 md:gap-4">
     <!-- 左側テキスト -->
     <div class="flex flex-col items-center justify-center font-bold">
-      <p class="text-xs md:text-lg whitespace-pre-line text-center">{{ leftText }}</p>
-      <p class="text-sm md:text-xl underline text-red-700">
+      <p class="whitespace-pre-line text-center text-xs md:text-lg">{{ leftText }}</p>
+      <p
+        class="text-sm text-white/95 underline decoration-white md:text-xl"
+      >
         参加申し込み受付中
       </p>
     </div>
     <!-- 右側：日付・時間・場所（タブレット・デスクトップのみ表示） -->
     <div
       v-if="event"
-      class="hidden md:flex flex-col items-center justify-center font-bold"
+      class="hidden flex-col items-center justify-center font-bold md:flex"
     >
       <p class="text-sm">{{ formatDateTime(event.start_date) }}</p>
       <p v-if="event.end_date && event.start_date !== event.end_date" class="text-sm">
@@ -32,12 +34,10 @@ interface Event {
   location_name: string | null
 }
 
-interface Props {
+defineProps<{
   event: Event | null
   leftText: string
-}
-
-const props = defineProps<Props>()
+}>()
 
 const formatDateTime = (dateString: string) => {
   if (!dateString) return ''
@@ -48,6 +48,4 @@ const formatDateTime = (dateString: string) => {
   const weekday = weekdays[date.getDay()]
   return `${month}/${day}(${weekday})`
 }
-
 </script>
-

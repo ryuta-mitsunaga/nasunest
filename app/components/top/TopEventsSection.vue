@@ -1,20 +1,65 @@
 <template>
-  <section class="bg-[#2E5E3E] text-white py-12">
-    <div class="container mx-auto px-4">
-      <UiSectionTitle title="那須町の最新イベント" />
-
-      <div v-if="loading" class="text-center py-12">
-        <p>読み込み中...</p>
+  <section
+    id="events-start"
+    class="scroll-mt-[4.75rem] bg-white py-20 text-neutral-900 md:py-28"
+    aria-labelledby="events-heading"
+  >
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div
+        class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between mb-12 md:mb-14"
+      >
+        <div class="max-w-2xl">
+          <UiSectionTitle
+            heading-id="events-heading"
+            title="那須町の最新イベント"
+            eyebrow="Events"
+            eyebrow-class="text-neutral-500"
+            text-color-class="text-neutral-900"
+            divider-color-class="bg-neutral-800"
+            divider-height-class="h-1"
+            heading-size="xl"
+          />
+          <p
+            class="mt-5 text-sm md:text-base text-neutral-600 max-w-lg leading-relaxed"
+          >
+            直近の募集・開催情報をピックアップ。気になるものから参加してみてください。
+          </p>
+        </div>
+        <UiCtaLink
+          v-if="events.length > 0"
+          to="/events"
+          variant="outline"
+          label="すべて見る"
+        />
       </div>
 
-      <div v-else-if="error" class="text-center py-12">
-        <p class="text-red-300">{{ error }}</p>
+      <!-- スケルトン -->
+      <div
+        v-if="loading"
+        class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        aria-busy="true"
+        aria-label="読み込み中"
+      >
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="rounded-xl border border-neutral-200 bg-white overflow-hidden animate-pulse"
+        >
+          <div class="aspect-[1.618/1] bg-neutral-200" />
+          <div class="p-5 space-y-3">
+            <div class="h-3 bg-neutral-200 rounded w-1/3" />
+            <div class="h-4 bg-neutral-200 rounded w-full" />
+            <div class="h-4 bg-neutral-200 rounded w-4/5" />
+          </div>
+        </div>
       </div>
 
-      <!-- md以下: 横スクロール、lg以上: グリッド3列 -->
-      <div v-else-if="events.length > 0" class="mt-8">
-        <!-- lg以上: グリッドレイアウト -->
-        <div class="hidden lg:grid lg:grid-cols-3 gap-6">
+      <div v-else-if="error" class="text-center py-16">
+        <p class="text-red-600 text-sm md:text-base">{{ error }}</p>
+      </div>
+
+      <div v-else-if="events.length > 0">
+        <div class="hidden lg:grid lg:grid-cols-3 gap-8">
           <EventsEventCard
             v-for="event in events"
             :key="event.id"
@@ -22,7 +67,6 @@
           />
         </div>
 
-        <!-- md以下: 自動スクロールカルーセル -->
         <div
           ref="scrollContainer"
           class="lg:hidden overflow-x-hidden relative"
@@ -31,7 +75,7 @@
         >
           <div
             ref="scrollContent"
-            class="flex gap-6 transition-transform duration-500 ease-in-out"
+            class="flex gap-5 transition-transform duration-500 ease-out"
             :style="{ transform: `translateX(-${scrollPosition}px)` }"
           >
             <div
@@ -51,30 +95,19 @@
         </div>
       </div>
 
-      <div v-else class="text-center py-12">
-        <p>イベントはありません</p>
+      <div v-else class="text-center py-16">
+        <p class="text-neutral-500">イベントはありません</p>
       </div>
 
-      <div v-if="events.length > 0" class="mt-4 text-center">
-        <NuxtLink
+      <div
+        v-if="events.length > 0"
+        class="mt-10 flex flex-col items-center gap-6 md:hidden"
+      >
+        <UiCtaLink
           to="/events"
-          class="inline-flex items-center gap-2 text-base md:text-lg font-semibold hover:opacity-70 transition-opacity underline"
-        >
-          すべてのイベントを見る
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </NuxtLink>
+          variant="solid"
+          label="すべてのイベントを見る"
+        />
       </div>
     </div>
   </section>
@@ -100,34 +133,27 @@ const scrollPosition = ref(0)
 const currentIndex = ref(0)
 const isPaused = ref(false)
 const isMobile = ref(false)
-let scrollInterval: NodeJS.Timeout | null = null
+let scrollInterval: ReturnType<typeof setInterval> | null = null
 
 const getCardWidth = () => {
   if (!scrollContent.value) return 0
   const firstCard = scrollContent.value.children[0] as HTMLElement
   if (!firstCard) return 0
-  return firstCard.offsetWidth + 24 // gap-6 = 24px
+  return firstCard.offsetWidth + 20 // gap-5
 }
 
 const scrollToNext = () => {
   if (props.events.length === 0 || !scrollContent.value) return
-
   const cardWidth = getCardWidth()
   currentIndex.value = (currentIndex.value + 1) % props.events.length
   scrollPosition.value = cardWidth * currentIndex.value
 }
 
 const startAutoScroll = () => {
-  if (scrollInterval) {
-    clearInterval(scrollInterval)
-  }
-
-  // 3秒ごとにスクロール
+  if (scrollInterval) clearInterval(scrollInterval)
   scrollInterval = setInterval(() => {
-    if (!isPaused.value) {
-      scrollToNext()
-    }
-  }, 3000)
+    if (!isPaused.value) scrollToNext()
+  }, 3500)
 }
 
 const pauseScroll = () => {
@@ -142,20 +168,16 @@ onMounted(() => {
   if (process.client) {
     const checkSize = () => {
       const width = window.innerWidth
-      const isLgBelow = width < 1024 // lg未満
-      isMobile.value = width < 768 // モバイルサイズ
+      const isLgBelow = width < 1024
+      isMobile.value = width < 768
 
       if (isLgBelow && props.events.length > 0 && scrollContent.value) {
         scrollPosition.value = 0
         currentIndex.value = 0
-        // レイアウト確定後に開始
         nextTick(() => {
-          setTimeout(() => {
-            startAutoScroll()
-          }, 500)
+          setTimeout(() => startAutoScroll(), 500)
         })
       } else {
-        // lg以上の場合やイベントがない場合は停止
         if (scrollInterval) {
           clearInterval(scrollInterval)
           scrollInterval = null
@@ -170,16 +192,12 @@ onMounted(() => {
 
     onUnmounted(() => {
       window.removeEventListener('resize', checkSize)
-      if (scrollInterval) {
-        clearInterval(scrollInterval)
-      }
+      if (scrollInterval) clearInterval(scrollInterval)
     })
   }
 })
 
 onUnmounted(() => {
-  if (scrollInterval) {
-    clearInterval(scrollInterval)
-  }
+  if (scrollInterval) clearInterval(scrollInterval)
 })
 </script>

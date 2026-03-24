@@ -12,6 +12,22 @@ body {
   background-size: auto;
 }
 
+/* トップ・公開ページ: パターン背景をやめた明るいキャンバス（管理画面は従来の body 背景のまま） */
+body:has(.top-layout-chic),
+body:has(.public-site-layout) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-layout-chic *,
+  .public-site-layout * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .bg-page-bg {
   background-color: var(--color-page-bg);
 }

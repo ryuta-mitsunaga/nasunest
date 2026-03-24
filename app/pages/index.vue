@@ -1,22 +1,32 @@
 <template>
-  <TopHeroSection :events="allEvents" />
-  <TopNasuNestSection />
-
-  <TopEventsSection
-    :events="latestEvents"
-    :loading="eventsLoading"
-    :error="eventsError"
-  />
-  <TopEventReportSection
-    :event-reports="eventReports"
-    :loading="eventReportsLoading"
-    :error="eventReportsError"
-  />
+  <!-- トップ専用: 白黒・ミニマル・シック（Inter / レイアウト top-layout-chic と連動） -->
+  <main
+    id="primary-content"
+    class="top-page-root"
+    tabindex="-1"
+  >
+    <TopHeroSection
+      :news-items="heroNewsItems"
+      :news-loading="heroNewsLoading"
+    />
+    <TopEventsSection
+      :events="latestEvents"
+      :loading="eventsLoading"
+      :error="eventsError"
+    />
+    <TopEventReportSection
+      :event-reports="eventReportsForSection"
+      :loading="eventReportsLoading"
+      :error="eventReportsError"
+    />
+    <TopNasuNestSection />
+  </main>
 </template>
 
 <script setup lang="ts">
 import type { Event } from '~/components/events/EventCard.vue'
 import type { EventReport } from '~/components/events/EventReportCard.vue'
+import type { HeroNewsItem } from '~/components/top/TopHeroNewsStripCard.vue'
 
 definePageMeta({
   layout: 'top',
@@ -26,6 +36,12 @@ definePageMeta({
 const baseUrl = 'https://www.nasunest.com'
 
 useHead({
+  link: [
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Zen+Maru+Gothic:wght@500;700&display=swap',
+    },
+  ],
   title:
     'NasuNest - 那須町の人がつながるきっかけを生み出す地域コミュニティプラットフォーム',
   meta: [
@@ -164,8 +180,7 @@ useHead({
 // イベントデータの取得
 const eventsLoading = ref(true)
 const eventsError = ref('')
-const latestEvents = ref<Event[]>([])
-const allEvents = ref<Event[]>([])
+const eventsList = ref<Event[]>([])
 
 const { data, error: fetchError } = await useFetch<{
   success: boolean
@@ -177,13 +192,16 @@ const { data, error: fetchError } = await useFetch<{
 if (fetchError.value) {
   eventsError.value = 'イベントの取得に失敗しました'
 } else if (data.value?.success && data.value.data) {
-  // 全イベントデータを保持
-  allEvents.value = data.value.data
-  // 最新3件のみ取得
-  latestEvents.value = data.value.data.slice(0, 3)
+  eventsList.value = data.value.data
 }
 
 eventsLoading.value = false
+
+const latestEvents = computed(() => eventsList.value.slice(0, 3))
+
+const eventReportsForSection = computed(() =>
+  eventReports.value.slice(0, 3)
+)
 
 // イベントレポートデータの取得
 const eventReportsLoading = ref(true)
@@ -194,7 +212,7 @@ const { data: eventReportsData, error: eventReportsFetchError } =
   await useFetch<{
     success: boolean
     data: EventReport[]
-  }>('/api/public/event-reports?limit=3', {
+  }>('/api/public/event-reports?limit=8', {
     default: () => ({ success: true, data: [] }),
   })
 
@@ -205,4 +223,51 @@ if (eventReportsFetchError.value) {
 }
 
 eventReportsLoading.value = false
+
+/** ヒーロー新着ストリップ用（イベント＋レポートを日付でマージ） */
+const heroNewsLoading = computed(
+  () => eventsLoading.value || eventReportsLoading.value
+)
+
+const heroNewsItems = computed((): HeroNewsItem[] => {
+  const ev = eventsList.value.slice(0, 10).map(
+    (e): HeroNewsItem => ({
+      id: `e-${e.id}`,
+      kind: 'event',
+      title: e.title,
+      to: `/events/${e.id}`,
+      at: e.start_date,
+      label: 'イベント',
+      thumbnail: e.thumbnail,
+    })
+  )
+  const rep = eventReports.value.map(
+    (r): HeroNewsItem => ({
+      id: `r-${r.id}`,
+      kind: 'report',
+      title: r.title,
+      to: `/eventReports/${r.id}`,
+      at: r.createdAt,
+      label: 'レポート',
+      thumbnail: r.thumbnail,
+    })
+  )
+  return [...ev, ...rep]
+    .sort(
+      (a, b) =>
+        new Date(b.at).getTime() - new Date(a.at).getTime()
+    )
+    .slice(0, 12)
+})
 </script>
+
+<style scoped>
+.top-page-root {
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+</style>

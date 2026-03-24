@@ -25,3 +25,5 @@ logs
 
 # Docker volumes
 docker/mysql/data
+
+.cursor/skills/ui-ux-pro-max/

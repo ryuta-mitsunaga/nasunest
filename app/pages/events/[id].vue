@@ -1,10 +1,9 @@
 <template>
-  <div class="relative" style="color: #2e5e3e">
+  <div class="relative text-neutral-900">
     <div class="mb-6">
       <NuxtLink
         to="/events"
-        class="inline-flex items-center gap-2 text-sm hover:underline mb-4"
-        style="color: #2e5e3e"
+        class="mb-4 inline-flex items-center gap-2 text-sm text-neutral-900 hover:underline"
       >
         <svg
           class="w-4 h-4"
@@ -34,7 +33,7 @@
 
     <div
       v-else-if="event"
-      class="bg-white rounded-2xl shadow-md overflow-hidden"
+      class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-sm"
     >
       <!-- サムネイル画像 -->
       <div
@@ -73,8 +72,8 @@
 
         <!-- 場所情報 -->
         <div v-if="event.location_name" class="space-y-2">
-          <h2 class="text-lg font-bold" style="color: #2e5e3e">場所</h2>
-          <div class="flex items-start gap-2" style="color: #2e5e3e">
+          <h2 class="text-lg font-bold text-neutral-900">場所</h2>
+          <div class="flex items-start gap-2 text-neutral-900">
             <svg
               class="w-5 h-5 mt-0.5 flex-shrink-0"
               fill="none"
@@ -110,8 +109,7 @@
             :href="event.location_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1 text-sm hover:underline"
-            style="color: #2e5e3e"
+            class="inline-flex items-center gap-1 text-sm text-neutral-900 hover:underline"
           >
             <span>地図を見る</span>
             <svg
@@ -139,15 +137,12 @@
 
         <!-- イベントレポート -->
         <div v-if="event.event_reports?.length" class="space-y-2">
-          <h2 class="text-lg font-bold" style="color: #2e5e3e">
-            イベントレポート
-          </h2>
+          <h2 class="text-lg font-bold text-neutral-900">イベントレポート</h2>
           <ul class="space-y-2">
             <li v-for="report in event.event_reports" :key="report.id">
               <NuxtLink
                 :to="`/eventReports/${report.id}`"
-                class="inline-flex items-center gap-2 text-sm hover:underline"
-                style="color: #2e5e3e"
+                class="inline-flex items-center gap-2 text-sm text-neutral-900 hover:underline"
               >
                 <svg
                   class="w-4 h-4 flex-shrink-0"
@@ -174,15 +169,56 @@
           ref="ctaButtonContainer"
           class="pt-4"
         >
-          <EventsEventCtaButton
-            :approval-type="event.approval_type"
-            :is-authenticated="isAuthenticated"
-            :button-text="event.cta_button_text"
-            :redirect-path="route.fullPath"
-            :is-recruitment-closed="event.status === 'recruitment_closed'"
-            :is-capacity-full="(event as any).is_full === true"
-            @click="handleCtaClick"
-          />
+          <div class="space-y-3">
+            <template v-if="isApplyCapacityFull">
+              <button
+                type="button"
+                disabled
+                class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-[#f4d35e] px-6 py-3 text-base font-medium text-neutral-900 opacity-50 shadow-sm transition-all duration-200 md:w-auto"
+              >
+                <span>定員に達しました</span>
+              </button>
+            </template>
+            <template v-else-if="isLoginRequiredForApply">
+              <button
+                type="button"
+                disabled
+                class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-[#f4d35e] px-6 py-3 text-base font-medium text-neutral-900 opacity-50 shadow-sm transition-all duration-200 md:w-auto"
+              >
+                <p>
+                  申し込みには<br />
+                  <span class="font-bold">ログイン</span>が必須です。
+                </p>
+              </button>
+              <div class="text-center md:text-left">
+                <NuxtLink
+                  :to="loginWithRedirectTo"
+                  class="inline-flex items-center gap-1 text-sm text-neutral-900 hover:underline"
+                >
+                  <span>ログイン画面へ</span>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </NuxtLink>
+              </div>
+            </template>
+            <div v-else class="w-full md:w-auto">
+              <EventsEventActionButton
+                :button-text="event.cta_button_text"
+                @click="handleCtaClick"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -201,21 +237,58 @@
           v-if="
             showFixedCta && event && (event.form_id || (event as any).form_link)
           "
-          class="fixed bottom-4 left-0 right-0 z-50 w-3/4 max-w-xl mx-auto"
-          style="border-color: #2e5e3e"
+          class="fixed bottom-4 left-0 right-0 z-50 mx-auto w-3/4 max-w-xl"
         >
           <div class="max-w-7xl mx-auto">
-            <EventsEventCtaButton
-              :approval-type="event.approval_type"
-              :is-authenticated="isAuthenticated"
-              :button-text="event.cta_button_text"
-              :redirect-path="route.fullPath"
-              :full-width="true"
-              :compact="true"
-              :is-recruitment-closed="event.status === 'recruitment_closed'"
-              :is-capacity-full="(event as any).is_full === true"
-              @click="handleCtaClick"
-            />
+            <div class="space-y-3">
+              <template v-if="isApplyCapacityFull">
+                <button
+                  type="button"
+                  disabled
+                  class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-[#f4d35e] px-6 py-3 text-base font-medium text-neutral-900 opacity-50 shadow-sm transition-all duration-200"
+                >
+                  <span>定員に達しました</span>
+                </button>
+              </template>
+              <template v-else-if="isLoginRequiredForApply">
+                <button
+                  type="button"
+                  disabled
+                  class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-[#f4d35e] px-6 py-3 text-base font-medium text-neutral-900 opacity-50 shadow-sm transition-all duration-200"
+                >
+                  <p>
+                    <span class="font-bold">ログイン</span>が必須です。
+                  </p>
+                </button>
+                <div class="text-center mt-2">
+                  <NuxtLink
+                    :to="loginWithRedirectTo"
+                    class="inline-flex items-center gap-1 text-sm text-neutral-900 hover:underline"
+                  >
+                    <span>ログイン画面へ</span>
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </NuxtLink>
+                </div>
+              </template>
+              <div v-else class="w-full">
+                <EventsEventActionButton
+                  :button-text="event.cta_button_text"
+                  @click="handleCtaClick"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </Transition>
@@ -272,28 +345,31 @@ const event = ref<Event | null>(null)
 const ctaButtonContainer = ref<HTMLElement | null>(null)
 const showFixedCta = ref(false)
 
+const loginWithRedirectTo = computed(
+  () => `/login?redirect=${encodeURIComponent(route.fullPath)}`
+)
+
+const isApplyCapacityFull = computed(
+  () => (event.value as any)?.is_full === true
+)
+
+const isLoginRequiredForApply = computed(() => {
+  const e = event.value
+  if (!e) return false
+  const at = e.approval_type
+  return (at === 0 || at === 1) && !isAuthenticated.value
+})
+
 const handleCtaClick = () => {
-  // 定員到達または募集終了の場合は何もしない
-  if (event.value?.status === 'recruitment_closed') {
+  if (event.value?.form_link) {
+    if (typeof window !== 'undefined') {
+      window.open(event.value.form_link, '_blank', 'noopener,noreferrer')
+    } else {
+      navigateTo(event.value.form_link, { external: true })
+    }
     return
   }
-  // 手動承認（approval_type === 1）の場合はログイン必須
-  if (event.value?.approval_type === 1 && !isAuthenticated.value) {
-    // ログイン必須の場合はログイン画面にリダイレクト
-    navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
-  } else {
-    // 外部フォームURLが設定されている場合はそちらへ遷移（新規タブ）
-    if (event.value?.form_link) {
-      if (typeof window !== 'undefined') {
-        window.open(event.value.form_link, '_blank', 'noopener,noreferrer')
-      } else {
-        navigateTo(event.value.form_link, { external: true })
-      }
-      return
-    }
-    // ログイン不要、またはログイン済みの場合はフォームページに遷移
-    navigateTo(`/forms/${event.value?.form_id}?event_id=${event.value?.id}`)
-  }
+  navigateTo(`/forms/${event.value?.form_id}?event_id=${event.value?.id}`)
 }
 
 // CTAボタンの表示状態を監視

@@ -1,5 +1,5 @@
 <template>
-  <div style="color: #2e5e3e">
+  <div>
     <UiPageTitle title="イベントレポート一覧" />
 
     <EventsEventReportCardList

@@ -1,11 +1,11 @@
 <template>
   <div
-    class="photo-stack relative flex items-center justify-center w-full h-full"
+    class="photo-stack relative flex h-full w-full items-center justify-center"
   >
     <div
       v-for="photo in photos"
       :key="photo.id"
-      class="photo-item absolute rounded-3xl overflow-hidden shadow-xl opacity-0"
+      class="photo-item absolute overflow-hidden rounded-lg opacity-0"
       :style="{
         width: `${photo.size}px`,
         height: `${photo.size * 1.2}px`,
@@ -18,8 +18,8 @@
     >
       <img
         :src="photo.imageSrc"
-        alt="NasuNest"
-        class="w-full h-full object-cover"
+        alt=""
+        class="h-full w-full object-cover grayscale-[35%] contrast-[1.02]"
       />
     </div>
   </div>
@@ -65,7 +65,6 @@ const emit = defineEmits<{
   'cards-animation-complete': []
 }>()
 
-// カードアニメーション完了時間（最後のカードのdelay + アニメーション時間）
 const CARD_ANIMATION_DURATION = (PHOTO_COUNT - 1) * 200 + 800
 
 const spreadFactor = ref(0.3)
@@ -84,21 +83,16 @@ const updateSpread = () => {
 const generatePhotos = () => {
   if (!process.client) return
 
-  // イベントのthumbnailを取得（nullのものは除外）
   const eventThumbnails = (props.events || [])
     .filter(event => event.thumbnail)
     .map(event => event.thumbnail as string)
 
-  // thumbnailがない場合はデフォルト画像を使用
   const defaultImage = '/img/chiki-okoshi-Introduction/dummy1.jpg'
 
-  // 10枚に満たない場合は重複して表示
   const imageSources: string[] = []
   if (eventThumbnails.length === 0) {
-    // イベント画像がない場合はデフォルト画像を10枚使用
     imageSources.push(...Array(PHOTO_COUNT).fill(defaultImage))
   } else {
-    // イベント画像を10枚になるまで繰り返す
     for (let i = 0; i < PHOTO_COUNT; i++) {
       const thumbnail = eventThumbnails[i % eventThumbnails.length]
       imageSources.push(thumbnail || defaultImage)
@@ -124,7 +118,7 @@ const loadImages = () => {
     return new Promise<void>(resolve => {
       const img = new Image()
       img.onload = () => resolve()
-      img.onerror = () => resolve() // エラーでも続行
+      img.onerror = () => resolve()
       img.src = photo.imageSrc
     })
   })
@@ -142,12 +136,10 @@ onMounted(() => {
   window.addEventListener('scroll', updateSpread, { passive: true })
   window.addEventListener('resize', updateSpread)
 
-  // カードアニメーション完了後にemit
   setTimeout(() => {
     emit('cards-animation-complete')
   }, CARD_ANIMATION_DURATION)
 
-  // 画像のロードを開始
   nextTick(() => {
     loadImages()
   })
@@ -163,8 +155,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .photo-item {
   animation: photoStackFade 0.8s ease forwards;
-  border: 4px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(163, 163, 163, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 @keyframes photoStackFade {

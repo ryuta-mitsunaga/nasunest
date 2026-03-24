@@ -1,5 +1,5 @@
 <template>
-  <div style="color: #2e5e3e">
+  <div>
     <UiPageTitle title="マイページ" />
 
     <div class="max-w-3xl mx-auto">
@@ -8,7 +8,7 @@
         <UButton
           v-if="!isEditing"
           @click="startEdit"
-          style="background-color: #2e5e3e; color: white"
+          class="!bg-neutral-900 text-white hover:!bg-neutral-800"
         >
           編集
         </UButton>
@@ -40,8 +40,7 @@
             @click="handleSave"
             :loading="saving"
             :disabled="saving"
-            style="background-color: #2e5e3e; color: white"
-            class="ml-2"
+            class="ml-2 !bg-neutral-900 text-white hover:!bg-neutral-800"
           >
             保存
           </UButton>
@@ -114,7 +113,7 @@
                 :loading="postalCodeLoading"
                 :disabled="!editForm.postal_code || postalCodeLoading"
                 @click="searchPostalCode"
-                style="background-color: #2e5e3e; color: white"
+                class="!bg-neutral-900 text-white hover:!bg-neutral-800"
               >
                 検索
               </UButton>
