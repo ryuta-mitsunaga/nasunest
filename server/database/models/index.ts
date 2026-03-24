@@ -1113,6 +1113,98 @@ User.init(
   }
 )
 
+// LINE公式アカウント連絡先（Messaging API webhook / ユーザー登録との紐付け）
+export interface LineOfficialAccountAttributes {
+  id: number
+  line_user_id: string
+  email: string | null
+  user_id: number | null
+  last_event_type: string | null
+  is_active: boolean
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface LineOfficialAccountCreationAttributes
+  extends Optional<
+    LineOfficialAccountAttributes,
+    | 'id'
+    | 'email'
+    | 'user_id'
+    | 'last_event_type'
+    | 'is_active'
+    | 'createdAt'
+    | 'updatedAt'
+  > {}
+
+export class LineOfficialAccount
+  extends Model<
+    LineOfficialAccountAttributes,
+    LineOfficialAccountCreationAttributes
+  >
+  implements LineOfficialAccountAttributes
+{
+  declare id: number
+  declare line_user_id: string
+  declare email: string | null
+  declare user_id: number | null
+  declare last_event_type: string | null
+  declare is_active: boolean
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
+LineOfficialAccount.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    line_user_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    user_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
+    },
+    last_event_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'line_official_accounts',
+    timestamps: true,
+  }
+)
+
+LineOfficialAccount.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+})
+
+User.hasMany(LineOfficialAccount, {
+  foreignKey: 'user_id',
+  as: 'lineOfficialAccounts',
+})
+
 // EventReportモデル
 export interface EventReportAttributes {
   id: number
@@ -1641,4 +1733,5 @@ export const models = {
   EmailSendLog,
   EditorJsPromptMaster,
   EditorJsPromptCustom,
+  LineOfficialAccount,
 }
