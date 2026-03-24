@@ -11,7 +11,7 @@
           />
           <UiSnsLink
             type="line"
-            href="https://lin.ee/VLzjPvj"
+            :href="lineOfficialAccountUrl"
             label="LINE公式アカウント"
             aria-label="LINE公式アカウント"
           />
@@ -25,5 +25,9 @@
 </template>
 
 <script setup lang="ts">
+const lineOfficialAccountUrl =
+  (useRuntimeConfig().public.lineOfficialAccountUrl as string) ||
+  'https://lin.ee/VLzjPvj'
+
 const currentYear = new Date().getFullYear()
 </script>
