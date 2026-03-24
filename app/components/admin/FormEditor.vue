@@ -17,11 +17,7 @@
       </UFormField>
 
       <UFormField label="公開開始日時" name="published_start">
-        <UInput
-          v-model="localPublishedStart"
-          type="datetime-local"
-          @change="value => console.log('👺', value)"
-        />
+        <UInput v-model="localPublishedStart" type="datetime-local" />
       </UFormField>
 
       <UFormField label="公開終了日時" name="published_end">
